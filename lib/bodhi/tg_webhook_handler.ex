@@ -1,5 +1,8 @@
 defmodule Bodhi.TgWebhookHandler do
   use Telegex.Polling.GenHandler
+  alias Expo.Message
+  alias Ecto.Query.Builder.Update
+  alias Telegex.Type.{Message, Update}
 
   @impl true
   def on_boot() do
@@ -15,8 +18,17 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   @impl true
-  def on_update(data) do
-    IO.inspect(data)
+  def on_update(update) do
+    IO.inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)
+    handle_update(update)
     :ok
+  end
+
+  defp handle_update(%Update{message: message}) when not is_nil(message) do
+    handle_message(message)
+  end
+
+  defp handle_message(%Message{text: text, chat: chat}) do
+    Telegex.send_message(chat.id, "Привет")
   end
 end
