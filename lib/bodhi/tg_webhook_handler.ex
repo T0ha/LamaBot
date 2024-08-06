@@ -28,7 +28,23 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(message)
   end
 
-  defp handle_message(%Message{text: text, chat: chat}) do
+  defp handle_message(%Message{text: text, from: user, chat: chat} = message) do
+    {:ok, user} = 
+      user
+      |> Bodhi.Users.create_or_update_user()
+
+    {:ok, chat} = 
+      chat 
+      |> Map.put(:user_id, user.id)
+      |> Bodhi.Chats.maybe_create_chat()
+
+    {:ok, message} = 
+      message
+      |> Map.from_struct()
+      |> Map.merge(%{user_id: user.id, chat_id: chat.id})
+      |> Bodhi.Chats.create_message()
+      |> IO.inspect(label: "Message")
+      
     Telegex.send_message(chat.id, "Привет")
   end
 end

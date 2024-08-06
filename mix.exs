@@ -20,7 +20,7 @@ defmodule Bodhi.MixProject do
   def application do
     [
       mod: {Bodhi.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :observer, :wx]
     ]
   end
 
@@ -50,8 +50,14 @@ defmodule Bodhi.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
 
-      {:telegex, "~> 1.6.0"},
-      {:finch, "~> 0.18.0"}
+      {:telegex, "~> 1.8.0"},
+      {:finch, "~> 0.18.0"},
+      {:multipart, "~> 0.4.0"}
+
+      #{:bumblebee, github: "cmeon/bumblebee"},
+      #{:bumblebee, path: "../bumblebee"},
+      #{:nx, "~> 0.7.0"},
+      #{:exla, "~> 0.7.0"}
     ]
   end
 

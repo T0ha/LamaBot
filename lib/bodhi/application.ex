@@ -16,7 +16,14 @@ defmodule Bodhi.Application do
       {Phoenix.PubSub, name: Bodhi.PubSub},
       # Start the Endpoint (http/https)
       BodhiWeb.Endpoint,
-      Bodhi.TgWebhookHandler
+      Bodhi.TgWebhookHandler,
+      {Finch,
+        name: Gemini,
+        pools: %{
+        :default => [size: 10]
+      }},
+      Bodhi.Gemini
+      #Bodhi.LlmSup
       # Start a worker by calling: Bodhi.Worker.start_link(arg)
       # {Bodhi.Worker, arg}
     ]
