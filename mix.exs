@@ -49,15 +49,14 @@ defmodule Bodhi.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-
       {:telegex, "~> 1.8.0"},
       {:finch, "~> 0.18.0"},
       {:multipart, "~> 0.4.0"}
 
-      #{:bumblebee, github: "cmeon/bumblebee"},
-      #{:bumblebee, path: "../bumblebee"},
-      #{:nx, "~> 0.7.0"},
-      #{:exla, "~> 0.7.0"}
+      # {:bumblebee, github: "cmeon/bumblebee"},
+      # {:bumblebee, path: "../bumblebee"},
+      # {:nx, "~> 0.7.0"},
+      # {:exla, "~> 0.7.0"}
     ]
   end
 

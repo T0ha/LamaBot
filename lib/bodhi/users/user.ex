@@ -3,7 +3,7 @@ defmodule Bodhi.Users.User do
   import Ecto.Changeset
 
   @allowed_attrs ~w(id first_name last_name username language_code)a
-  @required_attrs ~w(id username language_code)a
+  @required_attrs ~w(id username)a
 
   schema "users" do
     field :first_name, :string
@@ -15,7 +15,8 @@ defmodule Bodhi.Users.User do
   end
 
   @doc false
-  def changeset(message, %Telegex.Type.User{} = data), do:
+  def changeset(message, %Telegex.Type.User{} = data),
+    do:
       data
       |> Map.from_struct()
       |> then(&changeset(message, &1))

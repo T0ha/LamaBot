@@ -17,7 +17,8 @@ defmodule Bodhi.Chats.Chat do
   end
 
   @doc false
-  def changeset(chat, %Telegex.Type.Chat{} = data), do:
+  def changeset(chat, %Telegex.Type.Chat{} = data),
+    do:
       data
       |> Map.from_struct()
       |> then(&changeset(chat, &1))

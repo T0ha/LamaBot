@@ -18,14 +18,10 @@ defmodule Bodhi.Application do
       BodhiWeb.Endpoint,
       Bodhi.TgWebhookHandler,
       {Finch,
-        name: Gemini,
-        pools: %{
-        :default => [size: 10]
-      }},
-      Bodhi.Gemini
-      #Bodhi.LlmSup
-      # Start a worker by calling: Bodhi.Worker.start_link(arg)
-      # {Bodhi.Worker, arg}
+       name: Gemini,
+       pools: %{
+         :default => [size: 10]
+       }}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -56,10 +56,17 @@ defmodule Bodhi.Chats do
   end
 
   def maybe_create_chat(%Telegex.Type.Chat{id: id} = attrs) do
-    %Chat{id: id}
-    |> Repo.reload()
-    |> Chat.changeset(attrs)
-    |> Repo.insert_or_update()
+    Chat
+    |> Repo.get(id)
+    |> case do
+      nil ->
+        create_chat(attrs)
+
+      chat ->
+        chat
+        |> Chat.changeset(attrs)
+        |> Repo.update()
+    end
   end
 
   @doc """
@@ -122,6 +129,23 @@ defmodule Bodhi.Chats do
   """
   def list_messages do
     Repo.all(Message)
+  end
+
+  @doc """
+  Returns all messages for chat.
+
+  ## Examples
+
+      iex> get_chat_messages(%Chat{})
+      [%Message{}, ...]
+
+  """
+  def get_chat_messages(%Chat{id: chat_id}) do
+    from(m in Message,
+      where: m.chat_id == ^chat_id,
+      order_by: [asc: m.inserted_at]
+    )
+    |> Repo.all()
   end
 
   @doc """

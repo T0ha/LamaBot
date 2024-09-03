@@ -56,12 +56,18 @@ defmodule Bodhi.Users do
   end
 
   def create_or_update_user(%Telegex.Type.User{id: id} = attrs) do
-    
-    %User{id: id}
-    |> Repo.reload()
-    |> User.changeset(attrs)
-    |> IO.inspect()
-    |> Repo.insert_or_update()
+    User
+    |> Repo.get(id)
+    |> case do
+      nil ->
+        create_user(attrs)
+
+      user ->
+        user
+        |> Repo.reload()
+        |> User.changeset(attrs)
+        |> Repo.update()
+    end
   end
 
   @doc """
