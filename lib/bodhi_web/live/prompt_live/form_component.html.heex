@@ -1,0 +1,28 @@
+<div>
+  <h2><%= @title %></h2>
+
+  <.form
+    let={f}
+    for={@changeset}
+    id="prompt-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+  
+    <%= label f, :text %>
+    <%= textarea f, :text %>
+    <%= error_tag f, :text %>
+  
+    <%= label f, :type %>
+    <%= select f, :type, Ecto.Enum.values(Bodhi.Prompts.Prompt, :type), prompt: "Choose a value" %>
+    <%= error_tag f, :type %>
+  
+    <%= label f, :active %>
+    <%= checkbox f, :active %>
+    <%= error_tag f, :active %>
+  
+    <div>
+      <%= submit "Save", phx_disable_with: "Saving..." %>
+    </div>
+  </.form>
+</div>

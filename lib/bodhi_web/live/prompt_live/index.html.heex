@@ -1,0 +1,43 @@
+<h1>Listing Prompts</h1>
+
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.prompt_index_path(@socket, :index)}>
+    <.live_component
+      module={BodhiWeb.PromptLive.FormComponent}
+      id={@prompt.id || :new}
+      title={@page_title}
+      action={@live_action}
+      prompt={@prompt}
+      return_to={Routes.prompt_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
+
+<table>
+  <thead>
+    <tr>
+      <th>Text</th>
+      <th>Type</th>
+      <th>Active</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="prompts">
+    <%= for prompt <- @prompts do %>
+      <tr id={"prompt-#{prompt.id}"}>
+        <td><%= prompt.text %></td>
+        <td><%= prompt.type %></td>
+        <td><%= prompt.active %></td>
+
+        <td>
+          <span><%= live_redirect "Show", to: Routes.prompt_show_path(@socket, :show, prompt) %></span>
+          <span><%= live_patch "Edit", to: Routes.prompt_index_path(@socket, :edit, prompt) %></span>
+          <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: prompt.id, data: [confirm: "Are you sure?"] %></span>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<span><%= live_patch "New Prompt", to: Routes.prompt_index_path(@socket, :new) %></span>

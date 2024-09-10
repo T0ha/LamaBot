@@ -3,12 +3,17 @@ defmodule Bodhi.Gemini do
   @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
   alias Bodhi.Chats.Message
+  alias Bodhi.Prompts
+  alias Bodhi.Prompts.Prompt
+
   require Logger
 
   def ask_gemini(messages) do
+    %Prompt{text: prompt} = Prompts.get_latest_prompt!()
+
     messages
     |> prepare_messages()
-    |> request_gemini()
+    |> request_gemini(prompt)
     |> parse_response()
     |> parse_message()
   end
@@ -20,16 +25,30 @@ defmodule Bodhi.Gemini do
 
   defp build_message(%Message{text: text}), do: %{role: :model, parts: [%{text: text}]}
 
-  defp request_gemini(messages) do
+  defp request_gemini(messages, prompt) do
+    body = build_body(messages, prompt)
+
     :post
     |> Finch.build(
       @gemini_url,
       [{"x-goog-api-key", @google_ai_token}],
-      %{contents: messages} |> Jason.encode!()
+      body
     )
     |> Finch.request!(Gemini)
     |> handle_finch_response()
     |> Jason.decode!()
+  end
+
+  defp build_body(messages, prompt) do
+    %{
+      system_instruction: %{
+        parts: %{
+          text: prompt
+        }
+      },
+      contents: messages
+    }
+    |> Jason.encode!()
   end
 
   defp handle_finch_response(%Finch.Response{status: 200, body: body}), do: body

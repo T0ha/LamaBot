@@ -1,0 +1,36 @@
+<h1>Show Prompt</h1>
+
+<%= if @live_action in [:edit] do %>
+  <.modal return_to={Routes.prompt_show_path(@socket, :show, @prompt)}>
+    <.live_component
+      module={BodhiWeb.PromptLive.FormComponent}
+      id={@prompt.id}
+      title={@page_title}
+      action={@live_action}
+      prompt={@prompt}
+      return_to={Routes.prompt_show_path(@socket, :show, @prompt)}
+    />
+  </.modal>
+<% end %>
+
+<ul>
+
+  <li>
+    <strong>Text:</strong>
+    <%= @prompt.text %>
+  </li>
+
+  <li>
+    <strong>Type:</strong>
+    <%= @prompt.type %>
+  </li>
+
+  <li>
+    <strong>Active:</strong>
+    <%= @prompt.active %>
+  </li>
+
+</ul>
+
+<span><%= live_patch "Edit", to: Routes.prompt_show_path(@socket, :edit, @prompt), class: "button" %></span> |
+<span><%= live_redirect "Back", to: Routes.prompt_index_path(@socket, :index) %></span>
