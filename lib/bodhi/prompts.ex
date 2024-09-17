@@ -61,6 +61,52 @@ defmodule Bodhi.Prompts do
   end
 
   @doc """
+  Gets a single prompt.
+
+  Raises `Ecto.NoResultsError` if the Prompt does not exist.
+
+  ## Examples
+
+      iex> get_start_message(lang)
+      {:ok, %Prompt{}}
+
+      iex> get_start_message("")
+  {:error
+
+  """
+  def get_start_message(lang \\ "en") do
+    from(p in Prompt,
+      where: p.type == :start_message and p.lang == ^lang,
+      order_by: {:desc, p.inserted_at},
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Gets a single prompt.
+
+  Raises `Ecto.NoResultsError` if the Prompt does not exist.
+
+  ## Examples
+
+      iex> get_latest_prompt!()
+      %Prompt{}
+
+      iex> get_latest_prompt!()
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_latest_prompt!() do
+    from(p in Prompt,
+      where: p.type == :context,
+      order_by: {:desc, p.inserted_at},
+      limit: 1
+    )
+    |> Repo.one!()
+  end
+
+  @doc """
   Creates a prompt.
 
   ## Examples

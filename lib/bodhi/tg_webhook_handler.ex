@@ -2,7 +2,8 @@ defmodule Bodhi.TgWebhookHandler do
   use Telegex.Polling.GenHandler
   alias Expo.Message
   alias Ecto.Query.Builder.Update
-  alias Telegex.Type.{Message, Update, User}
+  alias Telegex.Type.{Message, Update, User, MessageEntity}
+  alias Bodhi.Prompts.Prompt
 
   @impl true
   def on_boot() do
@@ -28,6 +29,24 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(message)
   end
 
+  defp handle_message(%Message{from: user, chat: chat, text: "/start"} = message) do
+    with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
+      {:ok, chat} <- save_chat(chat, user),
+      {:ok, _message} <- save_message(message, chat, user),
+      %Prompt{text: answer} <- get_start_message(user.language_code),
+      {:ok, _answer_msg} = save_answer(answer, chat) do
+      Telegex.send_message(chat.id, answer)
+    end
+
+  end
+
+  defp handle_message(%Message{from: user, chat: chat, entities: [%MessageEntity{type: "bot_command"}]} = message) do
+    IO.inspect(message, pretty: true, label: "Command")
+  end
+
+  defp handle_message(%Message{from: user, chat: chat, entities: [%MessageEntity{type: "bot_command"}]} = message) do
+    IO.inspect(message, pretty: true, label: "Command")
+  end
   defp handle_message(%Message{from: user, chat: chat} = message) do
     with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
          {:ok, chat} <- save_chat(chat, user),
@@ -57,5 +76,14 @@ defmodule Bodhi.TgWebhookHandler do
 
     %{text: text, user_id: bot_id, chat_id: chat.id}
     |> Bodhi.Chats.create_message()
+  end
+
+  defp get_start_message(lang) do
+    case Bodhi.Prompts.get_start_message(lang) do
+      nil ->
+        Bodhi.Prompts.get_start_message("en")
+      prompt ->
+        prompt
+    end
   end
 end

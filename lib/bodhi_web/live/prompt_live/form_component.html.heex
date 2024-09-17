@@ -17,6 +17,10 @@
     <%= select f, :type, Ecto.Enum.values(Bodhi.Prompts.Prompt, :type), prompt: "Choose a value" %>
     <%= error_tag f, :type %>
   
+    <%= label f, :lang %>
+    <%= text_input f, :lang %>
+    <%= error_tag f, :lang %>
+
     <%= label f, :active %>
     <%= checkbox f, :active %>
     <%= error_tag f, :active %>

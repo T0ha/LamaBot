@@ -1,11 +1,14 @@
 defmodule Bodhi.Prompts.Prompt do
   use Ecto.Schema
   import Ecto.Changeset
+  @allowed_fields ~w(text type active lang)a
+  @required_fields ~w(text type active lang)a
 
   schema "prompts" do
     field :active, :boolean, default: false
-    field :type, Ecto.Enum, values: [:context, :message]
+    field :type, Ecto.Enum, values: [:context, :start_message]
     field :text, :string
+    field :lang, :string, default: "en"
 
     timestamps()
   end
@@ -13,7 +16,7 @@ defmodule Bodhi.Prompts.Prompt do
   @doc false
   def changeset(prompt, attrs) do
     prompt
-    |> cast(attrs, [:text, :type, :active])
-    |> validate_required([:text, :type, :active])
+    |> cast(attrs, @allowed_fields)
+    |> validate_required(@required_fields)
   end
 end
