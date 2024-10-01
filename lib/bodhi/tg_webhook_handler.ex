@@ -1,6 +1,5 @@
 defmodule Bodhi.TgWebhookHandler do
   use Telegex.Polling.GenHandler
-  alias Expo.Message
   alias Ecto.Query.Builder.Update
   alias Telegex.Type.{Message, Update, User, MessageEntity}
   alias Bodhi.Prompts.Prompt
@@ -29,30 +28,19 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(message)
   end
 
-  defp handle_message(%Message{from: user, chat: chat, text: "/start"} = message) do
-    with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
-      {:ok, chat} <- save_chat(chat, user),
-      {:ok, _message} <- save_message(message, chat, user),
-      %Prompt{text: answer} <- get_start_message(user.language_code),
-      {:ok, _answer_msg} = save_answer(answer, chat) do
-      Telegex.send_message(chat.id, answer)
-    end
-
+  defp handle_message(%Message{text: "/start", entities: entities} = message) when entities != [] do
+    handle_message(%{message | entities: []})
   end
 
   defp handle_message(%Message{from: user, chat: chat, entities: [%MessageEntity{type: "bot_command"}]} = message) do
     IO.inspect(message, pretty: true, label: "Command")
   end
 
-  defp handle_message(%Message{from: user, chat: chat, entities: [%MessageEntity{type: "bot_command"}]} = message) do
-    IO.inspect(message, pretty: true, label: "Command")
-  end
   defp handle_message(%Message{from: user, chat: chat} = message) do
     with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
          {:ok, chat} <- save_chat(chat, user),
-         {:ok, _message} <- save_message(message, chat, user),
-         messages <- Bodhi.Chats.get_chat_messages(chat),
-         {:ok, answer} = Bodhi.Gemini.ask_gemini(messages),
+         {:ok, message} <- save_message(message, chat, user),
+         {:ok, answer} = get_answer(message, user.language_code),
          {:ok, _answer_msg} = save_answer(answer, chat) do
       Telegex.send_message(chat.id, answer)
     end
@@ -71,12 +59,16 @@ defmodule Bodhi.TgWebhookHandler do
     |> Bodhi.Chats.create_message()
   end
 
-  defp save_answer(text, chat) do
-    {:ok, %User{id: bot_id}} = Telegex.get_me()
-
-    %{text: text, user_id: bot_id, chat_id: chat.id}
-    |> Bodhi.Chats.create_message()
+  defp get_answer(%_{text: "/start"}, lang) do
+    %Prompt{text: answer} = get_start_message(lang)
+    {:ok, answer}
   end
+
+  defp get_answer(%_{chat_id: chat_id}, _) do
+    messages = Bodhi.Chats.get_chat_messages(chat_id)
+    {:ok, _answer} = Bodhi.Gemini.ask_gemini(messages)
+  end
+
 
   defp get_start_message(lang) do
     case Bodhi.Prompts.get_start_message(lang) do
@@ -85,5 +77,12 @@ defmodule Bodhi.TgWebhookHandler do
       prompt ->
         prompt
     end
+  end
+
+  defp save_answer(text, chat) do
+    {:ok, %User{id: bot_id}} = Telegex.get_me()
+
+    %{text: text, user_id: bot_id, chat_id: chat.id}
+    |> Bodhi.Chats.create_message()
   end
 end
