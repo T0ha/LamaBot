@@ -54,4 +54,9 @@ config :telegex,
   caller_adapter: Finch,
   hook_adapter: Cowboy
 
+config :bodhi, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [default: 10],
+  repo: Bodhi.Repo
+
 import_config "#{config_env()}.exs"

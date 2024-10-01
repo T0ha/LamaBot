@@ -51,7 +51,8 @@ defmodule Bodhi.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:telegex, "~> 1.8.0"},
       {:finch, "~> 0.18.0"},
-      {:multipart, "~> 0.4.0"}
+      {:multipart, "~> 0.4.0"},
+      {:oban, "~> 2.17"}
 
       # {:bumblebee, github: "cmeon/bumblebee"},
       # {:bumblebee, path: "../bumblebee"},

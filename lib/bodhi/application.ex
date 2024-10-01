@@ -21,7 +21,8 @@ defmodule Bodhi.Application do
        name: Gemini,
        pools: %{
          :default => [size: 10]
-       }}
+       }},
+      {Oban, Application.fetch_env!(:bodhi, Oban)}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
