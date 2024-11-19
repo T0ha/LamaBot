@@ -56,7 +56,7 @@ config :telegex,
 
 config :bodhi, Oban,
   engine: Oban.Engines.Basic,
-  queues: [default: 10],
+  queues: [default: 10, messages: 10],
   repo: Bodhi.Repo
 
 import_config "#{config_env()}.exs"

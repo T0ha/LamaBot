@@ -6,7 +6,7 @@ defmodule Bodhi.Prompts.Prompt do
 
   schema "prompts" do
     field :active, :boolean, default: false
-    field :type, Ecto.Enum, values: [:context, :start_message]
+    field :type, Ecto.Enum, values: [:context, :start_message, :followup]
     field :text, :string
     field :lang, :string, default: "en"
 

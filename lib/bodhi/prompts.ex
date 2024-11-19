@@ -84,26 +84,35 @@ defmodule Bodhi.Prompts do
   end
 
   @doc """
-  Gets a single prompt.
+  Gets a random single prompt by type and language.
 
   Raises `Ecto.NoResultsError` if the Prompt does not exist.
 
   ## Examples
 
-      iex> get_latest_prompt!()
+      iex> get_random_prompt_by_type_and_lang(type, lang)
       %Prompt{}
 
-      iex> get_latest_prompt!()
+      iex> get_random_prompt_by_type_and_lang(type)
       ** (Ecto.NoResultsError)
 
   """
-  def get_latest_prompt!() do
+  def get_random_prompt_by_type_and_lang(type, lang \\ "en") do
     from(p in Prompt,
-      where: p.type == :context,
-      order_by: {:desc, p.inserted_at},
-      limit: 1
+      where: p.type == ^type and p.lang == ^lang,
+      order_by: {:desc, p.inserted_at}
     )
-    |> Repo.one!()
+    |> Repo.all()
+    |> case do
+      [] when lang != "en" ->
+        get_random_prompt_by_type_and_lang(type)
+      [] ->
+        raise "Ecto.NoResultsError"
+      prompts ->
+        prompts
+        |> Enum.shuffle()
+        |> hd()
+    end
   end
 
   @doc """

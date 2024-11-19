@@ -35,3 +35,4 @@ npm-debug.log
 data/postgres
 .lexical
 data/couchdb
+.envrc

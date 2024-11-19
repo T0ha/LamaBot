@@ -59,7 +59,8 @@ defmodule Bodhi.TgWebhookHandler do
     |> Bodhi.Chats.create_message()
   end
 
-  defp get_answer(%_{text: "/start"}, lang) do
+  defp get_answer(%_{chat_id: chat_id, text: "/start"}, lang) do
+    Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat_id)
     %Prompt{text: answer} = get_start_message(lang)
     {:ok, answer}
   end
