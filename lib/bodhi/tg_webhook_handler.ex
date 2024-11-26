@@ -28,7 +28,7 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(message)
   end
 
-  defp handle_message(%Message{text: "/start", entities: entities} = message) when entities != [] do
+  defp handle_message(%Message{text: "/" <> _, entities: entities} = message) when entities != [] do
     handle_message(%{message | entities: []})
   end
 
