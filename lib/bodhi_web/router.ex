@@ -19,6 +19,8 @@ defmodule BodhiWeb.Router do
 
     get "/", PageController, :index
 
+    get "/login", AuthController, :login
+
     live "/users", UserLive.Index, :index
     live "/users/new", UserLive.Index, :new
     live "/users/:id/edit", UserLive.Index, :edit

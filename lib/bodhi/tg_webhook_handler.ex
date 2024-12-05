@@ -28,6 +28,19 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(message)
   end
 
+  defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do
+    with db_user <- Bodhi.Users.get_user!(user.id),
+      true <- db_user.is_admin,
+      token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
+      url <- BodhiWeb.Router.Helpers.auth_url(BodhiWeb.Endpoint, :login, [token: token]) 
+    do
+      Telegex.send_message(chat.id, url)
+    else
+      _ ->
+        :ok
+    end
+  end
+
   defp handle_message(%Message{text: "/" <> _, entities: entities} = message) when entities != [] do
     handle_message(%{message | entities: []})
   end

@@ -25,6 +25,10 @@
     <%= text_input f, :language_code %>
     <%= error_tag f, :language_code %>
   
+    <%= label f, :is_admin %>
+    <%= checkbox f, :is_admin %>
+    <%= error_tag f, :is_admin %>
+
     <div>
       <%= submit "Save", phx_disable_with: "Saving..." %>
     </div>

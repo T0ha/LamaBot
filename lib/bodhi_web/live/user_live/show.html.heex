@@ -35,6 +35,10 @@
     <%= @user.language_code %>
   </li>
 
+  <li>
+    <strong>Language code:</strong>
+    <%= @user.is_admin %>
+  </li>
 </ul>
 
 <span><%= live_patch "Edit", to: Routes.user_show_path(@socket, :edit, @user), class: "button" %></span> |

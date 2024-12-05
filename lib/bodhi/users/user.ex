@@ -2,7 +2,7 @@ defmodule Bodhi.Users.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @allowed_attrs ~w(id first_name last_name username language_code)a
+  @allowed_attrs ~w(id first_name last_name username language_code is_admin)a
   @required_attrs ~w(id username)a
 
   schema "users" do
@@ -10,6 +10,7 @@ defmodule Bodhi.Users.User do
     field :language_code, :string
     field :last_name, :string
     field :username, :string
+    field :is_admin, :boolean, default: false
 
     timestamps()
   end
