@@ -29,10 +29,11 @@ if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6"), do: [:inet6], else: []
 
   config :bodhi, Bodhi.Repo,
-    # ssl: true,
+    #ssl: System.get_env("DATABASE_SSL", "false") |> String.to_existing_atom(),
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6
+    socket_options: maybe_ipv6,
+    ssl: [verify: :verify_none]
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
