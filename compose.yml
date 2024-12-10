@@ -15,21 +15,22 @@ services:
       interval: 1s
       timeout: 10s
       retries: 3
-        #web:
-        #  build:
-        #    context: web
-        #  #image: ghcr.io/t0ha/midas-web:latest
-        #  env_file: .env
-        #  hostname: web
-        #  depends_on:
-        #    postgres:
-        #      condition: service_healthy
-        #  ports:
-        #    - 127.0.0.1:4000:4000
-        #    #volumes:
-        #    #  - ./python:/opt
-        #  networks:
-        #    - bothi-network
+  web:
+    build:
+      context: web
+    #image: ghcr.io/t0ha/midas-web:latest
+    image: bothi
+    env_file: .env
+    hostname: web
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:4000:4000
+      #volumes:
+      #  - ./python:/opt
+    networks:
+      - bothi-network
 
 networks:
   bothi-network:

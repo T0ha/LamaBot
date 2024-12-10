@@ -20,7 +20,7 @@ defmodule Bodhi.MixProject do
   def application do
     [
       mod: {Bodhi.Application, []},
-      extra_applications: [:logger, :runtime_tools, :observer, :wx]
+      extra_applications: [:logger]
     ]
   end
 
