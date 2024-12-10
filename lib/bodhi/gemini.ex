@@ -1,5 +1,4 @@
 defmodule Bodhi.Gemini do
-  @google_ai_token Application.compile_env(:bodhi, :gemini_token)
   @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
   alias Bodhi.Chats.Message
@@ -31,7 +30,7 @@ defmodule Bodhi.Gemini do
     :post
     |> Finch.build(
       @gemini_url,
-      [{"x-goog-api-key", @google_ai_token}],
+      [{"x-goog-api-key", Application.get_env(:bodhi, :gemini_token)}],
       body
     )
     |> Finch.request!(Gemini)
