@@ -1,6 +1,10 @@
 defmodule Bodhi.PeriodicMessages do
+
+  @day_in_sec 3600 * 24
+
   use Oban.Worker,
     queue: :messages,
+    unique: [period: @day_in_sec],
     max_attempts: 1
 
   alias Bodhi.Prompts

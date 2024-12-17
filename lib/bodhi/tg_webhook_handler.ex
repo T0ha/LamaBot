@@ -55,6 +55,7 @@ defmodule Bodhi.TgWebhookHandler do
          {:ok, message} <- save_message(message, chat, user),
          {:ok, answer} = get_answer(message, user.language_code),
          {:ok, _answer_msg} = save_answer(answer, chat) do
+      Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
       Telegex.send_message(chat.id, answer)
     end
   end
@@ -72,8 +73,7 @@ defmodule Bodhi.TgWebhookHandler do
     |> Bodhi.Chats.create_message()
   end
 
-  defp get_answer(%_{chat_id: chat_id, text: "/start"}, lang) do
-    Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat_id)
+  defp get_answer(%_{chat_id: _chat_id, text: "/start"}, lang) do
     %Prompt{text: answer} = get_start_message(lang)
     {:ok, answer}
   end
