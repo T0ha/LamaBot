@@ -8,7 +8,9 @@ defmodule Bodhi.TgWebhookHandler do
   def on_boot() do
     # env_config = Application.get_env(:bodhi, __MODULE__)
     # delete the webhook and set it again
-    {:ok, true} = Telegex.delete_webhook()
+    #{:ok, true} = Telegex.delete_webhook()
+    #{:ok, bot_user} = Telegex.get_me()
+    #Bodhi.Users.create_or_update_user(bot_user)
     # set the webhook (url is required)
     # {:ok, true} = Telegex.set_webhook(env_config[:webhook_url])
     # specify port for web server
