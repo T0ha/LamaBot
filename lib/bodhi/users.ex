@@ -36,6 +36,15 @@ defmodule Bodhi.Users do
 
   """
   def get_user!(id), do: Repo.get!(User, id)
+  
+  def get_by_chat!(chat_id) do 
+    (from u in User,
+      #join: c in "chats", on: c.user_id == u.id,
+      where: u.id == ^chat_id,
+      select: u
+    )
+    |> Repo.one!()
+  end
 
   @doc """
   Creates a user.

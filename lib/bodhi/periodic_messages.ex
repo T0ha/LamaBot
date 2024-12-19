@@ -9,14 +9,15 @@ defmodule Bodhi.PeriodicMessages do
 
   alias Bodhi.Prompts
   alias Bodhi.Prompts.Prompt
+  alias Bodhi.Users
+  alias Bodhi.Users.User
 
-  def create_for_new_user(type, {period, unit} = p, chat_id, lang \\ "en") do
+  def create_for_new_user(type, {period, unit} = p, chat_id) do
     %{
       "message_type" => type,
       "chat_id" => chat_id,
       "peiod" => period,
-      "unit" => unit,
-      "lang" => lang
+      "unit" => unit
     }
     |> new(schedule_in: p)
     |> Oban.insert!()
@@ -29,11 +30,11 @@ defmodule Bodhi.PeriodicMessages do
       "message_type" => type,
       "chat_id" => chat_id,
       "peiod" => period,
-      "unit" => unit,
-      "lang" => lang
+      "unit" => unit
     } = args
   }
   ) do
+    %User{language_code: lang} = Users.get_by_chat!(chat_id)
     %Prompt{text: text} = Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
     Telegex.send_message(chat_id, text)
 
