@@ -5,7 +5,7 @@ defmodule Bodhi.Repo.Migrations.CreatePrompts do
     create table(:prompts) do
       add :text, :text
       add :type, :string
-      add :active, :boolean, default: false, null: false
+      add :active, :boolean, default: true, null: false
 
       timestamps()
     end
