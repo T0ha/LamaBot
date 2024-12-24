@@ -47,7 +47,7 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(%{message | entities: []})
   end
 
-  defp handle_message(%Message{from: user, chat: chat, entities: [%MessageEntity{type: "bot_command"}]} = message) do
+  defp handle_message(%Message{ entities: [%MessageEntity{type: "bot_command"}]} = message) do
     IO.inspect(message, pretty: true, label: "Command")
   end
 
@@ -58,6 +58,12 @@ defmodule Bodhi.TgWebhookHandler do
          {:ok, answer} = get_answer(message, user.language_code),
          {:ok, _answer_msg} = send_message(chat.id, answer) do
       Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
+      Posthog.capture("message_handled", 
+        distinct_id: user.id,
+        properties: %{
+          locale: user.language_code,
+          host: BodhiWeb.Endpoint.host()
+        })
       :ok
     end
   end
@@ -100,12 +106,5 @@ defmodule Bodhi.TgWebhookHandler do
       prompt ->
         prompt
     end
-  end
-
-  defp save_answer(text, chat) do
-    {:ok, %User{id: bot_id}} = Telegex.get_me()
-
-    %{text: text, user_id: bot_id, chat_id: chat.id}
-    |> Bodhi.Chats.create_message()
   end
 end

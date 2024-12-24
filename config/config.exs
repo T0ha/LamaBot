@@ -59,4 +59,7 @@ config :bodhi, Oban,
   queues: [default: 10, messages: 10],
   repo: Bodhi.Repo
 
+config :posthog,
+  api_url: "https://eu.i.posthog.com"
+
 import_config "#{config_env()}.exs"

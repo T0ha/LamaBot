@@ -18,6 +18,9 @@ config :bodhi,
 config :telegex,
   token: "#{System.get_env("TG_TOKEN")}"
 
+config :posthog,
+  api_key: "#{System.get_env("POSTHOG_KEY")}"
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
