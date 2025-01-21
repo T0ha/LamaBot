@@ -1,5 +1,4 @@
 defmodule Bodhi.PeriodicMessages do
-
   @day_in_sec 3600 * 24
 
   use Oban.Worker,
@@ -21,19 +20,18 @@ defmodule Bodhi.PeriodicMessages do
     }
     |> new(schedule_in: p)
     |> Oban.insert!()
-
   end
 
   @impl true
   def perform(%Oban.Job{
-    args: %{
-      "message_type" => type,
-      "chat_id" => chat_id,
-      "peiod" => period,
-      "unit" => unit
-    } = args
-  }
-  ) do
+        args:
+          %{
+            "message_type" => type,
+            "chat_id" => chat_id,
+            "peiod" => period,
+            "unit" => unit
+          } = args
+      }) do
     %User{language_code: lang} = Users.get_by_chat!(chat_id)
     %Prompt{text: text} = Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
     Bodhi.TgWebhookHandler.send_message(chat_id, text)

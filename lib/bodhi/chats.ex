@@ -140,8 +140,7 @@ defmodule Bodhi.Chats do
       [%Message{}, ...]
 
   """
-  def get_chat_messages(%Chat{id: chat_id}), do:
-    get_chat_messages(chat_id)
+  def get_chat_messages(%Chat{id: chat_id}), do: get_chat_messages(chat_id)
 
   def get_chat_messages(chat_id) do
     from(m in Message,

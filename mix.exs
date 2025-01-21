@@ -53,7 +53,6 @@ defmodule Bodhi.MixProject do
       {:finch, "~> 0.18.0"},
       {:multipart, "~> 0.4.0"},
       {:oban, "~> 2.17"},
-      
       {:posthog, "~> 0.1"}
 
       # {:bumblebee, github: "cmeon/bumblebee"},

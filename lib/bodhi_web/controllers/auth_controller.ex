@@ -5,8 +5,7 @@ defmodule BodhiWeb.AuthController do
 
   def login(conn, %{"token" => token}) do
     with {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86400),
-      %User{is_admin: true}  = user <- Users.get_user!(user_id) do
-
+         %User{is_admin: true} = user <- Users.get_user!(user_id) do
       conn
       |> put_session(:token, token)
       |> assign(:user, user)
@@ -18,7 +17,6 @@ defmodule BodhiWeb.AuthController do
         |> redirect(to: "/")
     end
   end
-
 
   def logout(conn, _params) do
     conn

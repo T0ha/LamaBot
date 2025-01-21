@@ -106,8 +106,10 @@ defmodule Bodhi.Prompts do
     |> case do
       [] when lang != "en" ->
         get_random_prompt_by_type_and_lang(type)
+
       [] ->
         raise "Ecto.NoResultsError"
+
       prompts ->
         prompts
         |> Enum.shuffle()
