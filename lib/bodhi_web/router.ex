@@ -14,12 +14,22 @@ defmodule BodhiWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :auth do
+    plug BodhiWeb.Plugs.Auth
+  end
+
   scope "/", BodhiWeb do
     pipe_through :browser
 
     get "/", PageController, :index
 
     get "/login", AuthController, :login
+  end
+
+  scope "/", BodhiWeb do
+    pipe_through [:browser, :auth]
+
+    get "/logout", AuthController, :logout
 
     live "/users", UserLive.Index, :index
     live "/users/new", UserLive.Index, :new

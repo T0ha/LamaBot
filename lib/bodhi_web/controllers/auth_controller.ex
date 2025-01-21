@@ -8,11 +8,21 @@ defmodule BodhiWeb.AuthController do
       %User{is_admin: true}  = user <- Users.get_user!(user_id) do
 
       conn
-      |> assign(:current_user, user)
+      |> put_session(:token, token)
+      |> assign(:user, user)
       |> redirect(to: "/users")
     else
       _ ->
-        text(conn, "401")
+        conn
+        |> put_flash(:error, "You are not authorized to access this page!")
+        |> redirect(to: "/")
     end
+  end
+
+
+  def logout(conn, _params) do
+    conn
+    |> clear_session()
+    |> redirect(to: "/")
   end
 end
