@@ -3,6 +3,7 @@ defmodule Bodhi.Chats.Message do
   import Ecto.Changeset
 
   alias Bodhi.Chats.Chat
+  alias Bodhi.Users.User
 
   @alloowed_attrs ~w(date text caption user_id chat_id)a
   # @required_attrs ~w(text)a

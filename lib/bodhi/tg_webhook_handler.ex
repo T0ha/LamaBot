@@ -1,7 +1,7 @@
 defmodule Bodhi.TgWebhookHandler do
   use Telegex.Polling.GenHandler
   alias Ecto.Query.Builder.Update
-  alias Telegex.Type.{Message, Update, User, MessageEntity}
+  alias Telegex.Type.{Message, Update, MessageEntity}
   alias Bodhi.Prompts.Prompt
 
   @impl true

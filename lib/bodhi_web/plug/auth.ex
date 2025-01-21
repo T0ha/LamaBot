@@ -8,7 +8,7 @@ defmodule BodhiWeb.Plugs.Auth do
 
   def init(default), do: default
 
-  def call(conn, default) do
+  def call(conn, _) do
     with token <- get_session(conn, "token"),
       {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86400),
       %User{is_admin: true} = user <- Users.get_user!(user_id) do
