@@ -53,7 +53,9 @@ defmodule Bodhi.MixProject do
       {:finch, "~> 0.18.0"},
       {:multipart, "~> 0.4.0"},
       {:oban, "~> 2.17"},
-      {:posthog, "~> 0.1"}
+      {:posthog, "~> 0.1"},
+      {:credo, "~> 1.7"},
+      {:dialyxir, "~> 1.4"}
 
       # {:bumblebee, github: "cmeon/bumblebee"},
       # {:bumblebee, path: "../bumblebee"},
