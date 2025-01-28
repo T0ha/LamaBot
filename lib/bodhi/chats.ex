@@ -151,6 +151,26 @@ defmodule Bodhi.Chats do
   end
 
   @doc """
+  Returns last message for chat.
+
+  ## Examples
+
+      iex> get_last_message(%Chat{})
+      %Message{}
+
+  """
+  def get_last_message(%Chat{id: chat_id}), do: get_last_message(chat_id)
+
+  def get_last_message(chat_id) do
+    from(m in Message,
+      where: m.chat_id == ^chat_id,
+      order_by: [desc: m.inserted_at],
+      limit: 1
+    )
+    |> Repo.one!()
+  end
+
+  @doc """
   Gets a single message.
 
   Raises `Ecto.NoResultsError` if the Message does not exist.

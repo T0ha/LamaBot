@@ -1,6 +1,8 @@
 defmodule Bodhi.Users.User do
   use Ecto.Schema
   import Ecto.Changeset
+  
+  alias Bodhi.Chats.{Chat, Message}
 
   @allowed_attrs ~w(id first_name last_name username language_code is_admin)a
   @required_attrs ~w(id username)a
@@ -11,6 +13,9 @@ defmodule Bodhi.Users.User do
     field :last_name, :string
     field :username, :string
     field :is_admin, :boolean, default: false
+
+    has_one :chat, Chat
+    has_many(:messages, Message)
 
     timestamps()
   end
