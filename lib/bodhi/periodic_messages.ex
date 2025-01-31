@@ -36,13 +36,15 @@ defmodule Bodhi.PeriodicMessages do
       }) do
     %Message{user_id: from_id, inserted_at: inserted_at} =  Chats.get_last_message(chat_id)
 
-    now = DateTime.utc_now()
-    diff =  DateTime.diff(now, inserted_at, :day)
+    diff =  
+      :second
+      |> DateTime.utc_now()
+      |> DateTime.diff(DateTime.from_naive!(inserted_at, "Etc/UTC"), :day)
 
     case {from_id, diff} do
       {^chat_id, 0} -> :ok
       {^chat_id, 1} -> do_send_folloup(args)
-      {_, @followup_threshold} -> do_send_folloup(args)
+        _ when diff >= @followup_threshold -> do_send_folloup(args)
       _ -> :ok
     end
 
@@ -50,6 +52,7 @@ defmodule Bodhi.PeriodicMessages do
     |> new(schedule_in: {period, String.to_atom(unit)})
     |> Oban.insert!()
 
+    :ok
   end
 
 
