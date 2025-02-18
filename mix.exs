@@ -49,6 +49,7 @@ defmodule Bodhi.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
       {:telegex, "~> 1.8.0"},
       {:finch, "~> 0.18.0"},
       {:multipart, "~> 0.4.0"},
@@ -71,7 +72,11 @@ defmodule Bodhi.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.deploy": ["esbuild default --minify", "phx.digest"]
+      "assets.deploy": [
+        "tailwind myproject --minify",
+        "esbuild default --minify",
+        "phx.digest"
+      ]
     ]
   end
 end

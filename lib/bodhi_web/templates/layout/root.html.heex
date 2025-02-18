@@ -5,24 +5,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <%= csrf_meta_tag() %>
-    <%= live_title_tag assigns[:page_title] || "Bodhi", suffix: " · Phoenix Framework" %>
+    <%= live_title_tag assigns[:page_title] || "Talk to", suffix: " · Lama Bot (དླ་མ་བོཏ།)" %>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
   <body>
-    <header>
-      <section class="container">
-        <nav>
-          <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
-            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-              <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
-            <% end %>
-          </ul>
-        </nav>
-        <a href="https://phoenixframework.org/" class="phx-logo">
-          <img src={Routes.static_path(@conn, "/images/phoenix.png")} alt="Phoenix Framework Logo"/>
+    <header class="max-w-xl mx-auto flex border-1 border-white border-b-zinc-400">
+      <section class="flex items-center">
+        <a href="https:///" class="p-6">
+          <img class="rounded-full w-24" src={Routes.static_path(@conn, "/images/lama-bot.jpg")} alt="Lama Bot avatar"/>
         </a>
+        <div>
+          <strong>
+            Lama Bot (དླ་མ་བོཏ།)
+          </strong>
+          <div class="text-gray-500 font-medium">
+            Compassionate chat bot helping in emotionaly hard situation.
+          </div>
+        </div>
       </section>
     </header>
     <%= @inner_content %>
