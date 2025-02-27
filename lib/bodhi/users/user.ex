@@ -1,7 +1,7 @@
 defmodule Bodhi.Users.User do
   use Ecto.Schema
   import Ecto.Changeset
-  
+
   alias Bodhi.Chats.{Chat, Message}
 
   @allowed_attrs ~w(id first_name last_name username language_code is_admin)a
