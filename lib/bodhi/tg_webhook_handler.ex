@@ -74,10 +74,8 @@ defmodule Bodhi.TgWebhookHandler do
 
       Posthog.capture("message_handled",
         distinct_id: user.id,
-        properties: %{
-          locale: user.language_code,
-          host: BodhiWeb.Endpoint.host()
-        }
+        locale: user.language_code,
+        "$current_url": BodhiWeb.Endpoint.host()
       )
 
       :ok
@@ -103,8 +101,15 @@ defmodule Bodhi.TgWebhookHandler do
     |> Bodhi.Chats.create_message()
   end
 
-  defp get_answer(%_{chat_id: _chat_id, text: "/start"}, lang) do
+  defp get_answer(%_{chat_id: chat_id, text: "/start"}, lang) do
     %Prompt{text: answer} = get_start_message(lang)
+
+    Posthog.capture("start_command",
+      distinct_id: chat_id,
+      locale: lang,
+      "$current_url": BodhiWeb.Endpoint.host()
+    )
+
     {:ok, answer}
   end
 
