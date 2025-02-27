@@ -1,4 +1,8 @@
 defmodule Bodhi.PeriodicMessages do
+  @moduledoc """
+  Periodicc messages workflow routines
+  """
+
   @day_in_sec 3600 * 24
   @followup_threshold 2
 

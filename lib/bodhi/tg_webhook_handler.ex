@@ -1,5 +1,11 @@
 defmodule Bodhi.TgWebhookHandler do
+  @moduledoc """
+  Telegram Bot API handler
+  """
   use Telegex.Polling.GenHandler
+
+  require Logger
+
   alias Ecto.Query.Builder.Update
   alias Telegex.Type.{Message, Update, MessageEntity}
   alias Bodhi.Prompts.Prompt
@@ -21,7 +27,10 @@ defmodule Bodhi.TgWebhookHandler do
 
   @impl true
   def on_update(update) do
-    IO.inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)
+    Logger.debug(
+      "Update received: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
+    )
+
     handle_update(update)
     :ok
   end
@@ -48,15 +57,15 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp handle_message(%Message{entities: [%MessageEntity{type: "bot_command"}]} = message) do
-    IO.inspect(message, pretty: true, label: "Command")
+    Logger.info("Bot command: #{inspect(message, pretty: true)}")
   end
 
   defp handle_message(%Message{from: user, chat: chat} = message) do
     with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
          {:ok, chat} <- save_chat(chat, user),
          {:ok, message} <- save_message(message, chat.id, user),
-         {:ok, answer} = get_answer(message, user.language_code),
-         {:ok, _answer_msg} = send_message(chat.id, answer) do
+         {:ok, answer} <- get_answer(message, user.language_code),
+         {:ok, _answer_msg} <- send_message(chat.id, answer) do
       Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
 
       Posthog.capture("message_handled",
@@ -72,9 +81,8 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   def send_message(chat_id, text) do
-    with {:ok, message} <- Telegex.send_message(chat_id, text),
-         {:ok, msg} <- save_message(message, chat_id, message.from) do
-      {:ok, msg}
+    with {:ok, message} <- Telegex.send_message(chat_id, text) do
+      {:ok, _msg} = save_message(message, chat_id, message.from)
     end
   end
 
