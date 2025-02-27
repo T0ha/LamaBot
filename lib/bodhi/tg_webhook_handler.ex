@@ -39,6 +39,10 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(message)
   end
 
+  defp handle_update(%Update{} = update) do
+    Logger.warning("Unhandled update: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}")
+  end
+
   defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do
     with db_user <- Bodhi.Users.get_user!(user.id),
          true <- db_user.is_admin,
