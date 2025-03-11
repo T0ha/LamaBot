@@ -40,7 +40,9 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp handle_update(%Update{} = update) do
-    Logger.warning("Unhandled update: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}")
+    Logger.warning(
+      "Unhandled update: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
+    )
   end
 
   defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do

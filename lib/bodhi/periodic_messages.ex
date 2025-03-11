@@ -64,13 +64,17 @@ defmodule Bodhi.PeriodicMessages do
          "chat_id" => chat_id
        }) do
     %User{language_code: lang} = user = Users.get_by_chat!(chat_id)
-    %Prompt{id: prompt_id, text: text} = Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
+
+    %Prompt{id: prompt_id, text: text} =
+      Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
+
     Posthog.capture("followup_sent",
       distinct_id: user.id,
       locale: lang,
       "$current_url": BodhiWeb.Endpoint.host(),
       prompt_id: prompt_id
     )
+
     Bodhi.TgWebhookHandler.send_message(chat_id, text)
   end
 end
