@@ -1,4 +1,6 @@
 defmodule Bodhi.Prompts.Prompt do
+  @moduledoc false
+
   use Ecto.Schema
   import Ecto.Changeset
   @allowed_fields ~w(text type active lang)a

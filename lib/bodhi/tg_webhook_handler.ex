@@ -1,5 +1,11 @@
 defmodule Bodhi.TgWebhookHandler do
+  @moduledoc """
+  Telegram Bot API handler
+  """
   use Telegex.Polling.GenHandler
+
+  require Logger
+
   alias Ecto.Query.Builder.Update
   alias Telegex.Type.{Message, Update, MessageEntity}
   alias Bodhi.Prompts.Prompt
@@ -21,13 +27,20 @@ defmodule Bodhi.TgWebhookHandler do
 
   @impl true
   def on_update(update) do
-    IO.inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)
+    Logger.debug(
+      "Update received: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
+    )
+
     handle_update(update)
     :ok
   end
 
   defp handle_update(%Update{message: message}) when not is_nil(message) do
     handle_message(message)
+  end
+
+  defp handle_update(%Update{} = update) do
+    Logger.warning("Unhandled update: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}")
   end
 
   defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do
@@ -48,23 +61,21 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp handle_message(%Message{entities: [%MessageEntity{type: "bot_command"}]} = message) do
-    IO.inspect(message, pretty: true, label: "Command")
+    Logger.info("Bot command: #{inspect(message, pretty: true)}")
   end
 
   defp handle_message(%Message{from: user, chat: chat} = message) do
     with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
          {:ok, chat} <- save_chat(chat, user),
          {:ok, message} <- save_message(message, chat.id, user),
-         {:ok, answer} = get_answer(message, user.language_code),
-         {:ok, _answer_msg} = send_message(chat.id, answer) do
+         {:ok, answer} <- get_answer(message, user.language_code),
+         {:ok, _answer_msg} <- send_message(chat.id, answer) do
       Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
 
       Posthog.capture("message_handled",
         distinct_id: user.id,
-        properties: %{
-          locale: user.language_code,
-          host: BodhiWeb.Endpoint.host()
-        }
+        locale: user.language_code,
+        "$current_url": BodhiWeb.Endpoint.host()
       )
 
       :ok
@@ -72,9 +83,8 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   def send_message(chat_id, text) do
-    with {:ok, message} <- Telegex.send_message(chat_id, text),
-         {:ok, msg} <- save_message(message, chat_id, message.from) do
-      {:ok, msg}
+    with {:ok, message} <- Telegex.send_message(chat_id, text) do
+      {:ok, _msg} = save_message(message, chat_id, message.from)
     end
   end
 
@@ -91,8 +101,15 @@ defmodule Bodhi.TgWebhookHandler do
     |> Bodhi.Chats.create_message()
   end
 
-  defp get_answer(%_{chat_id: _chat_id, text: "/start"}, lang) do
+  defp get_answer(%_{chat_id: chat_id, text: "/start"}, lang) do
     %Prompt{text: answer} = get_start_message(lang)
+
+    Posthog.capture("start_command",
+      distinct_id: chat_id,
+      locale: lang,
+      "$current_url": BodhiWeb.Endpoint.host()
+    )
+
     {:ok, answer}
   end
 

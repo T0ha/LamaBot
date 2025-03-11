@@ -1,10 +1,12 @@
 defmodule BodhiWeb.AuthController do
+  @moduledoc false
+
   use BodhiWeb, :controller
   alias Bodhi.Users
   alias Bodhi.Users.User
 
   def login(conn, %{"token" => token}) do
-    with {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86400),
+    with {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86_400),
          %User{is_admin: true} = user <- Users.get_user!(user_id) do
       conn
       |> put_session(:token, token)

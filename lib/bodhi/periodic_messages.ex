@@ -1,4 +1,8 @@
 defmodule Bodhi.PeriodicMessages do
+  @moduledoc """
+  Periodicc messages workflow routines
+  """
+
   @day_in_sec 3600 * 24
   @followup_threshold 2
 
@@ -34,9 +38,9 @@ defmodule Bodhi.PeriodicMessages do
             "unit" => unit
           } = args
       }) do
-    %Message{user_id: from_id, inserted_at: inserted_at} =  Chats.get_last_message(chat_id)
+    %Message{user_id: from_id, inserted_at: inserted_at} = Chats.get_last_message(chat_id)
 
-    diff =  
+    diff =
       :second
       |> DateTime.utc_now()
       |> DateTime.diff(DateTime.from_naive!(inserted_at, "Etc/UTC"), :day)
@@ -44,7 +48,7 @@ defmodule Bodhi.PeriodicMessages do
     case {from_id, diff} do
       {^chat_id, 0} -> :ok
       {^chat_id, 1} -> do_send_folloup(args)
-        _ when diff >= @followup_threshold -> do_send_folloup(args)
+      _ when diff >= @followup_threshold -> do_send_folloup(args)
       _ -> :ok
     end
 
@@ -55,15 +59,18 @@ defmodule Bodhi.PeriodicMessages do
     :ok
   end
 
-
-  defp do_send_folloup(
-          %{
-            "message_type" => type,
-            "chat_id" => chat_id
-          }
-  ) do
-    %User{language_code: lang} = Users.get_by_chat!(chat_id)
-    %Prompt{text: text} = Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
+  defp do_send_folloup(%{
+         "message_type" => type,
+         "chat_id" => chat_id
+       }) do
+    %User{language_code: lang} = user = Users.get_by_chat!(chat_id)
+    %Prompt{id: prompt_id, text: text} = Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
+    Posthog.capture("followup_sent",
+      distinct_id: user.id,
+      locale: lang,
+      "$current_url": BodhiWeb.Endpoint.host(),
+      prompt_id: prompt_id
+    )
     Bodhi.TgWebhookHandler.send_message(chat_id, text)
   end
 end
