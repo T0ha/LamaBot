@@ -1,43 +1,21 @@
-<section class="bg-zinc-500 text-white rounded-xl p-5">
-  <div class="p-0 h-15">
-    &nbsp;
+<section class="flex flex-col items-center gap-5">
+  <div class="gap-5">
+    <a href="https:///" class="m-6">
+      <img class="rounded-full w-48" src={Routes.static_path(@conn, "/images/lama-bot.jpg")} alt="Lama Bot avatar"/>
+    </a>
   </div>
-  fdf
-</section>
+  <div class="">
+    <strong class="text-xl">
+      Lama Bot (དླ་མ་བོཏ།)
+    </strong>
+  </div>
 
-<section class="row">
-  <article class="column">
-    <h2>Resources</h2>
-    <ul>
-      <li>
-        <a href="https://hexdocs.pm/phoenix/overview.html">Guides &amp; Docs</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix/blob/v1.6/CHANGELOG.md">v1.6 Changelog</a>
-      </li>
-    </ul>
-  </article>
-  <article class="column">
-    <h2>Help</h2>
-    <ul>
-      <li>
-        <a href="https://elixirforum.com/c/phoenix-forum">Forum</a>
-      </li>
-      <li>
-        <a href="https://web.libera.chat/#elixir">#elixir on Libera Chat (IRC)</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">Twitter @elixirphoenix</a>
-      </li>
-      <li>
-        <a href="https://elixir-slackin.herokuapp.com/">Elixir on Slack</a>
-      </li>
-      <li>
-        <a href="https://discord.gg/elixir">Elixir on Discord</a>
-      </li>
-    </ul>
-  </article>
+  <div class="grow text-gray-500 font-medium font-italic ">
+    Compassionate and supportive chat bot helping to cope with strong emotions in hard situations.
+  </div>
+  <div class="my-5">
+    <a href={"https://t.me/#{@bot_username}"} class="inline-flex rounded-full px-5 py-2 bg-blue-500 text-white hover:bg-blue-400">
+      Talk to Lama Bot
+    </a>
+  </div>
 </section>
