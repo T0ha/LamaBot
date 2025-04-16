@@ -24,7 +24,7 @@
     <meta property="twitter:url" content={@url}/>
     <meta name="twitter:title" content="Talk to · Lama Bot (དླ་མ་བོཏ།)"/>
     <meta name="twitter:description" content={@page_description}/>
-    <meta name="twitter:image" content={Routes.static_path(@conn, "/images/lama-bot.jpg")}/>
+    <meta name="twitter:image" content={Routes.static_url(@conn, "/images/lama-bot.jpg")}/>
 
     <%= csrf_meta_tag() %>
     <%= live_title_tag assigns[:page_title] || "Talk to", suffix: " · Lama Bot (དླ་མ་བོཏ།)" %>
