@@ -35,8 +35,15 @@ jobs:
           push: true
           context: .
           tags: ghcr.io/t0ha/lama-bot:latest
+
+  deploy_to_do:
+    name: Deploy to Digital Ocean App
+    runs-on: ubuntu-24.04
+    needs: [build_docker_image]
+    steps:
       - name: Deploy to DO Apps
-        uses: jjst/action-digitalocean-deploy-app@v2
+        uses: inspire-labs-tms-tech/digital-ocean-deploy-action@2.0.2
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          force: "false" 
+          api-key: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           app-id: 9e8c2aae-c365-40b1-8cf5-4127790f8c96
