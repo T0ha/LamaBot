@@ -2,7 +2,7 @@ defmodule Bodhi.Gemini do
   @moduledoc """
   Google Gemini API wrapper
   """
-  @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+  @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
   alias Bodhi.Chats.Message
   alias Bodhi.Prompts
