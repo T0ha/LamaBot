@@ -16,8 +16,16 @@ defmodule Bodhi.ObanCase do
 
   use ExUnit.CaseTemplate
 
+  import Bodhi.Factory
   import Mock
 
+  @bot_user %Telegex.Type.User{
+    id: Faker.random_between(1, 1000),
+    first_name: Faker.Name.first_name(),
+    last_name: Faker.Name.last_name(),
+    username: Faker.Internet.user_name(),
+    is_bot: true
+  }
   using do
     quote do
       use Oban.Testing, repo: Bodhi.Repo
@@ -33,13 +41,39 @@ defmodule Bodhi.ObanCase do
     end
   end
 
-  setup_with_mocks([
-    {Telegex, [:passthrough], [send_message: fn _, _ -> :ok end]},
-    {Posthog, [], [capture: fn _, _ -> :ok end]}
-  ],
-    tags) do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Bodhi.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
-    :ok
+  setup_with_mocks(
+    [
+      {Telegex, [],
+       [
+         send_message: fn chat_id, text ->
+           {:ok,
+            %Telegex.Type.Message{
+              from: @bot_user,
+              chat: %Telegex.Type.Chat{
+                id: chat_id,
+                type: "private"
+              },
+              date: DateTime.utc_now() |> DateTime.to_unix(),
+              message_id: Faker.random_between(1, 1000),
+              text: text
+            }}
+         end,
+         get_updates: fn _ -> {:ok, []} end
+       ]},
+      {Posthog, [], [capture: fn _, _ -> :ok end]}
+    ],
+    tags
+  ) do
+    pid =
+      Ecto.Adapters.SQL.Sandbox.start_owner!(Bodhi.Repo, shared: not tags[:async])
+
+    Bodhi.Users.create_or_update_user(@bot_user)
+    chat = insert(:chat)
+
+    on_exit(fn ->
+      Ecto.Adapters.SQL.Sandbox.stop_owner(pid)
+    end)
+
+    {:ok, %{chat: chat}}
   end
 end

@@ -10,6 +10,7 @@ config :bodhi, Bodhi.Repo,
   password: "postgres",
   database: "bodhi_test#{System.get_env("MIX_TEST_PARTITION")}",
   hostname: "localhost",
+  port: 5433,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
 
@@ -29,4 +30,4 @@ config :logger, level: :warn
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
 
-config :bodhi, Oban, testing: :inline
+config :bodhi, Oban, testing: :manual

@@ -2,18 +2,20 @@ defmodule Bodhi.Factory do
   @moduledoc """
   Factory module for generating test data.
   """
-  
+
   use ExMachina.Ecto, repo: Bodhi.Repo
 
-  alias Bodhi.Chats.Message
+  alias Bodhi.Chats.{Chat, Message}
   alias Bodhi.Users.User
   alias Bodhi.Prompts.Prompt
 
   def chat_factory do
-    %{
-      id: Faker.random_between(1, 1000),
+    id = Faker.random_between(1, 1000)
+
+    %Chat{
+      id: id,
       title: Faker.Lorem.sentence(),
-      user: build(:user)
+      user: build(:user, id: id)
     }
   end
 
@@ -36,7 +38,8 @@ defmodule Bodhi.Factory do
 
   def prompt_factory do
     %Prompt{
-      text: Faker.Lorem.sentence()
+      text: Faker.Lorem.sentence(),
+      type: Faker.Util.pick([:start_message, :context, :followup])
     }
   end
 end

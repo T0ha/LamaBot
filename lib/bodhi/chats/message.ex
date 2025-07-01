@@ -31,5 +31,7 @@ defmodule Bodhi.Chats.Message do
   def changeset(message, attrs) do
     message
     |> cast(attrs, @alloowed_attrs)
+    |> foreign_key_constraint(:user_id)
+    |> foreign_key_constraint(:chat_id)
   end
 end
