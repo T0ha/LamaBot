@@ -8,7 +8,7 @@ defmodule Bodhi.Chats.Message do
   alias Bodhi.Users.User
 
   @alloowed_attrs ~w(date text caption user_id chat_id)a
-  # @required_attrs ~w(text)a
+  @required_attrs ~w(user_id chat_id)a
 
   schema "messages" do
     field :caption, :string
@@ -31,6 +31,7 @@ defmodule Bodhi.Chats.Message do
   def changeset(message, attrs) do
     message
     |> cast(attrs, @alloowed_attrs)
+    |> validate_required(@required_attrs)
     |> foreign_key_constraint(:user_id)
     |> foreign_key_constraint(:chat_id)
   end
