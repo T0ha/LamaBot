@@ -10,7 +10,13 @@ defmodule Bodhi.MixProject do
       compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        ignore_warnings: ".dialyzer_ignore.exs",
+        plt_add_apps: [
+          :mix
+        ]
+      ]
     ]
   end
 

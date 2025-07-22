@@ -10,6 +10,17 @@ defmodule Bodhi.Chats.Message do
   @alloowed_attrs ~w(date text caption user_id chat_id)a
   @required_attrs ~w(user_id chat_id)a
 
+  @type t() :: %__MODULE__{
+          id: non_neg_integer() | nil,
+          caption: String.t() | nil,
+          date: non_neg_integer() | nil,
+          text: String.t() | nil,
+          chat_id: non_neg_integer() | nil,
+          user_id: non_neg_integer() | nil,
+          chat: Chat.t() | Ecto.Association.t() | nil,
+          from: User.t() | Ecto.Association.t() | nil
+        }
+
   schema "messages" do
     field :caption, :string
     field :date, :integer
@@ -22,6 +33,7 @@ defmodule Bodhi.Chats.Message do
   end
 
   @doc false
+  @spec changeset(t(), Telegex.Type.Message.t() | map()) :: Ecto.Changeset.t()
   def changeset(message, %Telegex.Type.Message{} = data),
     do:
       data

@@ -17,6 +17,7 @@ defmodule Bodhi.Prompts do
       [%Prompt{}, ...]
 
   """
+  @spec list_prompts() :: [Prompt.t()]
   def list_prompts do
     Repo.all(Prompt)
   end
@@ -35,6 +36,7 @@ defmodule Bodhi.Prompts do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_prompt!(non_neg_integer()) :: Prompt.t()
   def get_prompt!(id), do: Repo.get!(Prompt, id)
 
   @doc """
@@ -51,6 +53,7 @@ defmodule Bodhi.Prompts do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_latest_prompt!() :: Prompt.t()
   def get_latest_prompt!() do
     from(p in Prompt,
       where: p.type == :context,
@@ -74,6 +77,7 @@ defmodule Bodhi.Prompts do
   {:error
 
   """
+  @spec get_start_message(String.t()) :: Prompt.t() | nil
   def get_start_message(lang \\ "en") do
     from(p in Prompt,
       where: p.type == :start_message and p.lang == ^lang,
@@ -97,6 +101,7 @@ defmodule Bodhi.Prompts do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_random_prompt_by_type_and_lang(Prompt.type(), String.t()) :: Prompt.t()
   def get_random_prompt_by_type_and_lang(type, lang \\ "en") do
     from(p in Prompt,
       where: p.type == ^type and p.lang == ^lang,
@@ -129,6 +134,7 @@ defmodule Bodhi.Prompts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_prompt(map()) :: {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
   def create_prompt(attrs \\ %{}) do
     %Prompt{}
     |> Prompt.changeset(attrs)
@@ -147,6 +153,7 @@ defmodule Bodhi.Prompts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_prompt(Prompt.t(), map()) :: {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
   def update_prompt(%Prompt{} = prompt, attrs) do
     prompt
     |> Prompt.changeset(attrs)
@@ -165,6 +172,7 @@ defmodule Bodhi.Prompts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_prompt(Prompt.t()) :: {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
   def delete_prompt(%Prompt{} = prompt) do
     Repo.delete(prompt)
   end
@@ -178,6 +186,7 @@ defmodule Bodhi.Prompts do
       %Ecto.Changeset{data: %Prompt{}}
 
   """
+  @spec change_prompt(Prompt.t(), map()) :: Ecto.Changeset.t()
   def change_prompt(%Prompt{} = prompt, attrs \\ %{}) do
     Prompt.changeset(prompt, attrs)
   end

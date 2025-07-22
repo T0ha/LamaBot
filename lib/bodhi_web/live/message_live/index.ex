@@ -5,11 +5,18 @@ defmodule BodhiWeb.MessageLive.Index do
   alias Bodhi.Chats.Message
 
   @impl true
+  @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :messages, list_messages())}
   end
 
   @impl true
+  @spec handle_params(
+          map(),
+          String.t(),
+          Phoenix.LiveView.Socket.t()
+        ) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
@@ -33,6 +40,11 @@ defmodule BodhiWeb.MessageLive.Index do
   end
 
   @impl true
+  @spec handle_event(
+          String.t(),
+          map(),
+          Phoenix.LiveView.Socket.t()
+        ) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("delete", %{"id" => id}, socket) do
     message = Chats.get_message!(id)
     {:ok, _} = Chats.delete_message(message)

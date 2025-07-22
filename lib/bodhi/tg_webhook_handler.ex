@@ -11,6 +11,7 @@ defmodule Bodhi.TgWebhookHandler do
   alias Bodhi.Prompts.Prompt
 
   @impl true
+  @spec on_boot() :: Telegex.Polling.Config.t()
   def on_boot() do
     # env_config = Application.get_env(:bodhi, __MODULE__)
     # delete the webhook and set it again
@@ -29,6 +30,7 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   @impl true
+  @spec on_update(Update.t()) :: :ok
   def on_update(update) do
     Logger.debug(
       "Update received: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
@@ -87,6 +89,7 @@ defmodule Bodhi.TgWebhookHandler do
     end
   end
 
+  # @spec send_message(non_neg_integer(), String.t()) :: {:ok, Bodhi.Chats.Message.t()}
   def send_message(chat_id, text) do
     with {:ok, message} <- Telegex.send_message(chat_id, text) do
       {:ok, _msg} = save_message(message, chat_id, message.from)

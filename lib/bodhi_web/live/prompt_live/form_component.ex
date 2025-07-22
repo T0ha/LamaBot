@@ -4,6 +4,8 @@ defmodule BodhiWeb.PromptLive.FormComponent do
   alias Bodhi.Prompts
 
   @impl true
+  @spec update(map(), Phoenix.LiveView.Socket.t()) ::
+          {:ok, Phoenix.LiveView.Socket.t()}
   def update(%{prompt: prompt} = assigns, socket) do
     changeset = Prompts.change_prompt(prompt)
 
@@ -14,6 +16,11 @@ defmodule BodhiWeb.PromptLive.FormComponent do
   end
 
   @impl true
+  @spec handle_event(
+          String.t(),
+          map(),
+          Phoenix.LiveView.Socket.t()
+        ) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("validate", %{"prompt" => prompt_params}, socket) do
     changeset =
       socket.assigns.prompt

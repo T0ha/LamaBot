@@ -8,8 +8,10 @@ defmodule BodhiWeb.Plugs.Auth do
   alias Bodhi.Users
   alias Bodhi.Users.User
 
+  @spec init(any()) :: any()
   def init(default), do: default
 
+  @spec call(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def call(conn, _) do
     with token <- get_session(conn, "token"),
          {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86_400),

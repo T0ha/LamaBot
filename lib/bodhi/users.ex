@@ -17,6 +17,7 @@ defmodule Bodhi.Users do
       [%User{}, ...]
 
   """
+  @spec list_users() :: [User.t()]
   def list_users do
     Repo.all(User)
   end
@@ -35,8 +36,10 @@ defmodule Bodhi.Users do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_user!(non_neg_integer()) :: User.t()
   def get_user!(id), do: Repo.get!(User, id)
 
+  @spec get_by_chat!(chat_id :: non_neg_integer()) :: User.t()
   def get_by_chat!(chat_id) do
     from(u in User,
       # join: c in "chats", on: c.user_id == u.id,
@@ -58,12 +61,15 @@ defmodule Bodhi.Users do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_user(map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()} | no_return()
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
   end
 
+  @spec create_or_update_user(Telegex.Type.User.t() | map()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def create_or_update_user(%Telegex.Type.User{id: id} = attrs) do
     User
     |> Repo.get(id)
@@ -91,6 +97,7 @@ defmodule Bodhi.Users do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_user(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
@@ -109,6 +116,7 @@ defmodule Bodhi.Users do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_user(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def delete_user(%User{} = user) do
     Repo.delete(user)
   end
@@ -122,6 +130,7 @@ defmodule Bodhi.Users do
       %Ecto.Changeset{data: %User{}}
 
   """
+  @spec change_user(User.t(), map()) :: Ecto.Changeset.t()
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end

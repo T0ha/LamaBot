@@ -10,6 +10,10 @@ defmodule Bodhi.Gemini do
 
   require Logger
 
+  @doc """
+  Request Gemini for bot's response in dialogue.
+  """
+  @spec ask_gemini([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
   def ask_gemini(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()
 

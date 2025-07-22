@@ -6,6 +6,7 @@ defmodule Bodhi.Application do
   use Application
 
   @impl true
+  @spec start(atom(), any()) :: Supervisor.on_start()
   def start(_type, _args) do
     children = [
       # Start the Ecto repository
@@ -33,6 +34,11 @@ defmodule Bodhi.Application do
 
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
+  @spec config_change(
+          keyword(),
+          keyword(),
+          keyword()
+        ) :: :ok
   @impl true
   def config_change(changed, _new, removed) do
     BodhiWeb.Endpoint.config_change(changed, removed)
