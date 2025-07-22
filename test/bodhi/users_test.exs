@@ -20,7 +20,7 @@ defmodule Bodhi.UsersTest do
     end
 
     test "create_user/1 with valid data creates a user" do
-      user_params = 
+      user_params =
         :user
         |> params_for()
         |> Map.put(:id, Faker.random_between(1, 10_000))
@@ -31,7 +31,6 @@ defmodule Bodhi.UsersTest do
       assert user.last_name == user_params.last_name
       assert user.language_code == user_params.language_code
       assert user.is_admin == user_params.is_admin
-      
     end
 
     test "create_user/1 with invalid data returns error changeset" do

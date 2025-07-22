@@ -2,12 +2,6 @@ defmodule Bodhi.PeriodicMessagesTest do
   use Bodhi.ObanCase, async: true
 
   alias Bodhi.PeriodicMessages
-  alias Bodhi.Chats
-  alias Bodhi.Chats.Message
-  alias Bodhi.Users
-  alias Bodhi.Users.User
-  alias Bodhi.Prompts
-  alias Bodhi.Prompts.Prompt
 
   describe "create_for_new_user/3" do
     test "schedules a new periodic message job" do
@@ -40,8 +34,7 @@ defmodule Bodhi.PeriodicMessagesTest do
 
       prompt = insert(:prompt, type: type, lang: "en")
 
-      message =
-        insert(:message, chat: chat, from: chat.user, inserted_at: Faker.DateTime.backward(3))
+      insert(:message, chat: chat, from: chat.user, inserted_at: Faker.DateTime.backward(3))
 
       assert :ok =
                PeriodicMessages.perform(%Oban.Job{
@@ -64,8 +57,7 @@ defmodule Bodhi.PeriodicMessagesTest do
 
       prompt = insert(:prompt, type: type, lang: "en")
 
-      message =
-        insert(:message, chat: chat, from: chat.user, inserted_at: Faker.DateTime.backward(0))
+      insert(:message, chat: chat, from: chat.user, inserted_at: Faker.DateTime.backward(0))
 
       assert :ok =
                PeriodicMessages.perform(%Oban.Job{

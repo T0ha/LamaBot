@@ -21,6 +21,7 @@ defmodule BodhiWeb.Plugs.Auth do
         conn
         |> put_flash(:error, "You are not authorized to access this page!")
         |> redirect(to: "/")
+        |> halt()
     end
   end
 end

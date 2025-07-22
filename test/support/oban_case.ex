@@ -21,8 +21,8 @@ defmodule Bodhi.ObanCase do
 
   @bot_user %Telegex.Type.User{
     id: Faker.random_between(1, 1000),
-    first_name: Faker.Name.first_name(),
-    last_name: Faker.Name.last_name(),
+    first_name: Faker.Person.first_name(),
+    last_name: Faker.Person.last_name(),
     username: Faker.Internet.user_name(),
     is_bot: true
   }

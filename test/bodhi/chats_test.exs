@@ -20,7 +20,7 @@ defmodule Bodhi.ChatsTest do
     end
 
     test "create_chat/1 with valid data creates a chat" do
-      chat_params = 
+      chat_params =
         :chat
         |> params_for()
         |> Map.put(:id, Faker.random_between(1, 10_000))
@@ -90,7 +90,8 @@ defmodule Bodhi.ChatsTest do
     end
 
     test "create_message/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Chats.create_message(params_for(:message, %{from: nil}))
+      assert {:error, %Ecto.Changeset{}} =
+               Chats.create_message(params_for(:message, %{from: nil}))
     end
 
     test "update_message/2 with valid data updates the message" do

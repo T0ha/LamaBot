@@ -15,7 +15,8 @@ defmodule Bodhi.Factory do
     %Chat{
       id: id,
       title: Faker.Lorem.sentence(),
-      user: build(:user, id: id)
+      user: build(:user, id: id),
+      type: Faker.Lorem.word()
     }
   end
 
@@ -24,6 +25,8 @@ defmodule Bodhi.Factory do
 
     %Message{
       text: Faker.Lorem.sentence(),
+      caption: Faker.Lorem.sentence(),
+      date: Faker.random_between(1_000_000_000, 2_000_000_000),
       chat: build(:chat, user: user),
       from: user
     }
@@ -31,6 +34,8 @@ defmodule Bodhi.Factory do
 
   def user_factory do
     %User{
+      first_name: Faker.Person.first_name(),
+      last_name: Faker.Person.last_name(),
       username: Faker.Internet.user_name(),
       language_code: "en"
     }

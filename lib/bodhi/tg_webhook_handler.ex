@@ -10,8 +10,6 @@ defmodule Bodhi.TgWebhookHandler do
   alias Telegex.Type.{Message, Update, MessageEntity}
   alias Bodhi.Prompts.Prompt
 
-  @user_commands ~w(start)
-
   @impl true
   def on_boot() do
     # env_config = Application.get_env(:bodhi, __MODULE__)
@@ -120,7 +118,7 @@ defmodule Bodhi.TgWebhookHandler do
     {:ok, answer}
   end
 
-  defp get_answer(%_{chat_id: chat_id, text: "/" <> _}, lang) do
+  defp get_answer(%_{text: "/" <> _}, _lang) do
     {:ok, "Unknowwn command. Please use /start to begin."}
   end
 
