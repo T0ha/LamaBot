@@ -11,10 +11,14 @@ defmodule Bodhi.TgWebhookHandler do
   alias Bodhi.Prompts.Prompt
 
   @impl true
+  @spec on_boot() :: Telegex.Polling.Config.t()
   def on_boot() do
     # env_config = Application.get_env(:bodhi, __MODULE__)
     # delete the webhook and set it again
-    {:ok, true} = Telegex.delete_webhook()
+    unless Mix.env() == :test do
+      {:ok, true} = Telegex.delete_webhook()
+    end
+
     # {:ok, bot_user} = Telegex.get_me()
     # Bodhi.Users.create_or_update_user(bot_user)
     # set the webhook (url is required)
@@ -26,6 +30,7 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   @impl true
+  @spec on_update(Update.t()) :: :ok
   def on_update(update) do
     Logger.debug(
       "Update received: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
@@ -84,6 +89,7 @@ defmodule Bodhi.TgWebhookHandler do
     end
   end
 
+  # @spec send_message(non_neg_integer(), String.t()) :: {:ok, Bodhi.Chats.Message.t()}
   def send_message(chat_id, text) do
     with {:ok, message} <- Telegex.send_message(chat_id, text) do
       {:ok, _msg} = save_message(message, chat_id, message.from)
@@ -113,6 +119,10 @@ defmodule Bodhi.TgWebhookHandler do
     )
 
     {:ok, answer}
+  end
+
+  defp get_answer(%_{text: "/" <> _}, _lang) do
+    {:ok, "Unknowwn command. Please use /start to begin."}
   end
 
   defp get_answer(%_{chat_id: chat_id}, _) do

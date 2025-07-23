@@ -9,6 +9,16 @@ defmodule Bodhi.Chats.Chat do
   @allowed_attrs ~w(id type title)a
   @required_attrs ~w(id type)a
 
+  @type t() :: %__MODULE__{
+          id: non_neg_integer() | nil,
+          type: String.t() | nil,
+          title: String.t() | nil,
+          user_id: non_neg_integer() | nil,
+          inserted_at: NaiveDateTime.t() | nil,
+          updated_at: NaiveDateTime.t() | nil,
+          user: User.t() | Ecto.Association.t() | nil
+        }
+
   schema "chats" do
     field :title, :string
     field :type, :string
@@ -19,6 +29,7 @@ defmodule Bodhi.Chats.Chat do
   end
 
   @doc false
+  @spec changeset(t(), Telegex.Type.Chat.t() | map()) :: Ecto.Changeset.t()
   def changeset(chat, %Telegex.Type.Chat{} = data),
     do:
       data

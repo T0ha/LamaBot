@@ -18,6 +18,8 @@ defmodule Bodhi.PeriodicMessages do
   alias Bodhi.Users
   alias Bodhi.Users.User
 
+  @spec create_for_new_user(atom(), {non_neg_integer(), atom()}, non_neg_integer()) ::
+          Oban.Job.t()
   def create_for_new_user(type, {period, unit} = p, chat_id) do
     %{
       "message_type" => type,
@@ -30,6 +32,7 @@ defmodule Bodhi.PeriodicMessages do
   end
 
   @impl true
+  @spec perform(Oban.Job.t()) :: :ok | {:error, term()}
   def perform(%Oban.Job{
         args:
           %{

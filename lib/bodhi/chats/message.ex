@@ -8,7 +8,18 @@ defmodule Bodhi.Chats.Message do
   alias Bodhi.Users.User
 
   @alloowed_attrs ~w(date text caption user_id chat_id)a
-  # @required_attrs ~w(text)a
+  @required_attrs ~w(user_id chat_id)a
+
+  @type t() :: %__MODULE__{
+          id: non_neg_integer() | nil,
+          caption: String.t() | nil,
+          date: non_neg_integer() | nil,
+          text: String.t() | nil,
+          chat_id: non_neg_integer() | nil,
+          user_id: non_neg_integer() | nil,
+          chat: Chat.t() | Ecto.Association.t() | nil,
+          from: User.t() | Ecto.Association.t() | nil
+        }
 
   schema "messages" do
     field :caption, :string
@@ -22,6 +33,7 @@ defmodule Bodhi.Chats.Message do
   end
 
   @doc false
+  @spec changeset(t(), Telegex.Type.Message.t() | map()) :: Ecto.Changeset.t()
   def changeset(message, %Telegex.Type.Message{} = data),
     do:
       data
@@ -31,5 +43,8 @@ defmodule Bodhi.Chats.Message do
   def changeset(message, attrs) do
     message
     |> cast(attrs, @alloowed_attrs)
+    |> validate_required(@required_attrs)
+    |> foreign_key_constraint(:user_id)
+    |> foreign_key_constraint(:chat_id)
   end
 end

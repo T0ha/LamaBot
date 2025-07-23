@@ -10,8 +10,10 @@ config :bodhi, Bodhi.Repo,
   password: "postgres",
   database: "bodhi_test#{System.get_env("MIX_TEST_PARTITION")}",
   hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10
+  port: 5433,
+  pool: Ecto.Adapters.SQL.Sandbox
+
+# pool_size: 10
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
@@ -24,9 +26,9 @@ config :bodhi, BodhiWeb.Endpoint,
 config :bodhi, Bodhi.Mailer, adapter: Swoosh.Adapters.Test
 
 # Print only warnings and errors during test
-config :logger, level: :warn
+config :logger, level: :info
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
 
-config :bodhi, Oban, testing: :inline
+config :bodhi, Oban, testing: :manual

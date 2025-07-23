@@ -17,6 +17,7 @@ defmodule Bodhi.Chats do
       [%Chat{}, ...]
 
   """
+  @spec list_chats() :: [Chat.t()]
   def list_chats do
     Repo.all(Chat)
   end
@@ -35,6 +36,7 @@ defmodule Bodhi.Chats do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_chat!(non_neg_integer()) :: Chat.t()
   def get_chat!(id), do: Repo.get!(Chat, id)
 
   @doc """
@@ -49,12 +51,15 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_chat(map()) :: {:ok, Chat.t()} | {:error, Ecto.Changeset.t()}
   def create_chat(attrs \\ %{}) do
     %Chat{}
     |> Chat.changeset(attrs)
     |> Repo.insert()
   end
 
+  @spec maybe_create_chat(Telegex.Type.Chat.t() | map()) ::
+          {:ok, Chat.t()} | {:error, Ecto.Changeset.t()}
   def maybe_create_chat(%Telegex.Type.Chat{id: id} = attrs) do
     Chat
     |> Repo.get(id)
@@ -81,6 +86,7 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_chat(Chat.t(), map()) :: {:ok, Chat.t()} | {:error, Ecto.Changeset.t()}
   def update_chat(%Chat{} = chat, attrs) do
     chat
     |> Chat.changeset(attrs)
@@ -99,6 +105,7 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_chat(Chat.t()) :: {:ok, Chat.t()} | {:error, Ecto.Changeset.t()}
   def delete_chat(%Chat{} = chat) do
     Repo.delete(chat)
   end
@@ -112,6 +119,7 @@ defmodule Bodhi.Chats do
       %Ecto.Changeset{data: %Chat{}}
 
   """
+  @spec change_chat(Chat.t(), map()) :: Ecto.Changeset.t()
   def change_chat(%Chat{} = chat, attrs \\ %{}) do
     Chat.changeset(chat, attrs)
   end
@@ -127,6 +135,7 @@ defmodule Bodhi.Chats do
       [%Message{}, ...]
 
   """
+  @spec list_messages() :: [Message.t()]
   def list_messages do
     Repo.all(Message)
   end
@@ -140,6 +149,7 @@ defmodule Bodhi.Chats do
       [%Message{}, ...]
 
   """
+  @spec get_chat_messages(Chat.t() | non_neg_integer()) :: [Message.t()]
   def get_chat_messages(%Chat{id: chat_id}), do: get_chat_messages(chat_id)
 
   def get_chat_messages(chat_id) do
@@ -159,6 +169,7 @@ defmodule Bodhi.Chats do
       %Message{}
 
   """
+  @spec get_last_message(Chat.t() | non_neg_integer()) :: Message.t()
   def get_last_message(%Chat{id: chat_id}), do: get_last_message(chat_id)
 
   def get_last_message(chat_id) do
@@ -184,6 +195,7 @@ defmodule Bodhi.Chats do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_message!(non_neg_integer()) :: Message.t()
   def get_message!(id), do: Repo.get!(Message, id)
 
   @doc """
@@ -198,6 +210,7 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_message(map()) :: {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def create_message(attrs \\ %{}) do
     %Message{}
     |> Message.changeset(attrs)
@@ -216,6 +229,7 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_message(Message.t(), map()) :: {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def update_message(%Message{} = message, attrs) do
     message
     |> Message.changeset(attrs)
@@ -234,6 +248,7 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_message(Message.t()) :: {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def delete_message(%Message{} = message) do
     Repo.delete(message)
   end
@@ -247,6 +262,7 @@ defmodule Bodhi.Chats do
       %Ecto.Changeset{data: %Message{}}
 
   """
+  @spec change_message(Message.t(), map()) :: Ecto.Changeset.t()
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
   end

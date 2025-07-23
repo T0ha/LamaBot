@@ -5,6 +5,7 @@ defmodule BodhiWeb.AuthController do
   alias Bodhi.Users
   alias Bodhi.Users.User
 
+  @spec login(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def login(conn, %{"token" => token}) do
     with {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86_400),
          %User{is_admin: true} = user <- Users.get_user!(user_id) do
@@ -20,6 +21,7 @@ defmodule BodhiWeb.AuthController do
     end
   end
 
+  @spec login(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def logout(conn, _params) do
     conn
     |> clear_session()

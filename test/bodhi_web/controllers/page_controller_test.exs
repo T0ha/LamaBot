@@ -3,6 +3,7 @@ defmodule BodhiWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, "/")
-    assert html_response(conn, 200) =~ "Welcome to Phoenix!"
+    assert html_response(conn, 200) =~ "Talk to Lama Bot"
+    assert html_response(conn, 200) =~ "Compassionate"
   end
 end

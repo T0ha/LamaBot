@@ -10,7 +10,13 @@ defmodule Bodhi.MixProject do
       compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        ignore_warnings: ".dialyzer_ignore.exs",
+        plt_add_apps: [
+          :mix
+        ]
+      ]
     ]
   end
 
@@ -56,7 +62,11 @@ defmodule Bodhi.MixProject do
       {:oban, "~> 2.17"},
       {:posthog, "~> 0.1"},
       {:credo, "~> 1.7", runtime: false},
-      {:dialyxir, "~> 1.4", runtime: false}
+      {:dialyxir, "~> 1.4", runtime: false},
+      {:faker, "~> 0.18.0", only: [:test]},
+      {:ex_machina, "~> 2.8", only: [:test]},
+      {:mock, "~> 0.3", only: [:test]},
+      {:excoveralls, "~> 0.14", only: [:test], runtime: false}
     ]
   end
 

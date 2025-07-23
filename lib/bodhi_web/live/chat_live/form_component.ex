@@ -4,6 +4,8 @@ defmodule BodhiWeb.ChatLive.FormComponent do
   alias Bodhi.Chats
 
   @impl true
+  @spec update(map(), Phoenix.LiveView.Socket.t()) ::
+          {:ok, Phoenix.LiveView.Socket.t()}
   def update(%{chat: chat} = assigns, socket) do
     changeset = Chats.change_chat(chat)
 
@@ -14,6 +16,11 @@ defmodule BodhiWeb.ChatLive.FormComponent do
   end
 
   @impl true
+  @spec handle_event(
+          String.t(),
+          map(),
+          Phoenix.LiveView.Socket.t()
+        ) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("validate", %{"chat" => chat_params}, socket) do
     changeset =
       socket.assigns.chat

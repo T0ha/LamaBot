@@ -5,11 +5,15 @@ defmodule BodhiWeb.UserLive.Index do
   alias Bodhi.Users.User
 
   @impl true
+  @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :users, list_users())}
   end
 
   @impl true
+  @spec handle_params(map(), String.t(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
@@ -33,6 +37,8 @@ defmodule BodhiWeb.UserLive.Index do
   end
 
   @impl true
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("delete", %{"id" => id}, socket) do
     user = Users.get_user!(id)
     {:ok, _} = Users.delete_user(user)
