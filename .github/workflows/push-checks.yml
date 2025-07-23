@@ -2,7 +2,7 @@ name: Run code checks and tests
 on:
   push:
     branches-ignore:
-      - master
+      - main
 
 defaults:
   run:
