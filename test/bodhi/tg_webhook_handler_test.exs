@@ -79,17 +79,17 @@ defmodule Bodhi.TgWebhookHandlerTest do
     %Update{
       update_id: Faker.random_bytes(100),
       message: %Message{
-        message_id: Faker.random_between(1, 65536),
+        message_id: Faker.random_between(1, 65_536),
         text: text,
         entities: entities,
         date: DateTime.utc_now() |> DateTime.to_unix(),
         chat: %Chat{
-          id: Faker.random_between(1, 65536),
+          id: Faker.random_between(1, 65_536),
           title: Faker.Person.name(),
           type: "private"
         },
         from: %User{
-          id: Faker.random_between(1, 65536),
+          id: Faker.random_between(1, 65_536),
           first_name: Faker.Person.first_name(),
           last_name: Faker.Person.last_name(),
           is_bot: false,
@@ -139,6 +139,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
       if reply? do
         assert [response] = other
 
+        # credo:disable-for-next-line
         if opts[:reply] do
           assert response.text == Keyword.get(opts, :reply)
         end
