@@ -6,12 +6,12 @@ defmodule BodhiWeb.PageController do
     page_description =
       ~s(Compassionate and supportive chat bot helping to cope with strong emotions in hard situations.)
 
-    url = Routes.page_url(conn, :index)
+    url = url(~p"/")
 
     conn
     |> assign(:url, url)
     |> assign(:page_description, page_description)
     |> assign(:bot_username, "compassion_lama_bot")
-    |> render("index.html")
+    |> render(:index)
   end
 end

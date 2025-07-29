@@ -3,6 +3,7 @@ defmodule Bodhi.TgWebhookHandler do
   Telegram Bot API handler
   """
   use Telegex.Polling.GenHandler
+  use BodhiWeb, :verified_routes
 
   require Logger
 
@@ -54,7 +55,7 @@ defmodule Bodhi.TgWebhookHandler do
     with db_user <- Bodhi.Users.get_user!(user.id),
          true <- db_user.is_admin,
          token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
-         url <- BodhiWeb.Router.Helpers.auth_url(BodhiWeb.Endpoint, :login, token: token) do
+         url <- url(~p"/login?#{[token: token]}") do
       Telegex.send_message(chat.id, url)
     else
       _ ->

@@ -9,10 +9,11 @@ defmodule Bodhi.Application do
   @spec start(atom(), any()) :: Supervisor.on_start()
   def start(_type, _args) do
     children = [
-      # Start the Ecto repository
-      Bodhi.Repo,
       # Start the Telemetry supervisor
       BodhiWeb.Telemetry,
+      # Start the Ecto repository
+      Bodhi.Repo,
+      {DNSCluster, query: Application.get_env(:bodhi, :dns_cluster_query) || :ignore},
       # Start the PubSub system
       {Phoenix.PubSub, name: Bodhi.PubSub},
       # Start the Endpoint (http/https)

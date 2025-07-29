@@ -1,36 +1,23 @@
 <div>
-  <h2><%= @title %></h2>
+  <.header>
+    {@title}
+  </.header>
 
-  <.form
-    let={f}
-    for={@changeset}
+  <.simple_form
+    for={@form}
     id="user-form"
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
   
-    <%= label f, :first_name %>
-    <%= text_input f, :first_name %>
-    <%= error_tag f, :first_name %>
+    <.input field={@form[:first_name]} type="text" label="First name" />
+    <.input field={@form[:last_name]} type="text" label="Last name" />
+    <.input field={@form[:username]} type="text" label="Username" />
+    <.input field={@form[:language_code]} type="text" label="Language" />
+    <.input field={@form[:is_admin]} type="checkbox" label="Admin" />
   
-    <%= label f, :last_name %>
-    <%= text_input f, :last_name %>
-    <%= error_tag f, :last_name %>
-  
-    <%= label f, :username %>
-    <%= text_input f, :username %>
-    <%= error_tag f, :username %>
-  
-    <%= label f, :language_code %>
-    <%= text_input f, :language_code %>
-    <%= error_tag f, :language_code %>
-  
-    <%= label f, :is_admin %>
-    <%= checkbox f, :is_admin %>
-    <%= error_tag f, :is_admin %>
-
-    <div>
-      <%= submit "Save", phx_disable_with: "Saving..." %>
-    </div>
-  </.form>
+    <:actions>
+      <.button phx-disable-with="Saving..." %>Save</.button>
+    </:actions>
+  </.simple_form>
 </div>

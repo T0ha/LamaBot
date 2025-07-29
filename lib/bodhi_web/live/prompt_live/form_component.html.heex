@@ -1,32 +1,22 @@
 <div>
-  <h2><%= @title %></h2>
+  <.header>
+    {@title}
+  </.header>
 
-  <.form
-    let={f}
-    for={@changeset}
+  <.simple_form
+    for={@form}
     id="prompt-form"
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
   
-    <%= label f, :text %>
-    <%= textarea f, :text %>
-    <%= error_tag f, :text %>
-  
-    <%= label f, :type %>
-    <%= select f, :type, Ecto.Enum.values(Bodhi.Prompts.Prompt, :type), prompt: "Choose a value" %>
-    <%= error_tag f, :type %>
-  
-    <%= label f, :lang %>
-    <%= text_input f, :lang %>
-    <%= error_tag f, :lang %>
+    <.input field={@form[:text]} type="textarea" label="Prompt text" />
+    <.input field={@form[:type]} type="select" label="Type" options={Ecto.Enum.values(Bodhi.Prompts.Prompt, :type)} />
+    <.input field={@form[:lang]} type="text" label="Language" />
+    <.input field={@form[:active]} type="checkbox" label="Active" />
 
-    <%= label f, :active %>
-    <%= checkbox f, :active %>
-    <%= error_tag f, :active %>
-  
-    <div>
-      <%= submit "Save", phx_disable_with: "Saving..." %>
-    </div>
-  </.form>
+    <:actions>
+      <.button phx-disable-with="Saving..." %>Save</.button>
+    </:actions>
+  </.simple_form>
 </div>
