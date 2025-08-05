@@ -12,9 +12,9 @@ defmodule BodhiWeb.UserLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-      |> assign_new(:form, fn ->
-        to_form(changeset)
-      end)}
+     |> assign_new(:form, fn ->
+       to_form(changeset)
+     end)}
   end
 
   @impl true
@@ -44,7 +44,7 @@ defmodule BodhiWeb.UserLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "User updated successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
+         |> push_patch(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
@@ -57,7 +57,7 @@ defmodule BodhiWeb.UserLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "User created successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
+         |> push_patch(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}

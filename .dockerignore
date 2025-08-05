@@ -30,10 +30,6 @@
 /test/
 /tmp/
 .elixir_ls
-.lexicat
-.elixir-tools
-.envrc
-.env
 
 # Mix artifacts
 /_build/

@@ -64,9 +64,8 @@ defmodule Bodhi.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
-      {:telegex, "~> 1.8.0"},
+      {:telegex, "~> 1.8"},
       {:multipart, "~> 0.4.0"},
       {:oban, "~> 2.17"},
       {:posthog, "~> 0.1"},
