@@ -1,47 +1,46 @@
-<h1>Listing Users</h1>
+<.header>
+  Listing Users
+  <:actions>
+    <.link patch={~p"/users/new"}>
+      <.button>New Accounts</.button>
+    </.link>
+  </:actions>
+</.header>
 
-<%= if @live_action in [:new, :edit] do %>
-  <.modal return_to={Routes.user_index_path(@socket, :index)}>
-    <.live_component
+<.table
+  id="users"
+  rows={@streams.users}
+  row_click={fn {_id, user} -> JS.navigate(~p"/users/#{user}") end}
+>
+  <:col :let={{_id, user}} label="First name">{user.first_name }</:col>
+  <:col :let={{_id, user}} label="Last name">{user.last_name }</:col>
+  <:col :let={{_id, user}} label="Username">{user.username }</:col>
+  <:col :let={{_id, user}} label="Language">{user.language_code }</:col>
+  <:col :let={{_id, user}} label="Admin">{user.is_admin }</:col>
+
+  <:action :let={{_id, user}}>
+    <!-- div class="sr-only">
+      <.link navigate={~p"/users/#{user}"}>Show</.link>
+    </div -->
+    <.link patch={~p"/users/#{user}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, user}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: user.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="user-modal" show on_cancel={JS.patch(~p"/users")}>
+  <.live_component
       module={BodhiWeb.UserLive.FormComponent}
-      id={@user.id || :new}
-      title={@page_title}
-      action={@live_action}
-      user={@user}
-      return_to={Routes.user_index_path(@socket, :index)}
-    />
-  </.modal>
-<% end %>
-
-<table>
-  <thead>
-    <tr>
-      <th>First name</th>
-      <th>Last name</th>
-      <th>Username</th>
-      <th>Language code</th>
-      <th>Is Admin</th>
-
-      <th></th>
-    </tr>
-  </thead>
-  <tbody id="users">
-    <%= for user <- @users do %>
-      <tr id={"user-#{user.id}"}>
-        <td><%= user.first_name %></td>
-        <td><%= user.last_name %></td>
-        <td><%= user.username %></td>
-        <td><%= user.language_code %></td>
-        <td><%= user.is_admin %></td>
-
-        <td>
-          <span><%= live_redirect "Show", to: Routes.user_show_path(@socket, :show, user) %></span>
-          <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit, user) %></span>
-          <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
-        </td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<span><%= live_patch "New User", to: Routes.user_index_path(@socket, :new) %></span>
+    id={@user.id || :new}
+    title={@page_title}
+    action={@live_action}
+    user={@user}
+    patch={~p"/users"}
+  />
+</.modal>

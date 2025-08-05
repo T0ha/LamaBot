@@ -8,7 +8,7 @@ defmodule BodhiWeb.UserLive.Index do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :users, list_users())}
+    {:ok, stream(socket, :users, list_users())}
   end
 
   @impl true
@@ -37,13 +37,18 @@ defmodule BodhiWeb.UserLive.Index do
   end
 
   @impl true
+  def handle_info({BodhiWeb.UserLive.FormComponent, {:saved, user}}, socket) do
+    {:noreply, stream_insert(socket, :users, user)}
+  end
+
+  @impl true
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
           {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("delete", %{"id" => id}, socket) do
     user = Users.get_user!(id)
     {:ok, _} = Users.delete_user(user)
 
-    {:noreply, assign(socket, :users, list_users())}
+    {:noreply, stream_delete(socket, :users, user)}
   end
 
   defp list_users do

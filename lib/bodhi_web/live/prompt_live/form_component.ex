@@ -40,7 +40,7 @@ defmodule BodhiWeb.PromptLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Prompt updated successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
+         |> push_patch(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -53,7 +53,7 @@ defmodule BodhiWeb.PromptLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Prompt created successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
+         |> push_patch(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}

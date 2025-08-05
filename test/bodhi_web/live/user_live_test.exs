@@ -24,7 +24,7 @@ defmodule BodhiWeb.UserLiveTest do
 
     test "lists all users", %{conn: conn} do
       {:ok, _index_live, html} =
-        live(conn, Routes.user_index_path(conn, :index))
+        live(conn, ~p"/users")
 
       assert html =~ "Listing Users"
     end

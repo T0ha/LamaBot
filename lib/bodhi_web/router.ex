@@ -5,7 +5,7 @@ defmodule BodhiWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, {BodhiWeb.LayoutView, :root}
+    plug :put_root_layout, {BodhiWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -38,19 +38,19 @@ defmodule BodhiWeb.Router do
     live "/users/:id", UserLive.Show, :show
     live "/users/:id/show/edit", UserLive.Show, :edit
 
-    live "/chats", ChatLive.Index, :index
-    live "/chats/new", ChatLive.Index, :new
-    live "/chats/:id/edit", ChatLive.Index, :edit
+    # live "/chats", ChatLive.Index, :index
+    # live "/chats/new", ChatLive.Index, :new
+    # live "/chats/:id/edit", ChatLive.Index, :edit
 
-    live "/chats/:id", ChatLive.Show, :show
-    live "/chats/:id/show/edit", ChatLive.Show, :edit
+    # live "/chats/:id", ChatLive.Show, :show
+    # live "/chats/:id/show/edit", ChatLive.Show, :edit
 
     live "/messages", MessageLive.Index, :index
-    live "/messages/new", MessageLive.Index, :new
-    live "/messages/:id/edit", MessageLive.Index, :edit
+    # live "/messages/new", MessageLive.Index, :new
+    # live "/messages/:id/edit", MessageLive.Index, :edit
 
-    live "/messages/:id", MessageLive.Show, :show
-    live "/messages/:id/show/edit", MessageLive.Show, :edit
+    # live "/messages/:id", MessageLive.Show, :show
+    # live "/messages/:id/show/edit", MessageLive.Show, :edit
 
     live "/prompts", PromptLive.Index, :index
     live "/prompts/new", PromptLive.Index, :new

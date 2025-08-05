@@ -3,6 +3,7 @@ defmodule Bodhi.TgWebhookHandler do
   Telegram Bot API handler
   """
   use Telegex.Polling.GenHandler
+  use BodhiWeb, :verified_routes
 
   require Logger
 
@@ -54,7 +55,7 @@ defmodule Bodhi.TgWebhookHandler do
     with db_user <- Bodhi.Users.get_user!(user.id),
          true <- db_user.is_admin,
          token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
-         url <- BodhiWeb.Router.Helpers.auth_url(BodhiWeb.Endpoint, :login, token: token) do
+         url <- url(~p"/login?#{[token: token]}") do
       Telegex.send_message(chat.id, url)
     else
       _ ->
@@ -79,11 +80,11 @@ defmodule Bodhi.TgWebhookHandler do
          {:ok, _answer_msg} <- send_message(chat.id, answer) do
       Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
 
-      Posthog.capture("message_handled",
+      Posthog.capture("message_handled", %{
         distinct_id: user.id,
         locale: user.language_code,
         "$current_url": BodhiWeb.Endpoint.host()
-      )
+      })
 
       :ok
     end
@@ -112,11 +113,11 @@ defmodule Bodhi.TgWebhookHandler do
   defp get_answer(%_{chat_id: chat_id, text: "/start"}, lang) do
     %Prompt{text: answer} = get_start_message(lang)
 
-    Posthog.capture("start_command",
+    Posthog.capture("start_command", %{
       distinct_id: chat_id,
       locale: lang,
       "$current_url": BodhiWeb.Endpoint.host()
-    )
+    })
 
     {:ok, answer}
   end

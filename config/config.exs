@@ -13,7 +13,12 @@ config :bodhi,
 # Configures the endpoint
 config :bodhi, BodhiWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: BodhiWeb.ErrorView, accepts: ~w(html json), layout: false],
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [
+    formats: [html: BodhiWeb.ErrorHTML, json: BodhiWeb.ErrorJSON],
+    accepts: ~w(html json),
+    layout: false
+  ],
   pubsub_server: Bodhi.PubSub,
   live_view: [signing_salt: "+SFVCX2q"]
 
@@ -31,7 +36,7 @@ config :swoosh, :api_client, false
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.13.5",
+  version: "0.17.11",
   default: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
@@ -62,7 +67,7 @@ config :phoenix, :json_library, Jason
 
 config :telegex,
   caller_adapter: Finch,
-  hook_adapter: Cowboy
+  hook_adapter: Bandit
 
 config :bodhi, Oban,
   engine: Oban.Engines.Basic,
