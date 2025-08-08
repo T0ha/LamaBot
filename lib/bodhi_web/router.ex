@@ -31,7 +31,7 @@ defmodule BodhiWeb.Router do
     pipe_through [:browser, :auth]
 
     get "/logout", AuthController, :logout
-    oban_dashboard "/oban"
+    oban_dashboard("/oban")
 
     live "/users", UserLive.Index, :index
     live "/users/new", UserLive.Index, :new
