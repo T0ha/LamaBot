@@ -39,7 +39,7 @@ defmodule Bodhi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.21"},
+      {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
@@ -65,6 +65,7 @@ defmodule Bodhi.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:telegex, "~> 1.8"},
       {:multipart, "~> 0.4.0"},
       {:oban, "~> 2.17"},
