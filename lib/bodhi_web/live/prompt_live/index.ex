@@ -4,11 +4,13 @@ defmodule BodhiWeb.PromptLive.Index do
   alias Bodhi.Prompts
   alias Bodhi.Prompts.Prompt
 
+  on_mount BodhiWeb.Plugs.Auth
+
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :prompts, list_prompts())}
+    {:ok, stream(socket, :prompts, list_prompts())}
   end
 
   @impl true

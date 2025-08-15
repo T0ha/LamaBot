@@ -4,11 +4,13 @@ defmodule BodhiWeb.MessageLive.Index do
   alias Bodhi.Chats
   alias Bodhi.Chats.Message
 
+  on_mount BodhiWeb.Plugs.Auth
+
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :messages, list_messages())}
+    {:ok, stream(socket, :messages, list_messages())}
   end
 
   @impl true

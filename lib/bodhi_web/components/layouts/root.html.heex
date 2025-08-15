@@ -42,12 +42,9 @@
       person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
     })
     </script>
+    <%= Application.get_env(:live_debugger, :live_debugger_tags) %>
   </head>
   <body>
-    <header class="max-w-xl mx-auto flex border-1 border-white border-b-zinc-400">
-      <section class="flex items-center">
-      </section>
-    </header>
     {@inner_content}
   </body>
 </html>

@@ -4,9 +4,9 @@
 
 <.table
   id="chats"
-  rows={@streams.chats}
+  rows={@streams.messages}
 >
-  <:col :let={{_id, message}} label="Text">{message.date}</:col>
+  <:col :let={{_id, message}} label="Date">{message.date}</:col>
   <:col :let={{_id, message}} label="Text">{message.text}</:col>
-  <:col :let={{_id, message}} label="Text">{message.caption}</:col>
+  <:col :let={{_id, message}} label="Caption">{message.caption}</:col>
 </.table>
