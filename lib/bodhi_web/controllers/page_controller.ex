@@ -12,6 +12,7 @@ defmodule BodhiWeb.PageController do
     |> assign(:url, url)
     |> assign(:page_description, page_description)
     |> assign(:bot_username, "compassion_lama_bot")
+    |> assign(:with_header?, false)
     |> render(:index)
   end
 end

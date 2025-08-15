@@ -1,16 +1,10 @@
 <.header>
-  Listing Users
-  <:actions>
-    <.link patch={~p"/users/new"}>
-      <.button>New Accounts</.button>
-    </.link>
-  </:actions>
+  Users
 </.header>
 
 <.table
   id="users"
   rows={@streams.users}
-  row_click={fn {_id, user} -> JS.navigate(~p"/users/#{user}") end}
 >
   <:col :let={{_id, user}} label="First name">{user.first_name }</:col>
   <:col :let={{_id, user}} label="Last name">{user.last_name }</:col>
@@ -19,9 +13,6 @@
   <:col :let={{_id, user}} label="Admin">{user.is_admin }</:col>
 
   <:action :let={{_id, user}}>
-    <!-- div class="sr-only">
-      <.link navigate={~p"/users/#{user}"}>Show</.link>
-    </div -->
     <.link patch={~p"/users/#{user}/edit"}>Edit</.link>
   </:action>
   <:action :let={{id, user}}>

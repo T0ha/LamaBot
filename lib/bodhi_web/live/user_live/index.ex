@@ -4,11 +4,15 @@ defmodule BodhiWeb.UserLive.Index do
   alias Bodhi.Users
   alias Bodhi.Users.User
 
+  on_mount BodhiWeb.Plugs.Auth
+
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :users, list_users())}
+    {:ok,
+     socket
+     |> stream(:users, list_users())}
   end
 
   @impl true

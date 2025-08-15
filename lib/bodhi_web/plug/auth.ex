@@ -17,7 +17,8 @@ defmodule BodhiWeb.Plugs.Auth do
          {:ok, user_id} <- Phoenix.Token.verify(conn, "user auth", token, max_age: 86_400),
          %User{is_admin: true} = user <- Users.get_user!(user_id) do
       conn
-      |> assign(:user, user)
+      |> assign(:current_user, user)
+      |> put_session(:current_user, user)
     else
       _ ->
         conn
@@ -26,4 +27,15 @@ defmodule BodhiWeb.Plugs.Auth do
         |> halt()
     end
   end
+
+  def on_mount(:default, _params, %{"current_user" => user} = _session, socket) do
+    socket =
+      socket
+      |> Phoenix.Component.assign(:current_user, user)
+      |> Phoenix.Component.assign(:with_header?, true)
+
+    {:cont, socket}
+  end
+
+  def on_mount(:default, _params, _session, socket), do: {:cont, socket}
 end

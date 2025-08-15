@@ -34,11 +34,11 @@ defmodule BodhiWeb.Router do
     oban_dashboard("/oban")
 
     live "/users", UserLive.Index, :index
-    live "/users/new", UserLive.Index, :new
+    # live "/users/new", UserLive.Index, :new
     live "/users/:id/edit", UserLive.Index, :edit
 
-    live "/users/:id", UserLive.Show, :show
-    live "/users/:id/show/edit", UserLive.Show, :edit
+    # live "/users/:id", UserLive.Show, :show
+    # live "/users/:id/show/edit", UserLive.Show, :edit
 
     # live "/chats", ChatLive.Index, :index
     # live "/chats/new", ChatLive.Index, :new
@@ -58,8 +58,8 @@ defmodule BodhiWeb.Router do
     live "/prompts/new", PromptLive.Index, :new
     live "/prompts/:id/edit", PromptLive.Index, :edit
 
-    live "/prompts/:id", PromptLive.Show, :show
-    live "/prompts/:id/show/edit", PromptLive.Show, :edit
+    # live "/prompts/:id", PromptLive.Show, :show
+    # live "/prompts/:id/show/edit", PromptLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.
