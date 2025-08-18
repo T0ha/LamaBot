@@ -8,7 +8,6 @@
     <%= unless is_nil(assigns[:page_description]) do %>
       <meta name="description" content={@page_description}/>
       <link rel="canonical" href={@url}/>
-      <meta name="description" content="Lama Bot is a compassionate and supportive AI chatbot helps you in emotionnaly hard situation."/>
       <meta name="keywords" content="chatbot, AI, mental health, emotional support, compassion, empathy, mindfulness, meditation, buddhism"/>
       <meta name="author" content="T0ha aka Shvein Anton"/>
       <meta name="robots" content="index, follow"/>
@@ -26,7 +25,7 @@
       <meta property="twitter:url" content={@url}/>
       <meta name="twitter:title" content="Talk to · Lama Bot (དླ་མ་བོཏ།)"/>
       <meta name="twitter:description" content={@page_description}/>
-      <meta name="twitter:image" content={~p"/images/lama-bot.jpg"}/>
+      <meta name="twitter:image" content={url(~p"/images/lama-bot.jpg")}/>
     <% end %>
 
     <meta name="csrf-token" content={get_csrf_token()} />
