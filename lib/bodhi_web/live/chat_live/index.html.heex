@@ -1,0 +1,18 @@
+<.header>
+  Chats
+</.header>
+
+<.table
+  id="chats"
+  rows={@streams.chats}
+  row_click={fn {_id, chat} -> JS.navigate(~p"/chats/#{chat}/messages") end}
+>
+  <:col :let={{_id, chat}} label="ID">{chat.id}</:col>
+  <:col :let={{_id, chat}} label="Started">{chat.inserted_at}</:col>
+  <:col :let={{_id, chat}} label="Last Message">{chat.messages |> Enum.reverse() |> hd() |> Map.get(:updated_at)}</:col>
+  <:col :let={{_id, chat}} label="Total Messages">{length(chat.messages)}</:col>
+
+  <:action :let={{_id, chat}}>
+    <.link patch={~p"/chats/#{chat}/messages"}>Messages</.link>
+  </:action>
+</.table>

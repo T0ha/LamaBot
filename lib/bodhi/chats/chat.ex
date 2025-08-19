@@ -16,7 +16,8 @@ defmodule Bodhi.Chats.Chat do
           user_id: non_neg_integer() | nil,
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil,
-          user: User.t() | Ecto.Association.t() | nil
+          user: User.t() | Ecto.Association.t() | nil,
+          messages: Ecto.Association.NotLoaded.t() | [Bodhi.Chats.Message.t()]
         }
 
   schema "chats" do
@@ -24,6 +25,7 @@ defmodule Bodhi.Chats.Chat do
     field :type, :string
 
     belongs_to :user, User
+    has_many :messages, Bodhi.Chats.Message
 
     timestamps()
   end
