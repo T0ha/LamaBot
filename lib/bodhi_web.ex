@@ -53,7 +53,7 @@ defmodule BodhiWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {BodhiWeb.Layouts, :app}
+        layout: {BodhiWeb.Layouts, :admin}
 
       unquote(html_helpers())
     end

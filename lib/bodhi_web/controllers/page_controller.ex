@@ -1,6 +1,8 @@
 defmodule BodhiWeb.PageController do
   use BodhiWeb, :controller
 
+  plug :put_layout, {BodhiWeb.Layouts, :page}
+
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
     page_description =
@@ -12,7 +14,6 @@ defmodule BodhiWeb.PageController do
     |> assign(:url, url)
     |> assign(:page_description, page_description)
     |> assign(:bot_username, "compassion_lama_bot")
-    |> assign(:with_header?, false)
     |> render(:index)
   end
 end
