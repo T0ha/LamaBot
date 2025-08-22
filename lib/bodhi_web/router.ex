@@ -40,14 +40,13 @@ defmodule BodhiWeb.Router do
     # live "/users/:id", UserLive.Show, :show
     # live "/users/:id/show/edit", UserLive.Show, :edit
 
-    # live "/chats", ChatLive.Index, :index
-    # live "/chats/new", ChatLive.Index, :new
-    # live "/chats/:id/edit", ChatLive.Index, :edit
+    live "/chats", ChatLive.Index, :index
+    live "/chats/:chat_id/messages", ChatLive.Messages, :index
 
     # live "/chats/:id", ChatLive.Show, :show
     # live "/chats/:id/show/edit", ChatLive.Show, :edit
 
-    live "/messages", MessageLive.Index, :index
+    # live "/messages", MessageLive.Index, :index
     # live "/messages/new", MessageLive.Index, :new
     # live "/messages/:id/edit", MessageLive.Index, :edit
 

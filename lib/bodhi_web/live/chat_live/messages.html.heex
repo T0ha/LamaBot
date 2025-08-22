@@ -1,0 +1,14 @@
+<.header>
+    <.back navigate={~p"/chats"}>&lt; Back to chats</.back>
+  Messages from chat #{@chat_id}
+</.header>
+
+<.icon name="hero-check-circle-outline" class="icon" />
+<.table
+  id="messages"
+  rows={@streams.messages}
+>
+  <:col :let={{_id, message}} label="From">{from(@chat_id, message)}</:col>
+  <:col :let={{_id, message}} label="Text">{message.text}</:col>
+  <:col :let={{_id, message}} label="Timestamp">{message.inserted_at}</:col>
+</.table>

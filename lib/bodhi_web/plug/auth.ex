@@ -32,7 +32,6 @@ defmodule BodhiWeb.Plugs.Auth do
     socket =
       socket
       |> Phoenix.Component.assign(:current_user, user)
-      |> Phoenix.Component.assign(:with_header?, true)
 
     {:cont, socket}
   end

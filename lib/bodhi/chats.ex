@@ -19,7 +19,9 @@ defmodule Bodhi.Chats do
   """
   @spec list_chats() :: [Chat.t()]
   def list_chats do
-    Repo.all(Chat)
+    Chat
+    |> Repo.all()
+    |> Repo.preload(:messages)
   end
 
   @doc """

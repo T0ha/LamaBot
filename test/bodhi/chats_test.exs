@@ -9,7 +9,7 @@ defmodule Bodhi.ChatsTest do
     alias Bodhi.Chats.Chat
 
     test "list_chats/0 returns all chats" do
-      chat = insert(:chat)
+      chat = insert(:chat, messages: [])
       assert Chats.list_chats() |> Repo.preload(:user) == [chat]
     end
 
