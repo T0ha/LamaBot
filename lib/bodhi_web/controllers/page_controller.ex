@@ -1,7 +1,7 @@
 defmodule BodhiWeb.PageController do
   use BodhiWeb, :controller
 
-  plug :put_layout, {BodhiWeb.Layouts, :page}
+  plug :put_layout, html: {BodhiWeb.Layouts, :page}
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do

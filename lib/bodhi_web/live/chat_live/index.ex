@@ -2,7 +2,6 @@ defmodule BodhiWeb.ChatLive.Index do
   use BodhiWeb, :live_view
 
   alias Bodhi.Chats
-  alias Bodhi.Chats.Chat
 
   on_mount BodhiWeb.Plugs.Auth
 

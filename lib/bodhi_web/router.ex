@@ -41,7 +41,7 @@ defmodule BodhiWeb.Router do
     # live "/users/:id/show/edit", UserLive.Show, :edit
 
     live "/chats", ChatLive.Index, :index
-     live "/chats/:chat_id/messages", ChatLive.Messages, :index
+    live "/chats/:chat_id/messages", ChatLive.Messages, :index
 
     # live "/chats/:id", ChatLive.Show, :show
     # live "/chats/:id/show/edit", ChatLive.Show, :edit
