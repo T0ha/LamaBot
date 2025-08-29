@@ -40,6 +40,7 @@ defmodule Bodhi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      # Phoenix and related dependencies
       {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
@@ -66,14 +67,23 @@ defmodule Bodhi.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
-      {:lazy_html, ">= 0.1.0", only: :test},
-      {:live_debugger, "~> 0.3.1", only: :dev},
+
+      # Telegram bot
       {:telegex, "~> 1.8"},
       {:multipart, "~> 0.4.0"},
+
+      # Periodic jobs and piplines
       {:oban, "~> 2.17"},
       {:oban_web, "~> 2.11.1"},
       {:igniter, "~> 0.5", only: [:dev]},
+
+      # Analytics
       {:posthog, "~> 0.1"},
+
+      # Dev and test dependencies
+      {:lazy_html, ">= 0.1.0", only: :test},
+      {:live_debugger, "~> 0.3.1", only: :dev},
+      {:tidewave, "~> 0.4.1", only: :dev},
       {:credo, "~> 1.7", runtime: false},
       {:dialyxir, "~> 1.4", runtime: false},
       {:faker, "~> 0.18.0", only: [:test]},
