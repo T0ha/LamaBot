@@ -1,0 +1,21 @@
+<Layouts.admin flash={@flash}>
+  <.header>
+    {@title}
+  </.header>
+
+  <.form
+    for={@form}
+    id="message-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+
+    <.input field={@form[:date]} type="number" label="Date" />
+    <.input field={@form[:text]} type="text" label="Text" />
+    <.input field={@form[:caption]} type="text" label="Caption" />
+
+    <:actions>
+      <.button phx-disable-with="Saving...">Save</.button>
+    </:actions>
+  </.form>
+</Layouts.admin>

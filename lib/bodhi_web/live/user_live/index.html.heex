@@ -1,37 +1,28 @@
-<.header>
-  Users
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Users
+  </.header>
 
-<.table
-  id="users"
-  rows={@streams.users}
->
-  <:col :let={{_id, user}} label="First name">{user.first_name }</:col>
-  <:col :let={{_id, user}} label="Last name">{user.last_name }</:col>
-  <:col :let={{_id, user}} label="Username">{user.username }</:col>
-  <:col :let={{_id, user}} label="Language">{user.language_code }</:col>
-  <:col :let={{_id, user}} label="Admin">{user.is_admin }</:col>
-
-  <:action :let={{_id, user}}>
-    <.link patch={~p"/users/#{user}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, user}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: user.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
+  <.table
+    id="users"
+    rows={@streams.users}
     >
-      Delete
-    </.link>
-  </:action>
-</.table>
+    <:col :let={{_id, user}} label="First name">{user.first_name }</:col>
+    <:col :let={{_id, user}} label="Last name">{user.last_name }</:col>
+    <:col :let={{_id, user}} label="Username">{user.username }</:col>
+    <:col :let={{_id, user}} label="Language">{user.language_code }</:col>
+    <:col :let={{_id, user}} label="Admin">{user.is_admin }</:col>
 
-<.modal :if={@live_action in [:new, :edit]} id="user-modal" show on_cancel={JS.patch(~p"/users")}>
-  <.live_component
-      module={BodhiWeb.UserLive.FormComponent}
-    id={@user.id || :new}
-    title={@page_title}
-    action={@live_action}
-    user={@user}
-    patch={~p"/users"}
-  />
-</.modal>
+    <:action :let={{_id, user}}>
+      <.link patch={~p"/users/#{user}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={{id, user}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: user.id}) |> hide("##{id}")}
+        data-confirm="Are you sure?"
+        >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>
