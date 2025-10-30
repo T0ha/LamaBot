@@ -20,14 +20,6 @@ defmodule BodhiWeb.Router do
   end
 
   scope "/", BodhiWeb do
-    pipe_through :browser
-
-    get "/", PageController, :index
-
-    get "/login", AuthController, :login
-  end
-
-  scope "/", BodhiWeb do
     pipe_through [:browser, :auth]
 
     get "/logout", AuthController, :logout
@@ -50,6 +42,15 @@ defmodule BodhiWeb.Router do
     live "/pages/:id", PageLive.Show, :show
     live "/pages/:id/edit", PageLive.Form, :edit
   end
+  scope "/", BodhiWeb do
+    pipe_through :browser
+
+    get "/", PageController, :index
+
+    get "/login", AuthController, :login
+    get "/p/:slug", PageController, :page
+  end
+
 
   # Other scopes may use custom stacks.
   # scope "/api", BodhiWeb do

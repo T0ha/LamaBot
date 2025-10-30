@@ -47,4 +47,16 @@ defmodule Bodhi.Factory do
       type: Faker.Util.pick([:start_message, :context, :followup])
     }
   end
+
+  def page_factory do
+    %Bodhi.Pages.Page{
+      slug: Faker.Internet.slug(),
+      header: false,
+      title: Faker.Lorem.sentence(),
+      description: Faker.Lorem.sentence(),
+      template: "page",
+      format: Faker.Util.pick([:markdown, :html, :text, :eex]),
+      content: Faker.Lorem.paragraph()
+    }
+  end
 end

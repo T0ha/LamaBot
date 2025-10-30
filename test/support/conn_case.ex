@@ -28,6 +28,7 @@ defmodule BodhiWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import BodhiWeb.ConnCase
+      import Bodhi.Factory
     end
   end
 

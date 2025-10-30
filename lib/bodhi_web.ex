@@ -86,6 +86,7 @@ defmodule BodhiWeb do
       import Phoenix.HTML
       # Core UI components
       import BodhiWeb.CoreComponents
+      import BodhiWeb.Components.Seo
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

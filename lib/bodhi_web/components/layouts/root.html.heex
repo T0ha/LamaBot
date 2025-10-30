@@ -1,33 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="icon" type="image/jpeg" href={~p"/images/lama-bot.jpg"}/>
-    <%= unless is_nil(assigns[:page_description]) do %>
-      <meta name="description" content={@page_description}/>
-      <link rel="canonical" href={@url}/>
-      <meta name="keywords" content="chatbot, AI, mental health, emotional support, compassion, empathy, mindfulness, meditation, buddhism"/>
-      <meta name="author" content="T0ha aka Shvein Anton"/>
-      <meta name="robots" content="index, follow"/>
 
-      <!-- Facebook Meta Tags -->
-      <meta property="og:url" content={@url}/>
-      <meta property="og:type" content="website"/>
-      <meta property="og:title" content="Talk to · Lama Bot (དླ་མ་བོཏ།)"/>
-      <meta property="og:description" content={@page_description}/>
-      <meta property="og:image" content={~p"/images/lama-bot.jpg"}/>
-
-      <!-- Twitter Meta Tags -->
-      <meta name="twitter:card" content="summary_large_image"/>
-      <meta property="twitter:domain" content="lamabot.io"/>
-      <meta property="twitter:url" content={@url}/>
-      <meta name="twitter:title" content="Talk to · Lama Bot (དླ་མ་བོཏ།)"/>
-      <meta name="twitter:description" content={@page_description}/>
-      <meta name="twitter:image" content={url(~p"/images/lama-bot.jpg")}/>
-    <% end %>
-
+    <.seo :if={assigns[:seo]}
+    title={@page.title}
+    description={@page.description}
+    url={@url}
+    author="T0ha aka Shvein Anton"
+    keywords={["chatbot", "AI", "mental health", "emotional support", "compassion", "empathy", "mindfulness", "meditation", "buddhism"]}
+    image={~p"/images/lama-bot.jpg"}
+    />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title default="Talk to" suffix=" · Lama Bot (དླ་མ་བོཏ།)">
       {assigns[:page_title]}

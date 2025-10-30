@@ -14,7 +14,7 @@
   </div>
 
   <h2 class="grow text-gray-500 font-medium font-italic">
-    <%= @page_description %>
+    <%= render_format_(@page, assigns) %>
   </h2>
   <div class="my-5">
     <a href={"https://t.me/#{@bot_username}"} class="inline-flex rounded-full px-5 py-3 bg-blue-500 text-white hover:bg-blue-400 items-center text-base font-semibold h-12">

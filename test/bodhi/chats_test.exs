@@ -1,8 +1,6 @@
 defmodule Bodhi.ChatsTest do
   use Bodhi.DataCase
 
-  import Bodhi.Factory
-
   alias Bodhi.Chats
 
   describe "chats" do
