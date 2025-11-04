@@ -23,7 +23,8 @@ defmodule BodhiWeb.Endpoint do
     from: :bodhi,
     gzip: false,
     only: BodhiWeb.static_paths()
-  #only: ~w(assets fonts images favicon.ico robots.txt sitemap.xml)
+
+  # only: ~w(assets fonts images favicon.ico robots.txt sitemap.xml)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

@@ -6,7 +6,7 @@ defmodule BodhiWeb.PageLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.admin flash={@flash}>
       <.header>
         Page {@page.id}
         <:subtitle>This is a page record from your database.</:subtitle>
@@ -28,7 +28,7 @@ defmodule BodhiWeb.PageLive.Show do
         <:item title="Format">{@page.format}</:item>
         <:item title="Content">{@page.content}</:item>
       </.list>
-    </Layouts.app>
+    </Layouts.admin>
     """
   end
 

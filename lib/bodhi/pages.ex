@@ -37,7 +37,6 @@ defmodule Bodhi.Pages do
   """
   def get_page!(id), do: Repo.get!(Page, id)
 
-
   @doc """
   Gets a single page by :slug.
 
@@ -53,6 +52,7 @@ defmodule Bodhi.Pages do
 
   """
   def get_page_by_slug!(slug), do: Repo.get_by!(Page, slug: slug)
+
   @doc """
   Creates a page.
 

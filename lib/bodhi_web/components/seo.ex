@@ -27,9 +27,11 @@ defmodule BodhiWeb.Components.Seo do
   def seo(assigns) do
     assigns =
       assigns
-      #TODO: currently for simplicity we assume @url is the domain
+      # TODO: currently for simplicity we assume @url is the domain
       |> assign_new(:domain, fn -> assigns.url end)
-      |> assign_new(:image_url, fn %{domain: domain} -> URI.append_path(URI.parse(domain), assigns.image) end)
+      |> assign_new(:image_url, fn %{domain: domain} ->
+        URI.append_path(URI.parse(domain), assigns.image)
+      end)
 
     ~H"""
     <link rel="canonical" href={@url}/>

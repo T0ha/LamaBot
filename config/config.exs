@@ -55,7 +55,6 @@ config :tailwind,
     cd: Path.expand("..", __DIR__)
   ]
 
-
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$metadata[$level] $time $message\n",

@@ -25,7 +25,7 @@ defmodule BodhiWeb.PageControllerTest do
     </ul>
     """
 
-      @eex """
+    @eex """
     <h1>Title</h1>
     This is a <strong>bold</strong> statement.
       <%= @page.slug %>

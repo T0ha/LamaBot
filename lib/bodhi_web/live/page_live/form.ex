@@ -111,7 +111,7 @@ defmodule BodhiWeb.PageLive.Form do
   defp return_path("show", page), do: ~p"/pages/#{page}"
 
   defp template_options do
-    BodhiWeb.PageHTML.__info__(:functions) 
+    BodhiWeb.PageHTML.__info__(:functions)
     |> Enum.map(fn {func, _arity} -> to_string(func) end)
     |> Enum.filter(&(!String.starts_with?(&1, "__") and !String.ends_with?(&1, "_")))
   end

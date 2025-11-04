@@ -14,8 +14,10 @@ defmodule BodhiWeb.PageLiveTest do
   defp create_and_log_in_user(%{conn: conn}) do
     user = insert(:user, is_admin: true)
     token = Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", user.id)
-    conn = 
+
+    conn =
       Plug.Test.init_test_session(conn, %{"token" => token})
+
     {:ok, conn: conn, user: user}
   end
 

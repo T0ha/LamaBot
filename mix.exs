@@ -76,7 +76,6 @@ defmodule Bodhi.MixProject do
       {:igniter, "~> 0.5", only: [:dev]},
       {:posthog, "~> 0.1"},
       {:mdex, "~> 0.9.0"},
-
       {:credo, "~> 1.7", runtime: false},
       {:dialyxir, "~> 1.4", runtime: false},
       {:faker, "~> 0.18.0", only: [:test]},
