@@ -57,7 +57,6 @@ defmodule BodhiWeb.PageLive.Form do
     page = Pages.get_page!(id)
 
     socket
-    |> assign(:page, %{title: "Edit Page"})
     |> assign(:page, page)
     |> assign(:form, to_form(Pages.change_page(page)))
   end
@@ -66,7 +65,6 @@ defmodule BodhiWeb.PageLive.Form do
     page = %Page{}
 
     socket
-    |> assign(:page, %{title: "New Page"})
     |> assign(:page, page)
     |> assign(:form, to_form(Pages.change_page(page)))
   end

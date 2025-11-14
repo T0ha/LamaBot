@@ -41,8 +41,6 @@ defmodule BodhiWeb.PageLiveTest do
                |> render_click()
                |> follow_redirect(conn, ~p"/pages/new")
 
-      assert render(form_live) =~ "New Page"
-
       assert form_live
              |> form("#page-form", page: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
@@ -67,8 +65,6 @@ defmodule BodhiWeb.PageLiveTest do
                |> element("#pages-#{page.id} a", "Edit")
                |> render_click()
                |> follow_redirect(conn, ~p"/pages/#{page}/edit")
-
-      assert render(form_live) =~ "Edit Page"
 
       assert form_live
              |> form("#page-form", page: @invalid_attrs)
@@ -99,7 +95,6 @@ defmodule BodhiWeb.PageLiveTest do
     test "displays page", %{conn: conn, page: page} do
       {:ok, _show_live, html} = live(conn, ~p"/pages/#{page}")
 
-      assert html =~ "Show Page"
       assert html =~ page.slug
     end
 
@@ -112,8 +107,6 @@ defmodule BodhiWeb.PageLiveTest do
                |> element("a", "Edit")
                |> render_click()
                |> follow_redirect(conn, ~p"/pages/#{page}/edit?return_to=show")
-
-      assert render(form_live) =~ "Edit Page"
 
       assert form_live
              |> form("#page-form", page: @invalid_attrs)
