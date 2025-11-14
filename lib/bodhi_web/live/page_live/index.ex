@@ -52,7 +52,7 @@ defmodule BodhiWeb.PageLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Listing Pages")
+     |> assign(:page, %{title: "Listing Pages"})
      |> stream(:pages, Pages.list_pages())}
   end
 

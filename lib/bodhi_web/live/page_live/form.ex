@@ -9,7 +9,7 @@ defmodule BodhiWeb.PageLive.Form do
     ~H"""
     <Layouts.admin flash={@flash}>
       <.header>
-        {@page_title}
+        {@page.title}
         <:subtitle>Use this form to manage page records in your database.</:subtitle>
       </.header>
 
@@ -57,7 +57,7 @@ defmodule BodhiWeb.PageLive.Form do
     page = Pages.get_page!(id)
 
     socket
-    |> assign(:page_title, "Edit Page")
+    |> assign(:page, %{title: "Edit Page"})
     |> assign(:page, page)
     |> assign(:form, to_form(Pages.change_page(page)))
   end
@@ -66,7 +66,7 @@ defmodule BodhiWeb.PageLive.Form do
     page = %Page{}
 
     socket
-    |> assign(:page_title, "New Page")
+    |> assign(:page, %{title: "New Page"})
     |> assign(:page, page)
     |> assign(:form, to_form(Pages.change_page(page)))
   end

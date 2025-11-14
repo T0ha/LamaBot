@@ -24,13 +24,13 @@ defmodule BodhiWeb.ChatLive.Index do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
-    |> assign(:page_title, "Edit Chat")
+    |> assign(:page, %{title: "Edit Chat"})
     |> assign(:chat, Chats.get_chat!(id))
   end
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Chats")
+    |> assign(:page, %{title: "Chats"})
     |> assign(:chat, nil)
   end
 end

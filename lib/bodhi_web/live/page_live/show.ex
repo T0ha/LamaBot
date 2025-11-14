@@ -36,7 +36,7 @@ defmodule BodhiWeb.PageLive.Show do
   def mount(%{"id" => id}, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Show Page")
+     |> assign(:page, %{title: "Show Page"})
      |> assign(:page, Pages.get_page!(id))}
   end
 end

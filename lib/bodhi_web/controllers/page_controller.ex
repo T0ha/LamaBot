@@ -29,9 +29,8 @@ defmodule BodhiWeb.PageController do
 
   def list(conn, _params) do
     page =
-      "index"
+      "list"
       |> Pages.get_page_by_slug!()
-    #|> Map.
 
     pages = Pages.list_pages()
     {:ok, bot} = Telegex.get_me()
