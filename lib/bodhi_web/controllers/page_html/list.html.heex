@@ -1,0 +1,22 @@
+<section class="flex flex-col gap-6">
+  <h2 class="text-3xl font-bold">{@page.title}</h2>
+  <p class="text-sm text-base-content/70">
+    <ul class="list">
+      <%= for p <- @pages do %>
+        <li>
+        <.link
+        class="block py-2 hover:underline"
+        href={ ~p"/p/#{p.slug}" }
+        >
+        {p.title}
+        <span class="text-sm text-base-content/70">
+        (<date>
+        {@page.updated_at |> NaiveDateTime.to_date() |> Date.to_iso8601()}
+        </date>)
+        </span>
+        </.link>
+        </li>
+        <% end %>
+    </ul>
+  </p>
+</section>

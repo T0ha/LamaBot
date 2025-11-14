@@ -49,6 +49,7 @@ defmodule BodhiWeb.Router do
     get "/", PageController, :index
 
     get "/login", AuthController, :login
+    get "/p", PageController, :list
     get "/p/:slug", PageController, :page
   end
 
