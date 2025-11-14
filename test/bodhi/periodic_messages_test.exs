@@ -46,7 +46,7 @@ defmodule Bodhi.PeriodicMessagesTest do
                  }
                })
 
-      assert_called(Posthog.capture("followup_sent", :_))
+      assert_called(PostHog.capture("followup_sent", :_))
       assert_called(Telegex.send_message(chat.id, prompt.text))
     end
 
@@ -69,7 +69,7 @@ defmodule Bodhi.PeriodicMessagesTest do
                  }
                })
 
-      assert_not_called(Posthog.capture("followup_sent", :_))
+      assert_not_called(PostHog.capture("followup_sent", :_))
       assert_not_called(Telegex.send_message(chat.id, prompt.text))
     end
   end

@@ -76,6 +76,7 @@ config :bodhi, Oban,
   repo: Bodhi.Repo
 
 config :posthog,
-  api_url: "https://eu.i.posthog.com"
+  enable: true,
+  api_host: "https://eu.i.posthog.com"
 
 import_config "#{config_env()}.exs"

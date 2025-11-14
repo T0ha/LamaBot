@@ -60,7 +60,7 @@ defmodule Bodhi.ObanCase do
          end,
          get_updates: fn _ -> {:ok, []} end
        ]},
-      {Posthog, [], [capture: fn _, _ -> :ok end]},
+      {PostHog, [], [capture: fn _, _ -> :ok end]},
       {Bodhi.Gemini, [],
        [
          ask_gemini: fn _ ->

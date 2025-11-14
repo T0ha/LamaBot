@@ -80,7 +80,7 @@ defmodule Bodhi.TgWebhookHandler do
          {:ok, _answer_msg} <- send_message(chat.id, answer) do
       Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
 
-      Posthog.capture("message_handled", %{
+      PostHog.capture("message_handled", %{
         distinct_id: user.id,
         locale: user.language_code,
         "$current_url": BodhiWeb.Endpoint.host()
@@ -113,7 +113,7 @@ defmodule Bodhi.TgWebhookHandler do
   defp get_answer(%_{chat_id: chat_id, text: "/start"}, lang) do
     %Prompt{text: answer} = get_start_message(lang)
 
-    Posthog.capture("start_command", %{
+    PostHog.capture("start_command", %{
       distinct_id: chat_id,
       locale: lang,
       "$current_url": BodhiWeb.Endpoint.host()

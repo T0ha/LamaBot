@@ -32,3 +32,6 @@ config :logger, level: :info
 config :phoenix, :plug_init_mode, :runtime
 
 config :bodhi, Oban, testing: :manual
+
+config :posthog,
+  test_mode: true
