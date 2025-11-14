@@ -24,6 +24,10 @@ defmodule BodhiWeb.Endpoint do
     gzip: false,
     only: BodhiWeb.static_paths()
 
+  if Code.ensure_loaded?(Tidewave) do
+    plug Tidewave
+  end
+
   # only: ~w(assets fonts images favicon.ico robots.txt sitemap.xml)
 
   # Code reloading can be explicitly enabled under the
