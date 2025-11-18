@@ -17,6 +17,16 @@ defmodule BodhiWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  import Mock
+
+  @bot_user %Telegex.Type.User{
+    id: Faker.random_between(1, 1000),
+    first_name: Faker.Person.first_name(),
+    last_name: Faker.Person.last_name(),
+    username: Faker.Internet.user_name(),
+    is_bot: true
+  }
+
   using do
     quote do
       # The default endpoint for testing
@@ -32,7 +42,37 @@ defmodule BodhiWeb.ConnCase do
     end
   end
 
-  setup tags do
+  setup_with_mocks(
+    [
+      {Telegex, [],
+       [
+         send_message: fn chat_id, text ->
+           {:ok,
+            %Telegex.Type.Message{
+              from: @bot_user,
+              chat: %Telegex.Type.Chat{
+                id: chat_id,
+                type: "private"
+              },
+              date: DateTime.utc_now() |> DateTime.to_unix(),
+              message_id: Faker.random_between(1, 1000),
+              text: text
+            }}
+         end,
+         get_updates: fn _ -> {:ok, []} end,
+         get_me: fn -> {:ok, @bot_user} end
+       ]},
+      {PostHog, [], [capture: fn _, _ -> :ok end]},
+      {Bodhi.Gemini, [],
+       [
+         ask_gemini: fn _ ->
+           {:ok, Faker.Lorem.paragraph()}
+         end
+       ]}
+    ],
+    tags
+  ) do
+    # setup tags do
     Bodhi.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
