@@ -43,7 +43,7 @@ defmodule Bodhi.ObanCase do
 
   setup_with_mocks(
     [
-      {Telegex, [],
+      {Telegex, [:passthrough],
        [
          send_message: fn chat_id, text ->
            {:ok,

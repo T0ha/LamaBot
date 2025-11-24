@@ -1,5 +1,5 @@
 defmodule Bodhi.PagesTest do
-  use Bodhi.DataCase
+  use Bodhi.DataCase, async: false
 
   alias Bodhi.Pages
 
