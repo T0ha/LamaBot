@@ -79,4 +79,8 @@ config :posthog,
   enable: true,
   api_host: "https://eu.i.posthog.com"
 
+# Configure behaviour implementations (can be overridden in env-specific configs)
+config :bodhi, :telegram_client, Bodhi.Telegram.TelegexAdapter
+config :bodhi, :ai_client, Bodhi.Gemini
+
 import_config "#{config_env()}.exs"

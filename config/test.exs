@@ -12,8 +12,7 @@ config :bodhi, Bodhi.Repo,
   hostname: "localhost",
   port: 5433,
   pool: Ecto.Adapters.SQL.Sandbox,
-
- pool_size: 10
+  pool_size: 10
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
@@ -35,3 +34,7 @@ config :bodhi, Oban, testing: :manual
 
 config :posthog,
   test_mode: true
+
+# Configure mocks for testing
+config :bodhi, :telegram_client, Bodhi.TelegramMock
+config :bodhi, :ai_client, Bodhi.GeminiMock

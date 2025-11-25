@@ -10,53 +10,72 @@ defmodule Bodhi.TgWebhookHandlerTest do
     end
 
     @tag text: Faker.Lorem.sentence()
-    test "TG messages are handled correctly", tags do
-      test_handle_message(tags)
+    test "TG messages are handled correctly", %{bot_user: bot_user} = tags do
+      # Create context prompt required by Gemini
+      insert(:prompt, type: :context, lang: "en")
+      test_handle_message(tags, bot_user)
     end
 
     @tag text: "/start", gemini: false, command: true
-    test "/start are handled correctly", tags do
+    test "/start are handled correctly", %{bot_user: bot_user} = tags do
       prompt = insert(:prompt, type: "start_message", lang: "en")
-      test_handle_message(tags, reply: prompt.text)
+      test_handle_message(tags, bot_user, reply: prompt.text)
       #  assert_called(Telegex.send_message(chat_id, prompt.text))
       #  assert response.text == prompt.text
     end
 
     @tag text: "/login", gemini: false, command: true, db: false, oban: false
-    test "/login for admin returns link", tags do
+    test "/login for admin returns link", %{bot_user: bot_user} = tags do
       admin = insert(:user, is_admin: true)
 
-      test_handle_message(tags, fields: %{[:message, :from, :id] => admin.id})
+      test_handle_message(tags, bot_user, fields: %{[:message, :from, :id] => admin.id})
       #  assert_called(Telegex.send_message(chat_id, prompt.text))
       #  assert response.text == prompt.text
     end
 
     @tag text: "/login", gemini: false, command: true, reply: false, db: false, oban: false
-    test "/login for non admin doesn't respond", tags do
+    test "/login for non admin doesn't respond", %{bot_user: bot_user} = tags do
       user = insert(:user, is_admin: false)
-      test_handle_message(tags, fields: %{[:message, :from, :id] => user.id})
+      test_handle_message(tags, bot_user, fields: %{[:message, :from, :id] => user.id})
     end
 
     @tag text: "/#{Faker.Lorem.word()}", gemini: false, command: true, relpy: false
-    test "Unknown / commands are handled correctly", tags do
-      test_handle_message(tags)
+    test "Unknown / commands are handled correctly", %{bot_user: bot_user} = tags do
+      test_handle_message(tags, bot_user)
     end
   end
 
   describe "send_message/2" do
-    test "Sends and saves message correctly", %{chat: chat} do
+    test "Sends and saves message correctly", %{chat: chat, bot_user: bot_user} do
       text = Faker.Lorem.paragraph()
+      chat_id = chat.id
+
+      # Expect send_message to be called once with these exact arguments
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, ^text ->
+        {:ok,
+         %Telegex.Type.Message{
+           from: %Telegex.Type.User{
+             id: bot_user.id,
+             first_name: bot_user.first_name,
+             last_name: bot_user.last_name,
+             username: bot_user.username,
+             is_bot: true
+           },
+           chat: %Telegex.Type.Chat{id: chat_id, type: "private"},
+           date: DateTime.utc_now() |> DateTime.to_unix(),
+           message_id: Faker.random_between(1, 1000),
+           text: text
+         }}
+      end)
 
       assert {:ok, %Bodhi.Chats.Message{} = message} =
-               TgWebhookHandler.send_message(chat.id, text)
+               TgWebhookHandler.send_message(chat_id, text)
 
-      assert message.chat_id == chat.id
+      assert message.chat_id == chat_id
       assert message.text == text
 
-      assert_called(Telegex.send_message(chat.id, text))
-
       assert message ==
-               Bodhi.Chats.get_last_message(chat.id)
+               Bodhi.Chats.get_last_message(chat_id)
     end
   end
 
@@ -105,7 +124,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
     end)
   end
 
-  def test_handle_message(tags, opts \\ []) do
+  def test_handle_message(tags, bot_user, opts \\ []) do
     db? = Map.get(tags, :db, true)
     oban? = Map.get(tags, :oban, true)
     gemini? = Map.get(tags, :gemini, true)
@@ -114,20 +133,41 @@ defmodule Bodhi.TgWebhookHandlerTest do
     update = gen_update(tags, Keyword.get(opts, :fields, %{}))
     chat_id = update.message.chat.id
 
-    assert :ok ==
-             TgWebhookHandler.on_update(update)
-
+    # Set up expectations based on test parameters
     if gemini? do
-      assert_called(Bodhi.Gemini.ask_gemini([:_]))
-    else
-      assert_not_called(Bodhi.Gemini.ask_gemini([:_]))
+      expect(Bodhi.GeminiMock, :ask_gemini, fn _messages ->
+        {:ok, Faker.Lorem.paragraph()}
+      end)
     end
 
     if reply? do
-      assert_called(Telegex.send_message(chat_id, Keyword.get(opts, :reply, :_)))
-    else
-      assert_not_called(Telegex.send_message(chat_id, :_))
+      expected_reply = Keyword.get(opts, :reply)
+
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text ->
+        # If a specific reply is expected, verify it matches
+        if expected_reply do
+          assert text == expected_reply
+        end
+
+        {:ok,
+         %Telegex.Type.Message{
+           from: %Telegex.Type.User{
+             id: bot_user.id,
+             first_name: bot_user.first_name,
+             last_name: bot_user.last_name,
+             username: bot_user.username,
+             is_bot: true
+           },
+           chat: %Telegex.Type.Chat{id: chat_id, type: "private"},
+           date: DateTime.utc_now() |> DateTime.to_unix(),
+           message_id: Faker.random_between(1, 1000),
+           text: text
+         }}
+      end)
     end
+
+    assert :ok ==
+             TgWebhookHandler.on_update(update)
 
     if db? do
       assert [received | other] =

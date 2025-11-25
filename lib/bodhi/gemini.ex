@@ -2,6 +2,8 @@ defmodule Bodhi.Gemini do
   @moduledoc """
   Google Gemini API wrapper
   """
+  @behaviour Bodhi.Behaviours.AIClient
+
   @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
   alias Bodhi.Chats.Message
@@ -13,6 +15,7 @@ defmodule Bodhi.Gemini do
   @doc """
   Request Gemini for bot's response in dialogue.
   """
+  @impl true
   @spec ask_gemini([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
   def ask_gemini(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()

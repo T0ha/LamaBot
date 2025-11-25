@@ -56,7 +56,7 @@ defmodule Bodhi.TgWebhookHandler do
          true <- db_user.is_admin,
          token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
          url <- url(~p"/login?#{[token: token]}") do
-      Telegex.send_message(chat.id, url)
+      Bodhi.Telegram.send_message(chat.id, url)
     else
       _ ->
         :ok
@@ -92,7 +92,7 @@ defmodule Bodhi.TgWebhookHandler do
 
   # @spec send_message(non_neg_integer(), String.t()) :: {:ok, Bodhi.Chats.Message.t()}
   def send_message(chat_id, text) do
-    with {:ok, message} <- Telegex.send_message(chat_id, text) do
+    with {:ok, message} <- Bodhi.Telegram.send_message(chat_id, text) do
       {:ok, _msg} = save_message(message, chat_id, message.from)
     end
   end
@@ -128,7 +128,7 @@ defmodule Bodhi.TgWebhookHandler do
 
   defp get_answer(%_{chat_id: chat_id}, _) do
     messages = Bodhi.Chats.get_chat_messages(chat_id)
-    {:ok, _answer} = Bodhi.Gemini.ask_gemini(messages)
+    {:ok, _answer} = Bodhi.AI.ask_gemini(messages)
   end
 
   defp get_start_message(lang) do

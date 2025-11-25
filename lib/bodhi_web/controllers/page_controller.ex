@@ -13,7 +13,7 @@ defmodule BodhiWeb.PageController do
   @spec page(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def page(conn, %{"slug" => slug} = _params) do
     page = Pages.get_page_by_slug!(slug)
-    {:ok, bot} = Telegex.get_me()
+    {:ok, bot} = Bodhi.Telegram.get_me()
 
     url = url(~p"/")
 
@@ -33,7 +33,7 @@ defmodule BodhiWeb.PageController do
       |> Pages.get_page_by_slug!()
 
     pages = Pages.list_pages()
-    {:ok, bot} = Telegex.get_me()
+    {:ok, bot} = Bodhi.Telegram.get_me()
     url = url(~p"/")
 
     conn
