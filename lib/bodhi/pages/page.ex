@@ -1,5 +1,7 @@
 defmodule Bodhi.Pages.Page do
-  @moduledoc false
+  @moduledoc """
+  Schema for managing CMS pages with support for multiple content formats.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -8,7 +10,7 @@ defmodule Bodhi.Pages.Page do
     field :header, :boolean, default: false
     field :title, :string
     field :description, :string
-    field :template, :string, default: "page.html"
+    field :template, :string, default: "page"
     field :format, Ecto.Enum, values: [:markdown, :html, :text, :eex]
     field :content, :string
 

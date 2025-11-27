@@ -20,7 +20,6 @@ defmodule BodhiWeb.PageController do
     conn
     |> assign(:seo, true)
     |> assign(:url, url)
-    |> assign(:bot_username, "compassion_lama_bot")
     |> assign(:page, page)
     |> assign(:bot, bot)
     |> put_format(:html)
@@ -38,12 +37,11 @@ defmodule BodhiWeb.PageController do
 
     conn
     |> assign(:seo, true)
-    |> assign(:bot_username, "compassion_lama_bot")
     |> assign(:pages, pages)
     |> assign(:page, page)
     |> assign(:url, url)
     |> assign(:bot, bot)
     |> put_format(:html)
-    |> render("list.html")
+    |> render("list")
   end
 end

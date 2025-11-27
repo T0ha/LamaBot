@@ -4,6 +4,12 @@ defmodule BodhiWeb.PageLive.Form do
   alias Bodhi.Pages
   alias Bodhi.Pages.Page
 
+  @template_options BodhiWeb.PageHTML.__info__(:functions)
+                    |> Enum.map(fn {func, _arity} -> to_string(func) end)
+                    |> Enum.filter(
+                      &(!String.starts_with?(&1, "__") and !String.ends_with?(&1, "_"))
+                    )
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -16,7 +22,7 @@ defmodule BodhiWeb.PageLive.Form do
       <.form for={@form} id="page-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:slug]} type="text" label="Slug" />
         <.input field={@form[:header]} type="checkbox" label="Header" />
-        <.input field={@form[:title]} type="text" label="Title" />`
+        <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:description]} type="text" label="Description" />
         <.input
           field={@form[:format]}
@@ -108,9 +114,5 @@ defmodule BodhiWeb.PageLive.Form do
   defp return_path("index", _page), do: ~p"/pages"
   defp return_path("show", page), do: ~p"/pages/#{page}"
 
-  defp template_options do
-    BodhiWeb.PageHTML.__info__(:functions)
-    |> Enum.map(fn {func, _arity} -> to_string(func) end)
-    |> Enum.filter(&(!String.starts_with?(&1, "__") and !String.ends_with?(&1, "_")))
-  end
+  defp template_options, do: @template_options
 end
