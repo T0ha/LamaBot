@@ -1,15 +1,15 @@
-<div>
+<Layouts.admin flash={@flash}>
   <.header>
     {@title}
   </.header>
 
-  <.simple_form
+  <.form
     for={@form}
     id="prompt-form"
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
-  
+
     <.input field={@form[:text]} type="textarea" label="Prompt text" />
     <.input field={@form[:type]} type="select" label="Type" options={Ecto.Enum.values(Bodhi.Prompts.Prompt, :type)} />
     <.input field={@form[:lang]} type="text" label="Language" />
@@ -18,5 +18,5 @@
     <:actions>
       <.button phx-disable-with="Saving...">Save</.button>
     </:actions>
-  </.simple_form>
-</div>
+  </.form>
+</Layouts.admin>

@@ -7,7 +7,7 @@ defmodule Bodhi.MixProject do
       version: "0.1.0",
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: Mix.compilers(),
+      compilers: [:phoenix_live_view] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       listeners: [Phoenix.CodeReloader],
       aliases: aliases(),
@@ -40,6 +40,7 @@ defmodule Bodhi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:tidewave, "~> 0.5", only: [:dev]},
       {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
@@ -65,6 +66,7 @@ defmodule Bodhi.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
+      {:req, "~> 0.5"},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:live_debugger, "~> 0.3.1", only: :dev},
@@ -73,12 +75,13 @@ defmodule Bodhi.MixProject do
       {:oban, "~> 2.17"},
       {:oban_web, "~> 2.11.1"},
       {:igniter, "~> 0.5", only: [:dev]},
-      {:posthog, "~> 0.1"},
+      {:posthog, "~> 2.0"},
+      {:mdex, "~> 0.9.0"},
       {:credo, "~> 1.7", runtime: false},
       {:dialyxir, "~> 1.4", runtime: false},
       {:faker, "~> 0.18.0", only: [:test]},
       {:ex_machina, "~> 2.8", only: [:test]},
-      {:mock, "~> 0.3", only: [:test]},
+      {:mox, "~> 1.0", only: [:test]},
       {:excoveralls, "~> 0.14", only: [:test], runtime: false}
     ]
   end
@@ -91,10 +94,12 @@ defmodule Bodhi.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
+      precommit: ["format", "credo --strict", "dialyzer", "test"],
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      "assets.build": ["compile", "tailwind bodhi", "esbuild bodhi"],
       "assets.deploy": [
         "tailwind myproject --minify",
         "esbuild default --minify",

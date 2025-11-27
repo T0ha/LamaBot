@@ -25,7 +25,7 @@ defmodule BodhiWeb.ChatLive.Messages do
 
   defp apply_action(socket, :index, %{"chat_id" => chat_id} = _params) do
     socket
-    |> assign(:page_title, "Messages from Chat #{chat_id}")
+    |> assign(:page, %{title: "Messages from Chat #{chat_id}"})
     |> assign(:chat_id, chat_id)
     |> assign(:message, nil)
   end

@@ -1,3 +1,4 @@
+<Layouts.admin flash={@flash}>
 <.header>
   Listing Prompts
   <:actions>
@@ -10,7 +11,7 @@
 <.table
   id="prompts"
   rows={@streams.prompts}
->
+  >
   <:col :let={{_id, prompt}} label="Text">{prompt.text}</:col>
   <:col :let={{_id, prompt}} label="Type">{prompt.type}</:col>
   <:col :let={{_id, prompt}} label="Language">{prompt.lang}</:col>
@@ -23,19 +24,9 @@
     <.link
       phx-click={JS.push("delete", value: %{id: prompt.id}) |> hide("##{id}")}
       data-confirm="Are you sure?"
-    >
+      >
       Delete
     </.link>
   </:action>
 </.table>
-
-<.modal :if={@live_action in [:new, :edit]} id="prompt-modal" show on_cancel={JS.patch(~p"/prompts")}>
-  <.live_component
-      module={BodhiWeb.PromptLive.FormComponent}
-    id={@prompt.id || :new}
-    title={@page_title}
-    action={@live_action}
-    prompt={@prompt}
-    patch={~p"/prompts"}
-  />
-</.modal>
+</Layouts.admin>

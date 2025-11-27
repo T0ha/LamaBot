@@ -24,6 +24,7 @@ defmodule Bodhi.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Bodhi.DataCase
+      import Bodhi.Factory
     end
   end
 

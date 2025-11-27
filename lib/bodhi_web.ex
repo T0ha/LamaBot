@@ -38,9 +38,7 @@ defmodule BodhiWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: BodhiWeb.Layouts]
+      use Phoenix.Controller, formats: [:html, :json]
 
       use Gettext, backend: BodhiWeb.Gettext
 
@@ -52,8 +50,7 @@ defmodule BodhiWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {BodhiWeb.Layouts, :admin}
+      use Phoenix.LiveView
 
       unquote(html_helpers())
     end
@@ -89,9 +86,11 @@ defmodule BodhiWeb do
       import Phoenix.HTML
       # Core UI components
       import BodhiWeb.CoreComponents
+      import BodhiWeb.Components.Seo
 
-      # Shortcut for generating JS commands
+      # Common modules used in templates
       alias Phoenix.LiveView.JS
+      alias BodhiWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

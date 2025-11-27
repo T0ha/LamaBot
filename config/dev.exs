@@ -26,8 +26,8 @@ config :bodhi, BodhiWeb.Endpoint,
   secret_key_base: "eh1xC5CPAzejlOzQhwDavLwVjW8rM+DhBr+oRi/IecfSNpS62HadNmcnwDw/0uKM",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:myproject, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:bodhi, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:bodhi, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -58,10 +58,9 @@ config :bodhi, BodhiWeb.Endpoint,
 config :bodhi, BodhiWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/bodhi_web/(live|views)/.*(ex)$",
-      ~r"lib/bodhi_web/templates/.*(eex)$"
+      ~r"lib/bodhi_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
     ]
   ]
 
@@ -74,3 +73,8 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Enable debug annotations for Tidewave
+config :phoenix_live_view,
+  debug_heex_annotations: true,
+  debug_attributes: true

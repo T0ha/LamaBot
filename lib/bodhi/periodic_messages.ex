@@ -71,7 +71,7 @@ defmodule Bodhi.PeriodicMessages do
     %Prompt{id: prompt_id, text: text} =
       Prompts.get_random_prompt_by_type_and_lang(String.to_atom(type), lang)
 
-    Posthog.capture("followup_sent", %{
+    PostHog.capture("followup_sent", %{
       distinct_id: user.id,
       locale: lang,
       "$current_url": BodhiWeb.Endpoint.host(),

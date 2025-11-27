@@ -1,6 +1,23 @@
+<header :if={@page.header} class="flex items-center border-1 border-white border-b-zinc-400">
+  <section class="flex items-center p-4">
+    <a href={~p"/"} class="flex items-center">
+      <img src={~p"/images/lama-bot.jpg"} alt="Lama Bot" class="w-12 h-12 rounded-full mr-3"/>
+      <span class="text-xl font-bold">Lama Bot</span>
+    </a>
+  </section>
+  <nav class="flex-1 flex items-center">
+    <ul class="flex space-x-4 p-4 justify-end w-full">
+      <li>
+        <Layouts.theme_toggle />
+      </li>
+      <li><a href={~p"/"} class="btn btn-ghost">Home</a></li>
+      <li><a href={~p"/p"} class="btn btn-ghost">Articles</a></li>
+    </ul>
+  </nav>
+</header>
 <main class="px-4 py-20 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-2xl mt-5">
-    <.flash_group flash={@flash} />
+    <Layouts.flash_group flash={@flash} />
     {@inner_content}
   </div>
 </main>

@@ -10,7 +10,9 @@ defmodule BodhiWeb.Endpoint do
     signing_salt: "O0jFlqIr"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [session: @session_options]],
+    longpoll: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -20,7 +22,13 @@ defmodule BodhiWeb.Endpoint do
     at: "/",
     from: :bodhi,
     gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt sitemap.xml)
+    only: BodhiWeb.static_paths()
+
+  if Code.ensure_loaded?(Tidewave) do
+    plug Tidewave
+  end
+
+  # only: ~w(assets fonts images favicon.ico robots.txt sitemap.xml)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

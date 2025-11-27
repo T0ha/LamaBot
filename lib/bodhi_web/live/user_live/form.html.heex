@@ -1,0 +1,25 @@
+<Layouts.admin flash={@flash}>
+  <div>
+    <.header>
+      {@title}
+    </.header>
+
+    <.form
+      for={@form}
+      id="user-form"
+      phx-target={@myself}
+      phx-change="validate"
+      phx-submit="save">
+
+      <.input field={@form[:first_name]} type="text" label="First name" />
+      <.input field={@form[:last_name]} type="text" label="Last name" />
+      <.input field={@form[:username]} type="text" label="Username" />
+      <.input field={@form[:language_code]} type="text" label="Language" />
+      <.input field={@form[:is_admin]} type="checkbox" label="Admin" />
+
+      <:actions>
+        <.button phx-disable-with="Saving...">Save</.button>
+      </:actions>
+    </.form>
+  </div>
+</Layouts.admin>

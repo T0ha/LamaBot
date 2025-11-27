@@ -20,45 +20,37 @@ defmodule BodhiWeb.Router do
   end
 
   scope "/", BodhiWeb do
-    pipe_through :browser
-
-    get "/", PageController, :index
-
-    get "/login", AuthController, :login
-  end
-
-  scope "/", BodhiWeb do
     pipe_through [:browser, :auth]
 
     get "/logout", AuthController, :logout
     oban_dashboard("/oban")
 
     live "/users", UserLive.Index, :index
-    # live "/users/new", UserLive.Index, :new
     live "/users/:id/edit", UserLive.Index, :edit
-
-    # live "/users/:id", UserLive.Show, :show
-    # live "/users/:id/show/edit", UserLive.Show, :edit
 
     live "/chats", ChatLive.Index, :index
     live "/chats/:chat_id/messages", ChatLive.Messages, :index
 
     # live "/chats/:id", ChatLive.Show, :show
-    # live "/chats/:id/show/edit", ChatLive.Show, :edit
-
-    # live "/messages", MessageLive.Index, :index
-    # live "/messages/new", MessageLive.Index, :new
-    # live "/messages/:id/edit", MessageLive.Index, :edit
-
-    # live "/messages/:id", MessageLive.Show, :show
-    # live "/messages/:id/show/edit", MessageLive.Show, :edit
 
     live "/prompts", PromptLive.Index, :index
     live "/prompts/new", PromptLive.Index, :new
     live "/prompts/:id/edit", PromptLive.Index, :edit
 
-    # live "/prompts/:id", PromptLive.Show, :show
-    # live "/prompts/:id/show/edit", PromptLive.Show, :edit
+    live "/pages", PageLive.Index, :index
+    live "/pages/new", PageLive.Form, :new
+    live "/pages/:id", PageLive.Show, :show
+    live "/pages/:id/edit", PageLive.Form, :edit
+  end
+
+  scope "/", BodhiWeb do
+    pipe_through :browser
+
+    get "/", PageController, :index
+
+    get "/login", AuthController, :login
+    get "/p", PageController, :list
+    get "/p/:slug", PageController, :page
   end
 
   # Other scopes may use custom stacks.

@@ -25,19 +25,19 @@ defmodule BodhiWeb.PromptLive.Index do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
-    |> assign(:page_title, "Edit Prompt")
+    |> assign(:page, %{title: "Edit Prompt"})
     |> assign(:prompt, Prompts.get_prompt!(id))
   end
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "New Prompt")
+    |> assign(:page, %{title: "New Prompt"})
     |> assign(:prompt, %Prompt{})
   end
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Prompts")
+    |> assign(:page, %{title: "Listing Prompts"})
     |> assign(:prompt, nil)
   end
 
