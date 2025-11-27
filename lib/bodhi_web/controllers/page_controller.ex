@@ -42,6 +42,6 @@ defmodule BodhiWeb.PageController do
     |> assign(:url, url)
     |> assign(:bot, bot)
     |> put_format(:html)
-    |> render("list")
+    |> render(:list)
   end
 end
