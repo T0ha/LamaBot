@@ -46,7 +46,7 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "4.1.7",
+  version: "4.1.12",
   bodhi: [
     args: ~w(
       --input=assets/css/app.css

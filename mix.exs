@@ -99,10 +99,11 @@ defmodule Bodhi.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind bodhi", "esbuild bodhi"],
       "assets.deploy": [
-        "tailwind myproject --minify",
-        "esbuild default --minify",
+        "tailwind bodhi --minify",
+        "esbuild bodhi --minify",
         "phx.digest"
       ]
     ]
