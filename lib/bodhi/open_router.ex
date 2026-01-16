@@ -18,8 +18,8 @@ defmodule Bodhi.OpenRouter do
   Request OpenRouter for bot's response in dialogue.
   """
   @impl true
-  @spec ask_gemini([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
-  def ask_gemini(messages) do
+  @spec ask_llm([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
+  def ask_llm(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()
 
     messages
@@ -49,7 +49,7 @@ defmodule Bodhi.OpenRouter do
       ],
       body
     )
-    |> Finch.request!(Gemini)
+    |> Finch.request!(LLM)
     |> handle_finch_response()
     |> Jason.decode!()
   end

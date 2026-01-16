@@ -20,7 +20,7 @@ defmodule Bodhi.Application do
       BodhiWeb.Endpoint,
       Bodhi.TgWebhookHandler,
       {Finch,
-       name: Gemini,
+       name: LLM,
        pools: %{
          :default => [size: 10]
        }},

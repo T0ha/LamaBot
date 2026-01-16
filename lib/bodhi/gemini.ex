@@ -16,8 +16,8 @@ defmodule Bodhi.Gemini do
   Request Gemini for bot's response in dialogue.
   """
   @impl true
-  @spec ask_gemini([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
-  def ask_gemini(messages) do
+  @spec ask_llm([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
+  def ask_llm(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()
 
     messages
@@ -43,7 +43,7 @@ defmodule Bodhi.Gemini do
       [{"x-goog-api-key", Application.get_env(:bodhi, :gemini_token)}],
       body
     )
-    |> Finch.request!(Gemini)
+    |> Finch.request!(LLM)
     |> handle_finch_response()
     |> Jason.decode!()
   end
