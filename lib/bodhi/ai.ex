@@ -10,8 +10,8 @@ defmodule Bodhi.AI do
   Asks the AI to generate a response based on message history.
   """
   @impl true
-  def ask_gemini(messages) do
-    impl().ask_gemini(messages)
+  def ask_llm(messages) do
+    impl().ask_llm(messages)
   end
 
   defp impl do

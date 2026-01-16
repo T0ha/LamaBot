@@ -88,7 +88,7 @@ defmodule BodhiWeb.ConnCase do
 
     # Set up default stub for Gemini mock
     Bodhi.GeminiMock
-    |> stub(:ask_gemini, fn _ ->
+    |> stub(:ask_llm, fn _ ->
       {:ok, Faker.Lorem.paragraph()}
     end)
 
