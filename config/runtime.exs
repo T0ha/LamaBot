@@ -13,7 +13,8 @@ if System.get_env("PHX_SERVER") && System.get_env("RELEASE_NAME") do
 end
 
 config :bodhi,
-  gemini_token: "#{System.get_env("GEMINI_API_KEY")}"
+  gemini_token: "#{System.get_env("GEMINI_API_KEY")}",
+  openrouter_token: "#{System.get_env("OPENROUTER_API_KEY")}"
 
 config :telegex,
   token: "#{System.get_env("TG_TOKEN")}"

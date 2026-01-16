@@ -81,6 +81,6 @@ config :posthog,
 
 # Configure behaviour implementations (can be overridden in env-specific configs)
 config :bodhi, :telegram_client, Bodhi.Telegram.TelegexAdapter
-config :bodhi, :ai_client, Bodhi.Gemini
+config :bodhi, :ai_client, Bodhi.OpenRouter
 
 import_config "#{config_env()}.exs"
