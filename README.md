@@ -16,38 +16,38 @@ Bodhi supports multiple AI providers that can be switched via configuration.
 
 ### Available Providers
 
-#### Google Gemini (Default)
+#### OpenRouter (Default)
+- **Module:** `Bodhi.OpenRouter`
+- **Default Model:** `deepseek/deepseek-r1-0528:free`
+- **Environment Variable:** `OPENROUTER_API_KEY`
+- **Website:** https://openrouter.ai/
+
+#### Google Gemini
 - **Module:** `Bodhi.Gemini`
 - **Model:** `gemini-2.0-flash`
 - **Environment Variable:** `GEMINI_API_KEY`
-
-#### OpenRouter
-- **Module:** `Bodhi.OpenRouter`
-- **Default Model:** `anthropic/claude-3.5-sonnet`
-- **Environment Variable:** `OPENROUTER_API_KEY`
-- **Website:** https://openrouter.ai/
 
 ### Switching Providers
 
 To switch AI providers, update `config/config.exs`:
 
 ```elixir
-# Use Google Gemini (default)
-config :bodhi, :ai_client, Bodhi.Gemini
-
-# Use OpenRouter
+# Use OpenRouter (default)
 config :bodhi, :ai_client, Bodhi.OpenRouter
+
+# Use Google Gemini
+config :bodhi, :ai_client, Bodhi.Gemini
 ```
 
 ### Setting Up API Keys
 
-1. **Google Gemini:**
-   - Get API key from: https://aistudio.google.com/app/apikey
-   - Set in `.envrc`: `export GEMINI_API_KEY=your_api_key_here`
-
-2. **OpenRouter:**
+1. **OpenRouter:**
    - Get API key from: https://openrouter.ai/keys
    - Set in `.envrc`: `export OPENROUTER_API_KEY=sk-or-v1-your_api_key_here`
+
+2. **Google Gemini:**
+   - Get API key from: https://aistudio.google.com/app/apikey
+   - Set in `.envrc`: `export GEMINI_API_KEY=your_api_key_here`
 
 3. Reload environment: `direnv allow` (if using direnv)
 
@@ -56,9 +56,10 @@ config :bodhi, :ai_client, Bodhi.OpenRouter
 Edit `lib/bodhi/open_router.ex` and modify the `@default_model` attribute:
 
 ```elixir
-@default_model "anthropic/claude-3.5-sonnet"  # Current default
+@default_model "deepseek/deepseek-r1-0528:free"  # Current default
 
 # Other popular models:
+# @default_model "anthropic/claude-3.5-sonnet"
 # @default_model "openai/gpt-4-turbo"
 # @default_model "meta-llama/llama-3.1-70b-instruct"
 # @default_model "google/gemini-pro-1.5"
