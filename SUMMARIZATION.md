@@ -42,6 +42,63 @@ config :bodhi, :summarization,
   schedule: "0 2 * * *"  # Cron expression
 ```
 
+## Backfilling Historical Data
+
+After deploying the summarization feature, you can backfill summaries for all historical messages using the Release module.
+
+### Running from Production Release
+
+```bash
+# Dry run first to see what would be processed
+bin/bodhi eval "Bodhi.Release.backfill_summaries(dry_run: true)"
+
+# Backfill all chats (WARNING: Uses AI API credits!)
+bin/bodhi eval "Bodhi.Release.backfill_summaries()"
+
+# Backfill specific date range
+bin/bodhi eval "Bodhi.Release.backfill_summaries(from_date: ~D[2024-01-01], to_date: ~D[2024-12-31])"
+
+# Backfill specific chats only
+bin/bodhi eval "Bodhi.Release.backfill_summaries(chat_ids: [123, 456])"
+```
+
+### Running from IEx (Development)
+
+```elixir
+# Dry run to preview
+Bodhi.Release.backfill_summaries(dry_run: true)
+
+# Backfill all
+Bodhi.Release.backfill_summaries()
+
+# With custom date range
+Bodhi.Release.backfill_summaries(
+  from_date: ~D[2024-01-01],
+  to_date: ~D[2024-12-31]
+)
+```
+
+### Options
+
+- `dry_run: true` - Shows what would be done without making AI calls or creating summaries
+- `from_date: Date.t()` - Start date (default: earliest message date per chat)
+- `to_date: Date.t()` - End date (default: yesterday)
+- `chat_ids: [integer()]` - Specific chat IDs to process (default: all chats with messages)
+
+### Important Notes
+
+**⚠️ API Cost Warning**: Backfilling will make one AI API call per day per chat. For a chat with messages spanning 365 days, that's 365 API calls. Calculate costs before running on production data.
+
+**Idempotency**: The backfill is safe to run multiple times. It will skip dates that already have summaries.
+
+**Performance**: The backfill processes chats sequentially and dates within each chat sequentially. For large datasets, this may take considerable time.
+
+**Progress Monitoring**: Check logs for progress:
+```bash
+# In production
+tail -f /path/to/logs/production.log | grep "backfill"
+```
+
 ## Manual Testing
 
 ### 1. Check Current State
@@ -76,30 +133,24 @@ DailyChatSummarizer.perform(%Oban.Job{args: %{}})
 
 ### 3. Backfill Historical Summaries
 
-To create summaries for past dates, you can create a migration or run a script:
+Use the built-in Release function for backfilling:
 
 ```elixir
-# WARNING: This will consume AI API credits for each day!
-alias Bodhi.Chats
-alias Bodhi.Workers.DailyChatSummarizer
+# Recommended: Start with a dry run
+Bodhi.Release.backfill_summaries(dry_run: true)
 
-# Get the date range
-start_date = ~D[2024-01-01]
-end_date = Date.utc_today() |> Date.add(-1)
+# After verifying, run the actual backfill
+Bodhi.Release.backfill_summaries()
 
-# Create a job for each day
-Date.range(start_date, end_date)
-|> Enum.each(fn date ->
-  # Check if there are active chats on this date
-  active_chats = Chats.get_active_chats_for_date(date)
-
-  if length(active_chats) > 0 do
-    IO.puts("Processing #{date} (#{length(active_chats)} chats)")
-    # You would need to modify the worker to accept a date parameter
-    # or create summaries manually here
-  end
-end)
+# Or with specific parameters
+Bodhi.Release.backfill_summaries(
+  from_date: ~D[2024-01-01],
+  to_date: ~D[2024-12-31],
+  chat_ids: [123]  # Optional: specific chats only
+)
 ```
+
+See the "Backfilling Historical Data" section above for more details.
 
 ## Monitoring
 
