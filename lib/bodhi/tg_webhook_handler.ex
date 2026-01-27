@@ -7,13 +7,12 @@ defmodule Bodhi.TgWebhookHandler do
 
   require Logger
 
-  alias Ecto.Query.Builder.Update
-  alias Telegex.Type.{Message, Update, MessageEntity}
   alias Bodhi.Prompts.Prompt
+  alias Telegex.Type.{Message, MessageEntity, Update}
 
   @impl true
-  @spec on_boot() :: Telegex.Polling.Config.t()
-  def on_boot() do
+  @spec on_boot :: Telegex.Polling.Config.t()
+  def on_boot do
     # env_config = Application.get_env(:bodhi, __MODULE__)
     # delete the webhook and set it again
     # unless Mix.env() == :test do

@@ -42,54 +42,56 @@ defmodule Bodhi.Workers.DailyChatSummarizer do
 
   defp summarize_chat(chat_id, summary_date) do
     # Check if summary already exists (idempotency)
-    case Chats.get_summary(chat_id, summary_date) do
-      nil ->
-        # Fetch messages for that date
-        messages = Chats.get_messages_for_date(chat_id, summary_date)
-
-        case length(messages) do
-          0 ->
-            Logger.debug("Chat #{chat_id}: No messages to summarize for #{summary_date}")
-            :ok
-
-          count ->
-            Logger.info("Chat #{chat_id}: Summarizing #{count} messages for #{summary_date}")
-
-            # Prepare summarization prompt
-            summary_messages = build_summarization_prompt(messages)
-
-            # Call AI backend
-            case Bodhi.AI.ask_llm(summary_messages) do
-              {:ok, summary_text} ->
-                # Store summary
-                {:ok, _summary} =
-                  Chats.create_summary(%{
-                    chat_id: chat_id,
-                    summary_date: summary_date,
-                    summary_text: summary_text,
-                    message_count: count,
-                    start_time: List.first(messages).inserted_at,
-                    end_time: List.last(messages).inserted_at,
-                    ai_model: get_current_ai_model()
-                  })
-
-                Logger.info("Chat #{chat_id}: Summary created successfully")
-                :ok
-
-              {:error, reason} = error ->
-                Logger.error("Chat #{chat_id}: Summarization failed - #{inspect(reason)}")
-                error
-            end
-        end
-
-      _existing_summary ->
-        Logger.debug("Chat #{chat_id}: Summary already exists for #{summary_date}")
-        :ok
+    if Chats.get_summary(chat_id, summary_date) do
+      Logger.debug("Chat #{chat_id}: Summary already exists for #{summary_date}")
+      :ok
+    else
+      create_summary_for_chat(chat_id, summary_date)
     end
   rescue
     e ->
       Logger.error("Chat #{chat_id}: Exception during summarization - #{inspect(e)}")
       {:error, e}
+  end
+
+  defp create_summary_for_chat(chat_id, summary_date) do
+    messages = Chats.get_messages_for_date(chat_id, summary_date)
+
+    if Enum.empty?(messages) do
+      Logger.debug("Chat #{chat_id}: No messages to summarize for #{summary_date}")
+      :ok
+    else
+      generate_and_store_summary(chat_id, summary_date, messages)
+    end
+  end
+
+  defp generate_and_store_summary(chat_id, summary_date, messages) do
+    count = length(messages)
+    Logger.info("Chat #{chat_id}: Summarizing #{count} messages for #{summary_date}")
+
+    summary_messages = build_summarization_prompt(messages)
+
+    with {:ok, summary_text} <- Bodhi.AI.ask_llm(summary_messages),
+         {:ok, _summary} <- create_summary_record(chat_id, summary_date, summary_text, messages) do
+      Logger.info("Chat #{chat_id}: Summary created successfully")
+      :ok
+    else
+      {:error, reason} = error ->
+        Logger.error("Chat #{chat_id}: Summarization failed - #{inspect(reason)}")
+        error
+    end
+  end
+
+  defp create_summary_record(chat_id, summary_date, summary_text, messages) do
+    Chats.create_summary(%{
+      chat_id: chat_id,
+      summary_date: summary_date,
+      summary_text: summary_text,
+      message_count: length(messages),
+      start_time: List.first(messages).inserted_at,
+      end_time: List.last(messages).inserted_at,
+      ai_model: get_current_ai_model()
+    })
   end
 
   defp build_summarization_prompt(messages) do
