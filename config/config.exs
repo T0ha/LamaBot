@@ -73,7 +73,20 @@ config :telegex,
 config :bodhi, Oban,
   engine: Oban.Engines.Basic,
   queues: [default: 10, messages: 10],
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       # Run daily at 2 AM UTC
+       {"0 2 * * *", Bodhi.Workers.DailyChatSummarizer}
+     ]}
+  ],
   repo: Bodhi.Repo
+
+# Summarization settings
+config :bodhi, :summarization,
+  enabled: true,
+  recent_days: 7,
+  schedule: "0 2 * * *"
 
 config :posthog,
   enable: true,

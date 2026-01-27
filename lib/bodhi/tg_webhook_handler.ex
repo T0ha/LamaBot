@@ -127,7 +127,7 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp get_answer(%_{chat_id: chat_id}, _) do
-    messages = Bodhi.Chats.get_chat_messages(chat_id)
+    messages = Bodhi.Chats.get_chat_context_for_ai(chat_id)
     {:ok, _answer} = Bodhi.AI.ask_llm(messages)
   end
 
