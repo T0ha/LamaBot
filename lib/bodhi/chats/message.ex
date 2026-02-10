@@ -15,8 +15,8 @@ defmodule Bodhi.Chats.Message do
           caption: String.t() | nil,
           date: non_neg_integer() | nil,
           text: String.t() | nil,
-          chat_id: non_neg_integer() | nil,
-          user_id: non_neg_integer() | nil,
+          chat_id: integer() | nil,
+          user_id: integer() | nil,
           chat: Chat.t() | Ecto.Association.t() | nil,
           from: User.t() | Ecto.Association.t() | nil
         }

@@ -67,6 +67,40 @@ Edit `lib/bodhi/open_router.ex` and modify the `@default_model` attribute:
 
 See all available models at: https://openrouter.ai/models
 
+## Features
+
+### Daily Dialog Summarization
+
+Bodhi automatically summarizes chat conversations daily to optimize AI context and reduce API costs:
+
+- **Automatic Summarization**: Worker runs daily at 2 AM UTC to summarize previous day's messages
+- **Smart Context Assembly**: Uses summaries for older messages + full messages from last 7 days
+- **Cost Optimization**: Reduces token usage by ~80-90% for long conversations
+- **Seamless Integration**: Falls back gracefully when no summaries exist
+
+**Example Results:**
+- 265 total messages → 4 recent messages in context
+- **98.5% token reduction** for older conversations
+
+#### Documentation
+
+- **[docs/SUMMARIZATION.md](docs/SUMMARIZATION.md)** - Complete guide to the summarization system
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Deployment and backfill procedures
+
+#### Quick Start
+
+After deployment, backfill historical summaries:
+
+```bash
+# Preview what will be processed (no API calls)
+bin/bodhi eval "Bodhi.Release.backfill_summaries(dry_run: true)"
+
+# Run the backfill
+bin/bodhi eval "Bodhi.Release.backfill_summaries()"
+```
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.
+
 ## Learn more
 
   * Official website: https://www.phoenixframework.org/

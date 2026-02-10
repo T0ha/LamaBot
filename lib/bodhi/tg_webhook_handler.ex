@@ -7,13 +7,12 @@ defmodule Bodhi.TgWebhookHandler do
 
   require Logger
 
-  alias Ecto.Query.Builder.Update
-  alias Telegex.Type.{Message, Update, MessageEntity}
   alias Bodhi.Prompts.Prompt
+  alias Telegex.Type.{Message, MessageEntity, Update}
 
   @impl true
-  @spec on_boot() :: Telegex.Polling.Config.t()
-  def on_boot() do
+  @spec on_boot :: Telegex.Polling.Config.t()
+  def on_boot do
     # env_config = Application.get_env(:bodhi, __MODULE__)
     # delete the webhook and set it again
     # unless Mix.env() == :test do
@@ -123,11 +122,11 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp get_answer(%_{text: "/" <> _}, _lang) do
-    {:ok, "Unknowwn command. Please use /start to begin."}
+    {:ok, "Unknown command. Please use /start to begin."}
   end
 
   defp get_answer(%_{chat_id: chat_id}, _) do
-    messages = Bodhi.Chats.get_chat_messages(chat_id)
+    messages = Bodhi.Chats.get_chat_context_for_ai(chat_id)
     {:ok, _answer} = Bodhi.AI.ask_llm(messages)
   end
 

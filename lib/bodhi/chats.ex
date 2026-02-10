@@ -127,6 +127,7 @@ defmodule Bodhi.Chats do
   end
 
   alias Bodhi.Chats.Message
+  alias Bodhi.Chats.Summary
 
   @doc """
   Returns the list of messages.
@@ -160,6 +161,60 @@ defmodule Bodhi.Chats do
       order_by: [asc: m.inserted_at]
     )
     |> Repo.all()
+  end
+
+  @doc """
+  Returns context for AI: summaries + recent messages.
+
+  Assembles chat context by combining older summaries with recent messages
+  from the last N days (default: 7). This reduces token usage for long conversations.
+
+  ## Examples
+
+      iex> get_chat_context_for_ai(123)
+      [%Message{}, ...]
+
+      iex> get_chat_context_for_ai(123, recent_days: 14)
+      [%Message{}, ...]
+
+  """
+  @spec get_chat_context_for_ai(non_neg_integer(), keyword()) :: [Message.t()]
+  def get_chat_context_for_ai(chat_id, opts \\ []) do
+    default_days = summarization_config(:recent_days, 7)
+    recent_days = Keyword.get(opts, :recent_days, default_days)
+    cutoff_date = Date.utc_today() |> Date.add(-recent_days)
+
+    # Get recent messages (last N days by default)
+    recent_messages = get_recent_messages(chat_id, cutoff_date)
+
+    # Get older summaries (before cutoff date)
+    summaries = get_summaries_before_date(chat_id, cutoff_date)
+
+    build_context(summaries, recent_messages, chat_id)
+  end
+
+  # Builds context by combining summaries and recent
+  # messages. Summaries are wrapped as synthetic Message
+  # structs with system user_id to distinguish them from
+  # real user messages.
+  # These structs are NOT persisted to the database.
+  defp build_context(summaries, messages, chat_id) do
+    system_uid = Bodhi.Chats.Summarizer.system_user_id()
+
+    summary_messages =
+      Enum.map(summaries, fn summary ->
+        %Message{
+          text:
+            "Summary for #{summary.summary_date}: " <>
+              "#{summary.summary_text} " <>
+              "(#{summary.message_count} messages)",
+          chat_id: chat_id,
+          user_id: system_uid,
+          inserted_at: summary.inserted_at
+        }
+      end)
+
+    summary_messages ++ messages
   end
 
   @doc """
@@ -267,5 +322,159 @@ defmodule Bodhi.Chats do
   @spec change_message(Message.t(), map()) :: Ecto.Changeset.t()
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
+  end
+
+  # Summary functions
+
+  @doc """
+  Gets chat IDs that have messages on a specific date.
+
+  ## Examples
+
+      iex> get_active_chats_for_date(~D[2024-01-01])
+      [123, 456]
+
+  """
+  @spec get_active_chats_for_date(Date.t()) :: [non_neg_integer()]
+  def get_active_chats_for_date(date) do
+    {start_dt, end_dt} = date_to_naive_range(date)
+
+    from(m in Message,
+      where:
+        m.inserted_at >= ^start_dt and
+          m.inserted_at < ^end_dt,
+      distinct: m.chat_id,
+      select: m.chat_id
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets all messages for a specific chat on a specific date.
+
+  ## Examples
+
+      iex> get_messages_for_date(123, ~D[2024-01-01])
+      [%Message{}, ...]
+
+  """
+  @spec get_messages_for_date(non_neg_integer(), Date.t()) :: [Message.t()]
+  def get_messages_for_date(chat_id, date) do
+    {start_dt, end_dt} = date_to_naive_range(date)
+
+    from(m in Message,
+      where:
+        m.chat_id == ^chat_id and
+          m.inserted_at >= ^start_dt and
+          m.inserted_at < ^end_dt,
+      order_by: [asc: m.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets recent messages for a chat after a cutoff date.
+
+  ## Examples
+
+      iex> get_recent_messages(123, ~D[2024-01-15])
+      [%Message{}, ...]
+
+  """
+  @spec get_recent_messages(non_neg_integer(), Date.t()) :: [Message.t()]
+  def get_recent_messages(chat_id, cutoff_date) do
+    cutoff_datetime =
+      cutoff_date
+      |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+      |> DateTime.to_naive()
+
+    from(m in Message,
+      where: m.chat_id == ^chat_id and m.inserted_at >= ^cutoff_datetime,
+      order_by: [asc: m.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets summaries for a chat before a specific date.
+
+  ## Examples
+
+      iex> get_summaries_before_date(123, ~D[2024-01-15])
+      [%Summary{}, ...]
+
+  """
+  @spec get_summaries_before_date(non_neg_integer(), Date.t()) :: [Summary.t()]
+  def get_summaries_before_date(chat_id, cutoff_date) do
+    from(s in Summary,
+      where: s.chat_id == ^chat_id and s.summary_date < ^cutoff_date,
+      order_by: [asc: s.summary_date]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a summary for a specific chat and date.
+
+  ## Examples
+
+      iex> get_summary(123, ~D[2024-01-01])
+      %Summary{}
+
+      iex> get_summary(123, ~D[2024-01-01])
+      nil
+
+  """
+  @spec get_summary(non_neg_integer(), Date.t()) :: Summary.t() | nil
+  def get_summary(chat_id, summary_date) do
+    from(s in Summary,
+      where: s.chat_id == ^chat_id and s.summary_date == ^summary_date,
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Creates a summary.
+
+  ## Examples
+
+      iex> create_summary(%{chat_id: 123, summary_text: "...", summary_date: ~D[2024-01-01]})
+      {:ok, %Summary{}}
+
+      iex> create_summary(%{chat_id: nil})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_summary(map()) ::
+          {:ok, Summary.t()} | {:error, Ecto.Changeset.t()}
+  def create_summary(attrs) do
+    %Summary{}
+    |> Summary.changeset(attrs)
+    |> Repo.insert(
+      on_conflict: :nothing,
+      conflict_target: [:chat_id, :summary_date]
+    )
+  end
+
+  defp summarization_config(key, default) do
+    :bodhi
+    |> Application.get_env(:summarization, [])
+    |> Keyword.get(key, default)
+  end
+
+  defp date_to_naive_range(date) do
+    start_dt =
+      date
+      |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+      |> DateTime.to_naive()
+
+    end_dt =
+      date
+      |> Date.add(1)
+      |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+      |> DateTime.to_naive()
+
+    {start_dt, end_dt}
   end
 end
