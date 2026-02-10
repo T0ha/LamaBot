@@ -1,5 +1,79 @@
 This is a web application written using the Phoenix web framework.
 
+## Project Structure
+
+### Key Features
+
+#### Daily Dialog Summarization System
+
+The application includes an automatic dialog summarization system to optimize AI context and reduce API costs:
+
+**Database Schema:**
+- **Migration:** `priv/repo/migrations/20260127085112_create_message_summaries.exs`
+- **`message_summaries`** table stores daily summaries with fields:
+  - `chat_id` (references chats, on_delete: :delete_all) - Which chat
+  - `summary_text` (text, not null) - AI-generated summary
+  - `summary_date` (date, not null) - Date being summarized
+  - `message_count` (integer, default: 0) - Number of messages
+  - `start_time`, `end_time` (naive_datetime) - Temporal boundaries
+  - `ai_model` (string) - Which AI backend generated the summary
+  - `inserted_at`, `updated_at` (timestamps)
+- **Indexes:**
+  - Unique index on `(chat_id, summary_date)` for idempotency
+  - Index on `chat_id` for fast lookups
+  - Index on `summary_date` for date-based queries
+
+**Core Modules:**
+- **`Bodhi.Chats.Summary`** (`lib/bodhi/chats/summary.ex`) - Ecto schema for message_summaries table
+- **`Bodhi.Chats`** (`lib/bodhi/chats.ex`) - Extended with summary functions:
+  - `get_chat_context_for_ai/2` - Main context assembly function (line ~168)
+  - `get_summaries_before_date/2`, `get_recent_messages/2` - Query helpers
+  - `get_active_chats_for_date/1`, `get_messages_for_date/2` - Date-based queries
+  - `create_summary/1`, `get_summary/2` - CRUD operations
+  - `build_context_from_summaries_and_messages/3` - Context builder
+- **`Bodhi.Workers.DailyChatSummarizer`** (`lib/bodhi/workers/daily_chat_summarizer.ex`) - Oban worker
+  - Runs daily at 2 AM UTC via Oban Cron plugin
+  - Processes all active chats sequentially
+  - Creates summaries for previous day's messages
+  - Refactored to reduce nesting depth (credo compliant)
+- **`Bodhi.Release`** (`lib/bodhi/release.ex`) - Release tasks including:
+  - `backfill_summaries/1` - Migration tool for historical data (line ~26)
+  - Supports dry-run, date ranges, and chat filtering
+- **`Bodhi.TgWebhookHandler`** (`lib/bodhi/tg_webhook_handler.ex`) - Updated at line ~130
+  - Uses `get_chat_context_for_ai/2` instead of `get_chat_messages/1`
+
+**Context Assembly:**
+- `Bodhi.Chats.get_chat_context_for_ai/2` assembles context from:
+  - Summaries for messages older than 7 days (configurable)
+  - Full messages from last 7 days
+- Used by `TgWebhookHandler.get_answer/2` instead of `get_chat_messages/1`
+- Gracefully falls back to recent messages when no summaries exist
+
+**Configuration:**
+```elixir
+# config/config.exs
+config :bodhi, :summarization,
+  enabled: true,
+  recent_days: 7,
+  schedule: "0 2 * * *"
+
+config :bodhi, Oban,
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [{"0 2 * * *", Bodhi.Workers.DailyChatSummarizer}]}
+  ]
+```
+
+**Documentation:**
+- [SUMMARIZATION.md](SUMMARIZATION.md) - Implementation details and usage
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment and backfill procedures
+
+**Key Guidelines:**
+- Summaries are idempotent - safe to regenerate
+- Worker processes chats sequentially to respect rate limits
+- Backfill tool supports dry-run mode for cost estimation
+- Summary messages use `user_id: -1` as a special marker
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
