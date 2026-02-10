@@ -5,7 +5,7 @@ defmodule Bodhi.Factory do
 
   use ExMachina.Ecto, repo: Bodhi.Repo
 
-  alias Bodhi.Chats.{Chat, Message}
+  alias Bodhi.Chats.{Chat, Message, Summary}
   alias Bodhi.Users.User
   alias Bodhi.Prompts.Prompt
 
@@ -38,6 +38,18 @@ defmodule Bodhi.Factory do
       last_name: Faker.Person.last_name(),
       username: Faker.Internet.user_name(),
       language_code: "en"
+    }
+  end
+
+  def summary_factory do
+    %Summary{
+      summary_text: Faker.Lorem.paragraph(),
+      summary_date: Faker.Date.backward(30),
+      message_count: Faker.random_between(1, 50),
+      start_time: ~N[2024-01-01 08:00:00],
+      end_time: ~N[2024-01-01 20:00:00],
+      ai_model: "GeminiMock",
+      chat: build(:chat)
     }
   end
 

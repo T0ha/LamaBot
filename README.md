@@ -84,8 +84,8 @@ Bodhi automatically summarizes chat conversations daily to optimize AI context a
 
 #### Documentation
 
-- **[SUMMARIZATION.md](SUMMARIZATION.md)** - Complete guide to the summarization system
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment and backfill procedures
+- **[docs/SUMMARIZATION.md](docs/SUMMARIZATION.md)** - Complete guide to the summarization system
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Deployment and backfill procedures
 
 #### Quick Start
 
@@ -99,7 +99,7 @@ bin/bodhi eval "Bodhi.Release.backfill_summaries(dry_run: true)"
 bin/bodhi eval "Bodhi.Release.backfill_summaries()"
 ```
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.
 
 ## Learn more
 

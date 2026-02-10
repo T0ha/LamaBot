@@ -36,10 +36,17 @@ When a user sends a message, `get_chat_context_for_ai/2`:
 In `config/config.exs`:
 
 ```elixir
-config :bodhi, :summarization,
-  enabled: true,
-  recent_days: 7,  # Context window
-  schedule: "0 2 * * *"  # Cron expression
+# Summarization settings
+config :bodhi, :summarization, recent_days: 7
+
+# Oban Cron plugin schedules the daily worker
+config :bodhi, Oban,
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 2 * * *", Bodhi.Workers.DailyChatSummarizer}
+     ]}
+  ]
 ```
 
 ## Backfilling Historical Data
@@ -200,10 +207,10 @@ end)
 
 If issues arise:
 
-1. Disable scheduler:
+1. Remove the cron entry from Oban config:
    ```elixir
-   # In config
-   config :bodhi, :summarization, enabled: false
+   # In config/config.exs - remove DailyChatSummarizer
+   # from the Oban Cron plugin crontab list
    ```
 
 2. Revert to old behavior:

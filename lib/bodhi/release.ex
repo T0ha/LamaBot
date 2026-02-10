@@ -1,7 +1,7 @@
 defmodule Bodhi.Release do
   @moduledoc """
-  Used for executing DB release tasks when run in production without Mix
-  installed.
+  Used for executing DB release tasks when run in production
+  without Mix installed.
   """
   @app :bodhi
 
@@ -9,29 +9,41 @@ defmodule Bodhi.Release do
 
   import Ecto.Query
 
+  alias Bodhi.Chats.Summarizer
+
   def migrate do
     load_app()
 
     for repo <- repos() do
-      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
+      {:ok, _, _} =
+        Ecto.Migrator.with_repo(
+          repo,
+          &Ecto.Migrator.run(&1, :up, all: true)
+        )
     end
   end
 
   def rollback(repo, version) do
     load_app()
-    {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))
+
+    {:ok, _, _} =
+      Ecto.Migrator.with_repo(
+        repo,
+        &Ecto.Migrator.run(&1, :down, to: version)
+      )
   end
 
   @doc """
   Backfills summaries for all historical messages.
 
-  WARNING: This will consume AI API credits for each day of each chat!
+  WARNING: This will consume AI API credits for each day
+  of each chat!
 
   Options:
-    - dry_run: true - Shows what would be done without actually creating summaries
-    - from_date: Date.t() - Start date (default: earliest message date)
+    - dry_run: true - Preview without creating summaries
+    - from_date: Date.t() - Start date (default: earliest)
     - to_date: Date.t() - End date (default: yesterday)
-    - chat_ids: [integer()] - Specific chat IDs to process (default: all chats)
+    - chat_ids: [integer()] - Specific chats (default: all)
 
   ## Examples
 
@@ -42,17 +54,23 @@ defmodule Bodhi.Release do
       Bodhi.Release.backfill_summaries()
 
       # Backfill specific date range
-      Bodhi.Release.backfill_summaries(from_date: ~D[2024-01-01], to_date: ~D[2024-12-31])
+      Bodhi.Release.backfill_summaries(
+        from_date: ~D[2024-01-01],
+        to_date: ~D[2024-12-31]
+      )
 
       # Backfill specific chats
       Bodhi.Release.backfill_summaries(chat_ids: [123, 456])
   """
+  @spec backfill_summaries(keyword()) :: :ok
   def backfill_summaries(opts \\ []) do
     load_app()
     start_app()
 
     dry_run = Keyword.get(opts, :dry_run, false)
-    to_date = Keyword.get(opts, :to_date, Date.utc_today() |> Date.add(-1))
+
+    to_date =
+      Keyword.get(opts, :to_date, Date.utc_today() |> Date.add(-1))
 
     Logger.info("Starting summary backfill (dry_run: #{dry_run})")
 
@@ -61,12 +79,25 @@ defmodule Bodhi.Release do
 
     results =
       Enum.map(chat_ids, fn chat_id ->
-        backfill_chat_summaries(chat_id, to_date, opts, dry_run)
+        backfill_chat_summaries(
+          chat_id,
+          to_date,
+          opts,
+          dry_run
+        )
       end)
 
     total_chats = length(results)
-    total_summaries = Enum.sum(Enum.map(results, fn {_, count, _} -> count end))
-    total_skipped = Enum.sum(Enum.map(results, fn {_, _, skipped} -> skipped end))
+
+    total_summaries =
+      results
+      |> Enum.map(fn {_, count, _} -> count end)
+      |> Enum.sum()
+
+    total_skipped =
+      results
+      |> Enum.map(fn {_, _, skipped} -> skipped end)
+      |> Enum.sum()
 
     Logger.info("""
     Backfill complete:
@@ -82,7 +113,6 @@ defmodule Bodhi.Release do
   defp get_chat_ids_to_process(opts) do
     case Keyword.get(opts, :chat_ids) do
       nil ->
-        # Get all chats that have messages
         Bodhi.Repo.all(
           from(m in Bodhi.Chats.Message,
             distinct: m.chat_id,
@@ -98,13 +128,19 @@ defmodule Bodhi.Release do
   defp backfill_chat_summaries(chat_id, to_date, opts, dry_run) do
     from_date = get_from_date_for_chat(chat_id, opts)
 
-    Logger.info("Processing chat #{chat_id} from #{from_date} to #{to_date}")
+    Logger.info(
+      "Processing chat #{chat_id} " <>
+        "from #{from_date} to #{to_date}"
+    )
 
     dates = Date.range(from_date, to_date)
-    {created, skipped} = process_date_range(chat_id, dates, dry_run)
+
+    {created, skipped} =
+      process_date_range(chat_id, dates, dry_run)
 
     Logger.info(
-      "Chat #{chat_id}: #{created} summaries created, #{skipped} days skipped (already exist or no messages)"
+      "Chat #{chat_id}: #{created} summaries created, " <>
+        "#{skipped} days skipped"
     )
 
     {chat_id, created, skipped}
@@ -113,7 +149,6 @@ defmodule Bodhi.Release do
   defp get_from_date_for_chat(chat_id, opts) do
     case Keyword.get(opts, :from_date) do
       nil ->
-        # Find earliest message date for this chat
         query =
           from(m in Bodhi.Chats.Message,
             where: m.chat_id == ^chat_id,
@@ -122,11 +157,8 @@ defmodule Bodhi.Release do
           )
 
         case Bodhi.Repo.one(query) do
-          nil ->
-            Date.utc_today()
-
-          earliest_datetime ->
-            NaiveDateTime.to_date(earliest_datetime)
+          nil -> Date.utc_today()
+          earliest -> NaiveDateTime.to_date(earliest)
         end
 
       date ->
@@ -145,7 +177,6 @@ defmodule Bodhi.Release do
   end
 
   defp process_single_date(chat_id, date, dry_run) do
-    # Check if summary already exists
     if Bodhi.Chats.get_summary(chat_id, date) do
       :skipped
     else
@@ -154,74 +185,52 @@ defmodule Bodhi.Release do
   end
 
   defp process_date_messages(chat_id, date, dry_run) do
-    messages = Bodhi.Chats.get_messages_for_date(chat_id, date)
+    messages =
+      Bodhi.Chats.get_messages_for_date(chat_id, date)
 
     if Enum.empty?(messages) do
       :skipped
     else
-      create_summary_for_date(chat_id, date, messages, dry_run)
+      create_summary_for_date(
+        chat_id,
+        date,
+        messages,
+        dry_run
+      )
     end
   end
 
-  defp create_summary_for_date(chat_id, date, messages, dry_run) do
-    count = length(messages)
+  defp create_summary_for_date(chat_id, date, messages, true) do
+    Logger.debug(
+      "Would create summary for chat #{chat_id} " <>
+        "on #{date} (#{length(messages)} messages)"
+    )
 
-    if dry_run do
-      Logger.debug("Would create summary for chat #{chat_id} on #{date} (#{count} messages)")
-      :created
-    else
-      Logger.debug("Creating summary for chat #{chat_id} on #{date} (#{count} messages)")
+    :created
+  end
 
-      case generate_summary(chat_id, date, messages) do
-        :ok ->
-          :created
+  defp create_summary_for_date(chat_id, date, messages, false) do
+    Logger.debug(
+      "Creating summary for chat #{chat_id} " <>
+        "on #{date} (#{length(messages)} messages)"
+    )
 
-        {:error, reason} ->
-          Logger.error(
-            "Failed to create summary for chat #{chat_id} on #{date}: #{inspect(reason)}"
-          )
+    case Summarizer.generate_and_store(
+           chat_id,
+           date,
+           messages
+         ) do
+      :ok ->
+        :created
 
-          :error
-      end
+      {:error, reason} ->
+        Logger.error(
+          "Failed to create summary for chat #{chat_id} " <>
+            "on #{date}: #{inspect(reason)}"
+        )
+
+        :error
     end
-  end
-
-  defp generate_summary(chat_id, date, messages) do
-    # Build summarization prompt
-    summary_instruction = %Bodhi.Chats.Message{
-      text:
-        "Summarize the following conversation concisely. Capture key topics, questions, decisions, and emotional tone. Keep it under 200 words. Focus on what matters for future context.",
-      chat_id: -1,
-      user_id: -1
-    }
-
-    summary_messages = [summary_instruction | messages]
-
-    # Call AI backend
-    with {:ok, summary_text} <- Bodhi.AI.ask_llm(summary_messages),
-         {:ok, _summary} <- create_summary_record(chat_id, date, summary_text, messages) do
-      :ok
-    else
-      {:error, _reason} = error -> error
-    end
-  end
-
-  defp create_summary_record(chat_id, date, summary_text, messages) do
-    Bodhi.Chats.create_summary(%{
-      chat_id: chat_id,
-      summary_date: date,
-      summary_text: summary_text,
-      message_count: length(messages),
-      start_time: List.first(messages).inserted_at,
-      end_time: List.last(messages).inserted_at,
-      ai_model: get_current_ai_model()
-    })
-  end
-
-  defp get_current_ai_model do
-    Application.get_env(:bodhi, :ai_client)
-    |> Module.split()
-    |> List.last()
   end
 
   defp repos do
@@ -229,13 +238,11 @@ defmodule Bodhi.Release do
   end
 
   defp load_app do
-    # Many platforms require SSL when connecting to the database
     Application.ensure_all_started(:ssl)
     Application.ensure_loaded(@app)
   end
 
   defp start_app do
-    # Start the application to ensure all dependencies are available
     {:ok, _} = Application.ensure_all_started(@app)
   end
 end

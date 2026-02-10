@@ -180,7 +180,8 @@ defmodule Bodhi.Chats do
   """
   @spec get_chat_context_for_ai(non_neg_integer(), keyword()) :: [Message.t()]
   def get_chat_context_for_ai(chat_id, opts \\ []) do
-    recent_days = Keyword.get(opts, :recent_days, 7)
+    default_days = summarization_config(:recent_days, 7)
+    recent_days = Keyword.get(opts, :recent_days, default_days)
     cutoff_date = Date.utc_today() |> Date.add(-recent_days)
 
     # Get recent messages (last N days by default)
@@ -189,39 +190,30 @@ defmodule Bodhi.Chats do
     # Get older summaries (before cutoff date)
     summaries = get_summaries_before_date(chat_id, cutoff_date)
 
-    # Build context: summaries first (chronological), then recent messages
-    build_context_from_summaries_and_messages(summaries, recent_messages, chat_id)
+    build_context(summaries, recent_messages, chat_id)
   end
 
-  @doc """
-  Builds context list from summaries and messages.
+  # Builds context by combining summaries and recent
+  # messages. Summaries are wrapped as synthetic Message
+  # structs with system user_id to distinguish them from
+  # real user messages.
+  # These structs are NOT persisted to the database.
+  defp build_context(summaries, messages, chat_id) do
+    system_uid = Bodhi.Chats.Summarizer.system_user_id()
 
-  Converts summaries to Message structs with special markers so they can be
-  used seamlessly with the existing AI client interface.
-
-  ## Examples
-
-      iex> build_context_from_summaries_and_messages([%Summary{}], [%Message{}], 123)
-      [%Message{text: "Summary: ..."}, %Message{}]
-
-  """
-  @spec build_context_from_summaries_and_messages([Summary.t()], [Message.t()], non_neg_integer()) ::
-          [Message.t()]
-  def build_context_from_summaries_and_messages(summaries, messages, chat_id) do
-    # Convert summaries to message format
     summary_messages =
       Enum.map(summaries, fn summary ->
         %Message{
           text:
-            "Summary for #{summary.summary_date}: #{summary.summary_text} (#{summary.message_count} messages)",
+            "Summary for #{summary.summary_date}: " <>
+              "#{summary.summary_text} " <>
+              "(#{summary.message_count} messages)",
           chat_id: chat_id,
-          # Use negative user_id to mark as system/summary message
-          user_id: -1,
+          user_id: system_uid,
           inserted_at: summary.inserted_at
         }
       end)
 
-    # Combine: summaries first, then recent messages
     summary_messages ++ messages
   end
 
@@ -345,11 +337,12 @@ defmodule Bodhi.Chats do
   """
   @spec get_active_chats_for_date(Date.t()) :: [non_neg_integer()]
   def get_active_chats_for_date(date) do
-    start_datetime = DateTime.new!(date, ~T[00:00:00], "Etc/UTC") |> DateTime.to_naive()
-    end_datetime = DateTime.new!(date, ~T[23:59:59], "Etc/UTC") |> DateTime.to_naive()
+    {start_dt, end_dt} = date_to_naive_range(date)
 
     from(m in Message,
-      where: m.inserted_at >= ^start_datetime and m.inserted_at <= ^end_datetime,
+      where:
+        m.inserted_at >= ^start_dt and
+          m.inserted_at < ^end_dt,
       distinct: m.chat_id,
       select: m.chat_id
     )
@@ -367,13 +360,13 @@ defmodule Bodhi.Chats do
   """
   @spec get_messages_for_date(non_neg_integer(), Date.t()) :: [Message.t()]
   def get_messages_for_date(chat_id, date) do
-    start_datetime = DateTime.new!(date, ~T[00:00:00], "Etc/UTC") |> DateTime.to_naive()
-    end_datetime = DateTime.new!(date, ~T[23:59:59], "Etc/UTC") |> DateTime.to_naive()
+    {start_dt, end_dt} = date_to_naive_range(date)
 
     from(m in Message,
       where:
-        m.chat_id == ^chat_id and m.inserted_at >= ^start_datetime and
-          m.inserted_at <= ^end_datetime,
+        m.chat_id == ^chat_id and
+          m.inserted_at >= ^start_dt and
+          m.inserted_at < ^end_dt,
       order_by: [asc: m.inserted_at]
     )
     |> Repo.all()
@@ -390,7 +383,10 @@ defmodule Bodhi.Chats do
   """
   @spec get_recent_messages(non_neg_integer(), Date.t()) :: [Message.t()]
   def get_recent_messages(chat_id, cutoff_date) do
-    cutoff_datetime = DateTime.new!(cutoff_date, ~T[00:00:00], "Etc/UTC") |> DateTime.to_naive()
+    cutoff_datetime =
+      cutoff_date
+      |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+      |> DateTime.to_naive()
 
     from(m in Message,
       where: m.chat_id == ^chat_id and m.inserted_at >= ^cutoff_datetime,
@@ -450,10 +446,35 @@ defmodule Bodhi.Chats do
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec create_summary(map()) :: {:ok, Summary.t()} | {:error, Ecto.Changeset.t()}
-  def create_summary(attrs \\ %{}) do
+  @spec create_summary(map()) ::
+          {:ok, Summary.t()} | {:error, Ecto.Changeset.t()}
+  def create_summary(attrs) do
     %Summary{}
     |> Summary.changeset(attrs)
-    |> Repo.insert()
+    |> Repo.insert(
+      on_conflict: :nothing,
+      conflict_target: [:chat_id, :summary_date]
+    )
+  end
+
+  defp summarization_config(key, default) do
+    :bodhi
+    |> Application.get_env(:summarization, [])
+    |> Keyword.get(key, default)
+  end
+
+  defp date_to_naive_range(date) do
+    start_dt =
+      date
+      |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+      |> DateTime.to_naive()
+
+    end_dt =
+      date
+      |> Date.add(1)
+      |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+      |> DateTime.to_naive()
+
+    {start_dt, end_dt}
   end
 end

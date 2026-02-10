@@ -30,7 +30,11 @@ The application includes an automatic dialog summarization system to optimize AI
   - `get_summaries_before_date/2`, `get_recent_messages/2` - Query helpers
   - `get_active_chats_for_date/1`, `get_messages_for_date/2` - Date-based queries
   - `create_summary/1`, `get_summary/2` - CRUD operations
-  - `build_context_from_summaries_and_messages/3` - Context builder
+  - `build_context/3` (private) - Context builder
+- **`Bodhi.Chats.Summarizer`** (`lib/bodhi/chats/summarizer.ex`) - Shared summarization logic
+  - `generate_and_store/3` - Calls AI and persists summary
+  - `build_summarization_prompt/1` - Builds prompt for AI
+  - `current_ai_model/0` - Returns configured AI model name
 - **`Bodhi.Workers.DailyChatSummarizer`** (`lib/bodhi/workers/daily_chat_summarizer.ex`) - Oban worker
   - Runs daily at 2 AM UTC via Oban Cron plugin
   - Processes all active chats sequentially
@@ -52,10 +56,7 @@ The application includes an automatic dialog summarization system to optimize AI
 **Configuration:**
 ```elixir
 # config/config.exs
-config :bodhi, :summarization,
-  enabled: true,
-  recent_days: 7,
-  schedule: "0 2 * * *"
+config :bodhi, :summarization, recent_days: 7
 
 config :bodhi, Oban,
   plugins: [
@@ -65,8 +66,8 @@ config :bodhi, Oban,
 ```
 
 **Documentation:**
-- [SUMMARIZATION.md](SUMMARIZATION.md) - Implementation details and usage
-- [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment and backfill procedures
+- [docs/SUMMARIZATION.md](docs/SUMMARIZATION.md) - Implementation details and usage
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - Deployment and backfill procedures
 
 **Key Guidelines:**
 - Summaries are idempotent - safe to regenerate

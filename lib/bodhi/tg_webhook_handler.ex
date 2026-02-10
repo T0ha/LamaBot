@@ -122,7 +122,7 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp get_answer(%_{text: "/" <> _}, _lang) do
-    {:ok, "Unknowwn command. Please use /start to begin."}
+    {:ok, "Unknown command. Please use /start to begin."}
   end
 
   defp get_answer(%_{chat_id: chat_id}, _) do

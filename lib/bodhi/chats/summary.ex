@@ -9,7 +9,7 @@ defmodule Bodhi.Chats.Summary do
   alias Bodhi.Chats.Chat
 
   @allowed_attrs ~w(chat_id summary_text summary_date message_count start_time end_time ai_model)a
-  @required_attrs ~w(chat_id summary_text summary_date message_count)a
+  @required_attrs ~w(chat_id summary_text summary_date)a
 
   @type t() :: %__MODULE__{
           id: non_neg_integer() | nil,
@@ -20,7 +20,7 @@ defmodule Bodhi.Chats.Summary do
           start_time: NaiveDateTime.t() | nil,
           end_time: NaiveDateTime.t() | nil,
           ai_model: String.t() | nil,
-          chat: Chat.t() | Ecto.Association.t() | nil,
+          chat: Chat.t() | Ecto.Association.NotLoaded.t() | nil,
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil
         }
@@ -44,7 +44,7 @@ defmodule Bodhi.Chats.Summary do
     summary
     |> cast(attrs, @allowed_attrs)
     |> validate_required(@required_attrs)
-    |> validate_length(:summary_text, min: 1)
+    |> validate_length(:summary_text, min: 1, max: 10_000)
     |> validate_number(:message_count, greater_than_or_equal_to: 0)
     |> foreign_key_constraint(:chat_id)
     |> unique_constraint([:chat_id, :summary_date],
