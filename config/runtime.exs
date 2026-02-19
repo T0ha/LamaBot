@@ -16,6 +16,17 @@ config :bodhi,
   gemini_token: "#{System.get_env("GEMINI_API_KEY")}",
   openrouter_token: "#{System.get_env("OPENROUTER_API_KEY")}"
 
+if config_env() != :test do
+  summarization_enabled =
+    System.get_env("SUMMARIZATION_ENABLED", "false")
+    |> String.downcase()
+    |> Kernel.==("true")
+
+  config :bodhi, :summarization,
+    recent_days: 7,
+    enabled: summarization_enabled
+end
+
 config :telegex,
   token: "#{System.get_env("TG_TOKEN")}"
 

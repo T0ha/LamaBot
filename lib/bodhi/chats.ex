@@ -184,13 +184,18 @@ defmodule Bodhi.Chats do
     recent_days = Keyword.get(opts, :recent_days, default_days)
     cutoff_date = Date.utc_today() |> Date.add(-recent_days)
 
-    # Get recent messages (last N days by default)
     recent_messages = get_recent_messages(chat_id, cutoff_date)
 
-    # Get older summaries (before cutoff date)
-    summaries = get_summaries_before_date(chat_id, cutoff_date)
+    case summarization_config(:enabled, false) do
+      true ->
+        summaries =
+          get_summaries_before_date(chat_id, cutoff_date)
 
-    build_context(summaries, recent_messages, chat_id)
+        build_context(summaries, recent_messages, chat_id)
+
+      false ->
+        recent_messages
+    end
   end
 
   # Builds context by combining summaries and recent

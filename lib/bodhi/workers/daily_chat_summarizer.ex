@@ -16,6 +16,22 @@ defmodule Bodhi.Workers.DailyChatSummarizer do
 
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
+    with true <- summarization_enabled?() do
+      run_summarization()
+    else
+      false ->
+        Logger.info("Summarization disabled, skipping")
+        :ok
+    end
+  end
+
+  defp summarization_enabled? do
+    :bodhi
+    |> Application.get_env(:summarization, [])
+    |> Keyword.get(:enabled, false)
+  end
+
+  defp run_summarization do
     yesterday = Date.utc_today() |> Date.add(-1)
 
     Logger.info("Starting daily summarization for #{yesterday}")

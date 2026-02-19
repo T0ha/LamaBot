@@ -32,6 +32,9 @@ config :phoenix, :plug_init_mode, :runtime
 
 config :bodhi, Oban, testing: :manual
 
+# Enable summarization in tests so summarizer tests work
+config :bodhi, :summarization, recent_days: 7, enabled: true
+
 config :posthog,
   test_mode: true
 
