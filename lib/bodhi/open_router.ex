@@ -6,7 +6,7 @@ defmodule Bodhi.OpenRouter do
   @behaviour Bodhi.Behaviours.AIClient
 
   @openrouter_url "https://openrouter.ai/api/v1/chat/completions"
-  @default_model "deepseek/deepseek-r1-0528:free"
+  @default_model "openrouter/free"
 
   alias Bodhi.Chats.Message
   alias Bodhi.Prompts
@@ -44,7 +44,7 @@ defmodule Bodhi.OpenRouter do
       [
         {"Authorization", "Bearer #{Application.get_env(:bodhi, :openrouter_token)}"},
         {"Content-Type", "application/json"},
-        {"HTTP-Referer", "https://lamabot.io"},
+        {"HTTP-Referer", BodhiWeb.Endpoint.url()},
         {"X-Title", "Lama Bot"}
       ],
       body

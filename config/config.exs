@@ -83,7 +83,7 @@ config :bodhi, Oban,
   repo: Bodhi.Repo
 
 # Summarization settings
-config :bodhi, :summarization, recent_days: 7
+config :bodhi, :summarization, recent_days: 7, enabled: false
 
 config :posthog,
   enable: true,
