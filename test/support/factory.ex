@@ -10,7 +10,7 @@ defmodule Bodhi.Factory do
   alias Bodhi.Prompts.Prompt
 
   def chat_factory do
-    id = Faker.random_between(1, 1000)
+    id = Faker.random_between(1, 1_000_000)
 
     %Chat{
       id: id,
