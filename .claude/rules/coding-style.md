@@ -1,6 +1,12 @@
 ## Coding Style
 
-- Use `with` as much as possible for flow control
+# Elixir Style Guide
+Follow: https://github.com/christopheradams/elixir_style_guide
+
+# OTP Design Principles
+Follow: [OTP design principles](https://www.erlang.org/doc/system/design_principles.html)
+
+- Use `with` for handling multiple operations that may fail
 - Use pipe operator (|>) for chaining
 - Prefer simple functions with patterns matching over complex ones
 - Limit line length to 80 characters

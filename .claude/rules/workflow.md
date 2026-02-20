@@ -11,5 +11,4 @@
 7. Check with `mix dialyzer` for type issues
 8. Update documentation and AGENTS.md if needed
 9. Run `mix format` to ensure code style compliance
-10. Open `nvim` so I could review the code and give feedback
 
