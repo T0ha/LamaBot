@@ -12,6 +12,7 @@ defmodule Bodhi.MixProject do
       listeners: [Phoenix.CodeReloader],
       aliases: aliases(),
       deps: deps(),
+      usage_rules: usage_rules(),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         plt_add_apps: [
@@ -75,6 +76,7 @@ defmodule Bodhi.MixProject do
       {:oban, "~> 2.17"},
       {:oban_web, "~> 2.11.1"},
       {:igniter, "~> 0.5", only: [:dev]},
+      {:usage_rules, "~> 1.2", only: [:dev]},
       {:posthog, "~> 2.0"},
       {:mdex, "~> 0.9.0"},
       {:credo, "~> 1.7", runtime: false},
@@ -83,6 +85,16 @@ defmodule Bodhi.MixProject do
       {:ex_machina, "~> 2.8", only: [:test]},
       {:mox, "~> 1.0", only: [:test]},
       {:excoveralls, "~> 0.14", only: [:test], runtime: false}
+    ]
+  end
+
+  defp usage_rules do
+    [
+      file: "AGENTS.md",
+      usage_rules: [
+        "phoenix:all",
+        :igniter
+      ]
     ]
   end
 

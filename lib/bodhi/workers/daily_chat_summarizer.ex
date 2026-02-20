@@ -16,12 +16,11 @@ defmodule Bodhi.Workers.DailyChatSummarizer do
 
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
-    with true <- summarization_enabled?() do
+    if summarization_enabled?() do
       run_summarization()
     else
-      false ->
-        Logger.info("Summarization disabled, skipping")
-        :ok
+      Logger.info("Summarization disabled, skipping")
+      :ok
     end
   end
 

@@ -22,9 +22,7 @@ if config_env() != :test do
     |> String.downcase()
     |> Kernel.==("true")
 
-  config :bodhi, :summarization,
-    recent_days: 7,
-    enabled: summarization_enabled
+  config :bodhi, :summarization, enabled: summarization_enabled
 end
 
 config :telegex,

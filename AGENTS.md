@@ -120,8 +120,21 @@ custom classes must fully style the input
 
 
 <!-- usage-rules-start -->
+<!-- phoenix:ecto-start -->
+## phoenix:ecto usage
+## Ecto Guidelines
 
+- **Always** preload Ecto associations in queries when they'll be accessed in templates, ie a message that needs to reference the `message.user.email`
+- Remember `import Ecto.Query` and other supporting modules when you write `seeds.exs`
+- `Ecto.Schema` fields always use the `:string` type, even for `:text`, columns, ie: `field :name, :string`
+- `Ecto.Changeset.validate_number/2` **DOES NOT SUPPORT the `:allow_nil` option**. By default, Ecto validations only run if a change for the given field exists and the change value is not nil, so such as option is never needed
+- You **must** use `Ecto.Changeset.get_field(changeset, :field)` to access changeset fields
+- Fields which are set programatically, such as `user_id`, must not be listed in `cast` calls or similar for security purposes. Instead they must be explicitly set when creating the struct
+- **Always** invoke `mix ecto.gen.migration migration_name_using_underscores` when generating migration files, so the correct timestamp and conventions are applied
+
+<!-- phoenix:ecto-end -->
 <!-- phoenix:elixir-start -->
+## phoenix:elixir usage
 ## Elixir guidelines
 
 - Elixir lists **do not support index based access via the access syntax**
@@ -165,38 +178,22 @@ custom classes must fully style the input
 - Read the docs and options before using tasks (by using `mix help task_name`)
 - To debug test failures, run tests in a specific file with `mix test test/my_test.exs` or run all previously failed tests with `mix test --failed`
 - `mix deps.clean --all` is **almost never needed**. **Avoid** using it unless you have good reason
+
+## Test guidelines
+
+- **Always use `start_supervised!/1`** to start processes in tests as it guarantees cleanup between tests
+- **Avoid** `Process.sleep/1` and `Process.alive?/1` in tests
+  - Instead of sleeping to wait for a process to finish, **always** use `Process.monitor/1` and assert on the DOWN message:
+
+      ref = Process.monitor(pid)
+      assert_receive {:DOWN, ^ref, :process, ^pid, :normal}
+
+   - Instead of sleeping to synchronize before the next call, **always** use `_ = :sys.get_state/1` to ensure the process has handled prior messages
+
+
 <!-- phoenix:elixir-end -->
-
-<!-- phoenix:phoenix-start -->
-## Phoenix guidelines
-
-- Remember Phoenix router `scope` blocks include an optional alias which is prefixed for all routes within the scope. **Always** be mindful of this when creating routes within a scope to avoid duplicate module prefixes.
-
-- You **never** need to create your own `alias` for route definitions! The `scope` provides the alias, ie:
-
-      scope "/admin", AppWeb.Admin do
-        pipe_through :browser
-
-        live "/users", UserLive, :index
-      end
-
-  the UserLive route would point to the `AppWeb.Admin.UserLive` module
-
-- `Phoenix.View` no longer is needed or included with Phoenix, don't use it
-<!-- phoenix:phoenix-end -->
-
-<!-- phoenix:ecto-start -->
-## Ecto Guidelines
-
-- **Always** preload Ecto associations in queries when they'll be accessed in templates, ie a message that needs to reference the `message.user.email`
-- Remember `import Ecto.Query` and other supporting modules when you write `seeds.exs`
-- `Ecto.Schema` fields always use the `:string` type, even for `:text`, columns, ie: `field :name, :string`
-- `Ecto.Changeset.validate_number/2` **DOES NOT SUPPORT the `:allow_nil` option**. By default, Ecto validations only run if a change for the given field exists and the change value is not nil, so such as option is never needed
-- You **must** use `Ecto.Changeset.get_field(changeset, :field)` to access changeset fields
-- Fields which are set programatically, such as `user_id`, must not be listed in `cast` calls or similar for security purposes. Instead they must be explicitly set when creating the struct
-<!-- phoenix:ecto-end -->
-
 <!-- phoenix:html-start -->
+## phoenix:html usage
 ## Phoenix HTML guidelines
 
 - Phoenix templates **always** use `~H` or .html.heex files (known as HEEx), **never** use `~E`
@@ -205,7 +202,7 @@ custom classes must fully style the input
 - **Always** add unique DOM IDs to key elements (like forms, buttons, etc) when writing templates, these IDs can later be used in tests (`<.form for={@form} id="product-form">`)
 - For "app wide" template imports, you can import/alias into the `my_app_web.ex`'s `html_helpers` block, so they will be available to all LiveViews, LiveComponent's, and all modules that do `use MyAppWeb, :html` (replace "my_app" by the actual app name)
 
-- Elixir supports `if/else` but **does NOT support `if/else if` or `if/elsif`. **Never use `else if` or `elseif` in Elixir**, **always** use `cond` or `case` for multiple conditionals.
+- Elixir supports `if/else` but **does NOT support `if/else if` or `if/elsif`**. **Never use `else if` or `elseif` in Elixir**, **always** use `cond` or `case` for multiple conditionals.
 
   **Never do this (invalid)**:
 
@@ -273,16 +270,15 @@ custom classes must fully style the input
         {if @invalid_block_construct do}
         {end}
       </div>
-<!-- phoenix:html-end -->
 
+<!-- phoenix:html-end -->
 <!-- phoenix:liveview-start -->
+## phoenix:liveview usage
 ## Phoenix LiveView guidelines
 
 - **Never** use the deprecated `live_redirect` and `live_patch` functions, instead **always** use the `<.link navigate={href}>` and  `<.link patch={href}>` in templates, and `push_navigate` and `push_patch` functions LiveViews
 - **Avoid LiveComponent's** unless you have a strong, specific need for them
 - LiveViews should be named like `AppWeb.WeatherLive`, with a `Live` suffix. When you go to add LiveView routes to the router, the default `:browser` scope is **already aliased** with the `AppWeb` module, so you can just do `live "/weather", WeatherLive`
-- Remember anytime you use `phx-hook="MyHook"` and that js hook manages its own DOM, you **must** also set the `phx-update="ignore"` attribute
-- **Never** write embedded `<script>` tags in HEEx. Instead always write your scripts and hooks in the `assets/js` directory and integrate them with the `assets/js/app.js` file
 
 ### LiveView streams
 
@@ -307,10 +303,10 @@ custom classes must fully style the input
         messages = list_messages(filter)
 
         {:noreply,
-        socket
-        |> assign(:messages_empty?, messages == [])
-        # reset the stream with the new messages
-        |> stream(:messages, messages, reset: true)}
+         socket
+         |> assign(:messages_empty?, messages == [])
+         # reset the stream with the new messages
+         |> stream(:messages, messages, reset: true)}
       end
 
 - LiveView streams *do not support counting or empty states*. If you need to display a count, you must track it using a separate assign. For empty states, you can use Tailwind classes:
@@ -324,7 +320,112 @@ custom classes must fully style the input
 
   The above only works if the empty state is the only HTML block alongside the stream for-comprehension.
 
+- When updating an assign that should change content inside any streamed item(s), you MUST re-stream the items
+  along with the updated assign:
+
+      def handle_event("edit_message", %{"message_id" => message_id}, socket) do
+        message = Chat.get_message!(message_id)
+        edit_form = to_form(Chat.change_message(message, %{content: message.content}))
+
+        # re-insert message so @editing_message_id toggle logic takes effect for that stream item
+        {:noreply,
+         socket
+         |> stream_insert(:messages, message)
+         |> assign(:editing_message_id, String.to_integer(message_id))
+         |> assign(:edit_form, edit_form)}
+      end
+
+  And in the template:
+
+      <div id="messages" phx-update="stream">
+        <div :for={{id, message} <- @streams.messages} id={id} class="flex group">
+          {message.username}
+          <%= if @editing_message_id == message.id do %>
+            <%!-- Edit mode --%>
+            <.form for={@edit_form} id="edit-form-#{message.id}" phx-submit="save_edit">
+              ...
+            </.form>
+          <% end %>
+        </div>
+      </div>
+
 - **Never** use the deprecated `phx-update="append"` or `phx-update="prepend"` for collections
+
+### LiveView JavaScript interop
+
+- Remember anytime you use `phx-hook="MyHook"` and that JS hook manages its own DOM, you **must** also set the `phx-update="ignore"` attribute
+- **Always** provide an unique DOM id alongside `phx-hook` otherwise a compiler error will be raised
+
+LiveView hooks come in two flavors, 1) colocated js hooks for "inline" scripts defined inside HEEx,
+and 2) external `phx-hook` annotations where JavaScript object literals are defined and passed to the `LiveSocket` constructor.
+
+#### Inline colocated js hooks
+
+**Never** write raw embedded `<script>` tags in heex as they are incompatible with LiveView.
+Instead, **always use a colocated js hook script tag (`:type={Phoenix.LiveView.ColocatedHook}`)
+when writing scripts inside the template**:
+
+    <input type="text" name="user[phone_number]" id="user-phone-number" phx-hook=".PhoneNumber" />
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".PhoneNumber">
+      export default {
+        mounted() {
+          this.el.addEventListener("input", e => {
+            let match = this.el.value.replace(/\D/g, "").match(/^(\d{3})(\d{3})(\d{4})$/)
+            if(match) {
+              this.el.value = `${match[1]}-${match[2]}-${match[3]}`
+            }
+          })
+        }
+      }
+    </script>
+
+- colocated hooks are automatically integrated into the app.js bundle
+- colocated hooks names **MUST ALWAYS** start with a `.` prefix, i.e. `.PhoneNumber`
+
+#### External phx-hook
+
+External JS hooks (`<div id="myhook" phx-hook="MyHook">`) must be placed in `assets/js/` and passed to the
+LiveSocket constructor:
+
+    const MyHook = {
+      mounted() { ... }
+    }
+    let liveSocket = new LiveSocket("/live", Socket, {
+      hooks: { MyHook }
+    });
+
+#### Pushing events between client and server
+
+Use LiveView's `push_event/3` when you need to push events/data to the client for a phx-hook to handle.
+**Always** return or rebind the socket on `push_event/3` when pushing events:
+
+    # re-bind socket so we maintain event state to be pushed
+    socket = push_event(socket, "my_event", %{...})
+
+    # or return the modified socket directly:
+    def handle_event("some_event", _, socket) do
+      {:noreply, push_event(socket, "my_event", %{...})}
+    end
+
+Pushed events can then be picked up in a JS hook with `this.handleEvent`:
+
+    mounted() {
+      this.handleEvent("my_event", data => console.log("from server:", data));
+    }
+
+Clients can also push an event to the server and receive a reply with `this.pushEvent`:
+
+    mounted() {
+      this.el.addEventListener("click", e => {
+        this.pushEvent("my_event", { one: 1 }, reply => console.log("got reply from server:", reply));
+      })
+    }
+
+Where the server handled it via:
+
+    def handle_event("my_event", %{"one" => 1}, socket) do
+      {:reply, %{two: 2}, socket}
+    end
 
 ### LiveView tests
 
@@ -404,6 +505,61 @@ And **never** do this:
 
 - You are FORBIDDEN from accessing the changeset in the template as it will cause errors
 - **Never** use `<.form let={f} ...>` in the template, instead **always use `<.form for={@form} ...>`**, then drive all form references from the form assign as in `@form[:field]`. The UI should **always** be driven by a `to_form/2` assigned in the LiveView module that is derived from a changeset
-<!-- phoenix:liveview-end -->
 
+<!-- phoenix:liveview-end -->
+<!-- phoenix:phoenix-start -->
+## phoenix:phoenix usage
+## Phoenix guidelines
+
+- Remember Phoenix router `scope` blocks include an optional alias which is prefixed for all routes within the scope. **Always** be mindful of this when creating routes within a scope to avoid duplicate module prefixes.
+
+- You **never** need to create your own `alias` for route definitions! The `scope` provides the alias, ie:
+
+      scope "/admin", AppWeb.Admin do
+        pipe_through :browser
+
+        live "/users", UserLive, :index
+      end
+
+  the UserLive route would point to the `AppWeb.Admin.UserLive` module
+
+- `Phoenix.View` no longer is needed or included with Phoenix, don't use it
+
+<!-- phoenix:phoenix-end -->
+<!-- igniter-start -->
+## igniter usage
+_A code generation and project patching framework_
+
+# Rules for working with Igniter
+
+## Understanding Igniter
+
+Igniter is a code generation and project patching framework that enables semantic manipulation of Elixir codebases. It provides tools for creating intelligent generators that can both create new files and modify existing ones safely. Igniter works with AST (Abstract Syntax Trees) through Sourceror.Zipper to make precise, context-aware changes to your code.
+
+## Available Modules
+
+### Project-Level Modules (`Igniter.Project.*`)
+
+- **`Igniter.Project.Application`** - Working with Application modules and application configuration
+- **`Igniter.Project.Config`** - Modifying Elixir config files (config.exs, runtime.exs, etc.)
+- **`Igniter.Project.Deps`** - Managing dependencies declared in mix.exs
+- **`Igniter.Project.Formatter`** - Interacting with .formatter.exs files
+- **`Igniter.Project.IgniterConfig`** - Managing .igniter.exs configuration files
+- **`Igniter.Project.MixProject`** - Updating project configuration in mix.exs
+- **`Igniter.Project.Module`** - Creating and managing modules with proper file placement
+- **`Igniter.Project.TaskAliases`** - Managing task aliases in mix.exs
+- **`Igniter.Project.Test`** - Working with test and test support files
+
+### Code-Level Modules (`Igniter.Code.*`)
+
+- **`Igniter.Code.Common`** - General purpose utilities for working with Sourceror.Zipper
+- **`Igniter.Code.Function`** - Working with function definitions and calls
+- **`Igniter.Code.Keyword`** - Manipulating keyword lists
+- **`Igniter.Code.List`** - Working with lists in AST
+- **`Igniter.Code.Map`** - Manipulating maps
+- **`Igniter.Code.Module`** - Working with module definitions and usage
+- **`Igniter.Code.String`** - Utilities for string literals
+- **`Igniter.Code.Tuple`** - Working with tuples
+
+<!-- igniter-end -->
 <!-- usage-rules-end -->
