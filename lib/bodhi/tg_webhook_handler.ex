@@ -7,6 +7,7 @@ defmodule Bodhi.TgWebhookHandler do
 
   require Logger
 
+  alias Bodhi.LLM.Response
   alias Bodhi.Prompts.Prompt
   alias Telegex.Type.{Message, MessageEntity, Update}
 
@@ -75,8 +76,8 @@ defmodule Bodhi.TgWebhookHandler do
     with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
          {:ok, chat} <- save_chat(chat, user),
          {:ok, message} <- save_message(message, chat.id, user),
-         {:ok, answer} <- get_answer(message, user.language_code),
-         {:ok, _answer_msg} <- send_message(chat.id, answer) do
+         {:ok, answer, metadata} <- get_answer(message, user.language_code),
+         {:ok, _answer_msg} <- send_message(chat.id, answer, metadata) do
       Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
 
       PostHog.capture("message_handled", %{
@@ -89,10 +90,16 @@ defmodule Bodhi.TgWebhookHandler do
     end
   end
 
-  # @spec send_message(non_neg_integer(), String.t()) :: {:ok, Bodhi.Chats.Message.t()}
-  def send_message(chat_id, text) do
+  def send_message(chat_id, text, metadata \\ %{}) do
     with {:ok, message} <- Bodhi.Telegram.send_message(chat_id, text) do
-      {:ok, _msg} = save_message(message, chat_id, message.from)
+      llm_response_id = maybe_create_llm_response(metadata)
+
+      save_message(
+        message,
+        chat_id,
+        message.from,
+        %{llm_response_id: llm_response_id}
+      )
     end
   end
 
@@ -102,10 +109,11 @@ defmodule Bodhi.TgWebhookHandler do
     |> Bodhi.Chats.maybe_create_chat()
   end
 
-  defp save_message(message, chat_id, user) do
+  defp save_message(message, chat_id, user, extra \\ %{}) do
     message
     |> Map.from_struct()
     |> Map.merge(%{user_id: user.id, chat_id: chat_id})
+    |> Map.merge(extra)
     |> Bodhi.Chats.create_message()
   end
 
@@ -118,16 +126,47 @@ defmodule Bodhi.TgWebhookHandler do
       "$current_url": BodhiWeb.Endpoint.host()
     })
 
-    {:ok, answer}
+    {:ok, answer, %{}}
   end
 
   defp get_answer(%_{text: "/" <> _}, _lang) do
-    {:ok, "Unknown command. Please use /start to begin."}
+    {:ok, "Unknown command. Please use /start to begin.", %{}}
   end
 
   defp get_answer(%_{chat_id: chat_id}, _) do
     messages = Bodhi.Chats.get_chat_context_for_ai(chat_id)
-    {:ok, _answer} = Bodhi.LLM.ask_llm(messages)
+
+    with {:ok, %Response{} = response} <-
+           Bodhi.LLM.ask_llm(messages) do
+      metadata =
+        %{
+          ai_model: response.ai_model,
+          prompt_tokens: response.prompt_tokens,
+          completion_tokens: response.completion_tokens
+        }
+        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+        |> Map.new()
+
+      {:ok, response.content, metadata}
+    end
+  end
+
+  defp maybe_create_llm_response(meta) when meta == %{},
+    do: nil
+
+  defp maybe_create_llm_response(meta) do
+    case Bodhi.Chats.create_llm_response(meta) do
+      {:ok, resp} ->
+        resp.id
+
+      {:error, reason} ->
+        Logger.warning(
+          "Failed to create llm_response: " <>
+            "#{inspect(reason)}"
+        )
+
+        nil
+    end
   end
 
   defp get_start_message(lang) do

@@ -7,6 +7,7 @@ defmodule Bodhi.Gemini do
   @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
   alias Bodhi.Chats.Message
+  alias Bodhi.LLM.Response
   alias Bodhi.Prompts
   alias Bodhi.Prompts.Prompt
 
@@ -27,7 +28,7 @@ defmodule Bodhi.Gemini do
   """
   @impl true
   @spec ask_llm([Message.t()]) ::
-          {:ok, String.t()} | {:error, String.t()}
+          {:ok, Response.t()} | {:error, String.t()}
   def ask_llm(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()
 
@@ -35,7 +36,6 @@ defmodule Bodhi.Gemini do
     |> prepare_messages()
     |> request_gemini(prompt)
     |> parse_response()
-    |> parse_message()
   end
 
   defp prepare_messages(messages), do: Enum.map(messages, &build_message/1)
@@ -78,9 +78,44 @@ defmodule Bodhi.Gemini do
     body
   end
 
-  defp parse_response(%{"candidates" => [%{"content" => content}]}), do: content
+  defp parse_response(%{
+         "candidates" => [
+           %{"content" => %{"parts" => [%{"text" => text}]}}
+         ],
+         "modelVersion" => model,
+         "usageMetadata" => %{
+           "promptTokenCount" => pt,
+           "candidatesTokenCount" => ct
+         }
+       }) do
+    {:ok,
+     %Response{
+       content: text,
+       ai_model: model,
+       prompt_tokens: pt,
+       completion_tokens: ct
+     }}
+  end
 
-  defp parse_message(%{"parts" => [%{"text" => text}]}) do
-    {:ok, text}
+  defp parse_response(%{
+         "candidates" => [
+           %{"content" => %{"parts" => [%{"text" => text}]}}
+         ]
+       }) do
+    {:ok, %Response{content: text}}
+  end
+
+  defp parse_response(%{"error" => error}) do
+    Logger.error("Gemini API error: #{inspect(error)}")
+    {:error, "Gemini API error: #{inspect(error)}"}
+  end
+
+  defp parse_response(response) do
+    Logger.error(
+      "Unexpected Gemini response format: " <>
+        "#{inspect(response)}"
+    )
+
+    {:error, "Unexpected response format"}
   end
 end

@@ -15,7 +15,10 @@ defmodule Bodhi.Chats.SummarizerTest do
 
       Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
-        {:ok, "Test summary text"}
+        {:ok,
+         %Bodhi.LLM.Response{
+           content: "Test summary text"
+         }}
       end)
 
       assert :ok =
