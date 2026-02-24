@@ -12,6 +12,18 @@
     >
     <:col :let={{_id, message}} label="From">{from(@chat_id, message)}</:col>
     <:col :let={{_id, message}} label="Text">{message.text}</:col>
+    <:col :let={{_id, message}} label="AI Model">
+      <span :if={message.llm_response}>
+        {message.llm_response.ai_model}
+        <span class="text-xs text-zinc-400">
+          ({message.llm_response.prompt_tokens}
+           / {message.llm_response.completion_tokens} tokens)
+        </span>
+      </span>
+      <span :if={!message.llm_response} class="text-zinc-300">
+        --
+      </span>
+    </:col>
     <:col :let={{_id, message}} label="Timestamp">{message.inserted_at}</:col>
   </.table>
 </Layouts.admin>

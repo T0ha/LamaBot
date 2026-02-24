@@ -5,9 +5,10 @@ defmodule Bodhi.Chats.Message do
   import Ecto.Changeset
 
   alias Bodhi.Chats.Chat
+  alias Bodhi.Chats.LlmResponse
   alias Bodhi.Users.User
 
-  @alloowed_attrs ~w(date text caption user_id chat_id)a
+  @alloowed_attrs ~w(date text caption user_id chat_id llm_response_id)a
   @required_attrs ~w(user_id chat_id)a
 
   @type t() :: %__MODULE__{
@@ -17,8 +18,10 @@ defmodule Bodhi.Chats.Message do
           text: String.t() | nil,
           chat_id: integer() | nil,
           user_id: integer() | nil,
+          llm_response_id: non_neg_integer() | nil,
           chat: Chat.t() | Ecto.Association.t() | nil,
-          from: User.t() | Ecto.Association.t() | nil
+          from: User.t() | Ecto.Association.t() | nil,
+          llm_response: LlmResponse.t() | Ecto.Association.t() | nil
         }
 
   schema "messages" do
@@ -28,6 +31,7 @@ defmodule Bodhi.Chats.Message do
 
     belongs_to :chat, Chat, on_replace: :delete
     belongs_to :from, User, foreign_key: :user_id
+    belongs_to :llm_response, LlmResponse
 
     timestamps()
   end

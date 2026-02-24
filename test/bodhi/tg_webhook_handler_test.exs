@@ -136,7 +136,13 @@ defmodule Bodhi.TgWebhookHandlerTest do
     # Set up expectations based on test parameters
     if gemini? do
       expect(Bodhi.LLMMock, :ask_llm, fn _messages ->
-        {:ok, Faker.Lorem.paragraph()}
+        {:ok,
+         %Bodhi.LLM.Response{
+           content: Faker.Lorem.paragraph(),
+           ai_model: "test/model",
+           prompt_tokens: 10,
+           completion_tokens: 20
+         }}
       end)
     end
 

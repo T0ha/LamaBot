@@ -126,6 +126,7 @@ defmodule Bodhi.Chats do
     Chat.changeset(chat, attrs)
   end
 
+  alias Bodhi.Chats.LlmResponse
   alias Bodhi.Chats.Message
   alias Bodhi.Chats.Summary
 
@@ -158,7 +159,8 @@ defmodule Bodhi.Chats do
   def get_chat_messages(chat_id) do
     from(m in Message,
       where: m.chat_id == ^chat_id,
-      order_by: [asc: m.inserted_at]
+      order_by: [asc: m.inserted_at],
+      preload: :llm_response
     )
     |> Repo.all()
   end
@@ -327,6 +329,26 @@ defmodule Bodhi.Chats do
   @spec change_message(Message.t(), map()) :: Ecto.Changeset.t()
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
+  end
+
+  # LLM Response functions
+
+  @doc """
+  Creates an LLM response record.
+
+  ## Examples
+
+      iex> create_llm_response(%{ai_model: "gpt-4"})
+      {:ok, %LlmResponse{}}
+
+  """
+  @spec create_llm_response(map()) ::
+          {:ok, LlmResponse.t()}
+          | {:error, Ecto.Changeset.t()}
+  def create_llm_response(attrs) do
+    %LlmResponse{}
+    |> LlmResponse.changeset(attrs)
+    |> Repo.insert()
   end
 
   # Summary functions

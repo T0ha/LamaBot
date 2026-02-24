@@ -42,7 +42,7 @@ defmodule Bodhi.ReleaseTest do
 
       Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
-        {:ok, "Backfill summary"}
+        {:ok, %Bodhi.LLM.Response{content: "Backfill summary"}}
       end)
 
       capture_log(fn ->
@@ -119,7 +119,7 @@ defmodule Bodhi.ReleaseTest do
 
       Bodhi.LLMMock
       |> expect(:ask_llm, 2, fn _messages ->
-        {:ok, "Summary"}
+        {:ok, %Bodhi.LLM.Response{content: "Summary"}}
       end)
 
       log =
@@ -155,7 +155,7 @@ defmodule Bodhi.ReleaseTest do
         {:error, "API failure"}
       end)
       |> expect(:ask_llm, fn _messages ->
-        {:ok, "Second day summary"}
+        {:ok, %Bodhi.LLM.Response{content: "Second day summary"}}
       end)
 
       log =
@@ -191,7 +191,7 @@ defmodule Bodhi.ReleaseTest do
 
       Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
-        {:ok, "Only chat1"}
+        {:ok, %Bodhi.LLM.Response{content: "Only chat1"}}
       end)
 
       capture_log(fn ->

@@ -5,7 +5,7 @@ defmodule Bodhi.Factory do
 
   use ExMachina.Ecto, repo: Bodhi.Repo
 
-  alias Bodhi.Chats.{Chat, Message, Summary}
+  alias Bodhi.Chats.{Chat, LlmResponse, Message, Summary}
   alias Bodhi.LlmConfigs.LlmConfig
   alias Bodhi.Users.User
   alias Bodhi.Prompts.Prompt
@@ -51,6 +51,14 @@ defmodule Bodhi.Factory do
       end_time: ~N[2024-01-01 20:00:00],
       ai_model: "LLMMock",
       chat: build(:chat)
+    }
+  end
+
+  def llm_response_factory do
+    %LlmResponse{
+      ai_model: "openrouter/test-model",
+      prompt_tokens: Faker.random_between(10, 500),
+      completion_tokens: Faker.random_between(10, 200)
     }
   end
 

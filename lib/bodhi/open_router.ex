@@ -17,6 +17,7 @@ defmodule Bodhi.OpenRouter do
 
   alias Bodhi.Cache
   alias Bodhi.Chats.Message
+  alias Bodhi.LLM.Response
   alias Bodhi.LlmConfigs
   alias Bodhi.LlmConfigs.LlmConfig
   alias Bodhi.Prompts
@@ -54,7 +55,7 @@ defmodule Bodhi.OpenRouter do
   """
   @impl true
   @spec ask_llm([Message.t()]) ::
-          {:ok, String.t()} | {:error, String.t()}
+          {:ok, Response.t()} | {:error, String.t()}
   def ask_llm(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()
     configs = resolve_config()
@@ -173,19 +174,42 @@ defmodule Bodhi.OpenRouter do
     body
   end
 
-  defp parse_response(%{
-         "choices" => [%{"message" => %{"content" => content}} | _]
-       }) do
-    {:ok, content}
+  @doc false
+  @spec parse_response(map()) ::
+          {:ok, Response.t()} | {:error, String.t()}
+  def parse_response(%{
+        "choices" => [%{"message" => %{"content" => content}} | _],
+        "model" => model,
+        "usage" => %{
+          "prompt_tokens" => pt,
+          "completion_tokens" => ct
+        }
+      }) do
+    {:ok,
+     %Response{
+       content: content,
+       ai_model: model,
+       prompt_tokens: pt,
+       completion_tokens: ct
+     }}
   end
 
-  defp parse_response(%{"error" => error}) do
+  def parse_response(%{
+        "choices" => [%{"message" => %{"content" => content}} | _]
+      }) do
+    {:ok, %Response{content: content}}
+  end
+
+  def parse_response(%{"error" => error}) do
     Logger.error("OpenRouter API error: #{inspect(error)}")
     {:error, "OpenRouter API error: #{inspect(error)}"}
   end
 
-  defp parse_response(response) do
-    Logger.error("Unexpected OpenRouter response format: #{inspect(response)}")
+  def parse_response(response) do
+    Logger.error(
+      "Unexpected OpenRouter response format: " <>
+        "#{inspect(response)}"
+    )
 
     {:error, "Unexpected response format"}
   end
