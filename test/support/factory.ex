@@ -5,12 +5,13 @@ defmodule Bodhi.Factory do
 
   use ExMachina.Ecto, repo: Bodhi.Repo
 
-  alias Bodhi.Chats.{Chat, Message, Summary}
+  alias Bodhi.Chats.{Chat, LlmResponse, Message, Summary}
+  alias Bodhi.LlmConfigs.LlmConfig
   alias Bodhi.Users.User
   alias Bodhi.Prompts.Prompt
 
   def chat_factory do
-    id = Faker.random_between(1, 1_000_000)
+    id = Faker.random_between(1_000_000, 1_000_000_000)
 
     %Chat{
       id: id,
@@ -48,8 +49,16 @@ defmodule Bodhi.Factory do
       message_count: Faker.random_between(1, 50),
       start_time: ~N[2024-01-01 08:00:00],
       end_time: ~N[2024-01-01 20:00:00],
-      ai_model: "GeminiMock",
+      ai_model: "LLMMock",
       chat: build(:chat)
+    }
+  end
+
+  def llm_response_factory do
+    %LlmResponse{
+      ai_model: "openrouter/test-model",
+      prompt_tokens: Faker.random_between(10, 500),
+      completion_tokens: Faker.random_between(10, 200)
     }
   end
 
@@ -57,6 +66,21 @@ defmodule Bodhi.Factory do
     %Prompt{
       text: Faker.Lorem.sentence(),
       type: Faker.Util.pick([:start_message, :context, :followup])
+    }
+  end
+
+  def llm_config_factory do
+    %LlmConfig{
+      name: sequence(:llm_config_name, &"config-#{&1}"),
+      model:
+        sequence(
+          :llm_config_model,
+          &"provider/model-#{&1}"
+        ),
+      position: sequence(:llm_config_position, & &1),
+      temperature: nil,
+      max_tokens: nil,
+      active: false
     }
   end
 

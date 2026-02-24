@@ -13,9 +13,12 @@ defmodule Bodhi.Chats.SummarizerTest do
       msg = insert(:message, chat: chat)
       date = NaiveDateTime.to_date(msg.inserted_at)
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
-        {:ok, "Test summary text"}
+        {:ok,
+         %Bodhi.LLM.Response{
+           content: "Test summary text"
+         }}
       end)
 
       assert :ok =
@@ -35,7 +38,7 @@ defmodule Bodhi.Chats.SummarizerTest do
       chat = insert(:chat)
       msg = insert(:message, chat: chat)
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
         {:error, "API error"}
       end)
@@ -65,7 +68,7 @@ defmodule Bodhi.Chats.SummarizerTest do
   describe "current_ai_model/0" do
     test "returns the configured AI model name" do
       model = Summarizer.current_ai_model()
-      assert model == "GeminiMock"
+      assert model == "LLMMock"
     end
   end
 end

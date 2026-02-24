@@ -8,6 +8,7 @@ defmodule Bodhi.Chats.Summarizer do
 
   alias Bodhi.Chats
   alias Bodhi.Chats.Message
+  alias Bodhi.LLM.Response
 
   @system_user_id -1
   @system_chat_id -1
@@ -39,7 +40,8 @@ defmodule Bodhi.Chats.Summarizer do
   def generate_and_store(chat_id, date, messages) do
     prompt = build_summarization_prompt(messages)
 
-    with {:ok, summary_text} <- Bodhi.AI.ask_llm(prompt),
+    with {:ok, %Response{content: summary_text}} <-
+           Bodhi.LLM.ask_llm(prompt),
          {:ok, _summary} <-
            store_summary(
              chat_id,
@@ -73,7 +75,7 @@ defmodule Bodhi.Chats.Summarizer do
   @spec current_ai_model() :: String.t()
   def current_ai_model do
     :bodhi
-    |> Application.fetch_env!(:ai_client)
+    |> Application.fetch_env!(:llm_provider)
     |> Module.split()
     |> List.last()
   end

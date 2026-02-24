@@ -13,6 +13,8 @@ defmodule Bodhi.Application do
       BodhiWeb.Telemetry,
       # Start the Ecto repository
       Bodhi.Repo,
+      # Start the local cache
+      Bodhi.Cache,
       {DNSCluster, query: Application.get_env(:bodhi, :dns_cluster_query) || :ignore},
       # Start the PubSub system
       {Phoenix.PubSub, name: Bodhi.PubSub},

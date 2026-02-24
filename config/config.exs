@@ -90,7 +90,12 @@ config :posthog,
   api_host: "https://eu.i.posthog.com"
 
 # Configure behaviour implementations (can be overridden in env-specific configs)
+config :bodhi, Bodhi.Cache,
+  gc_interval: :timer.hours(1),
+  max_size: 100,
+  allocated_memory: 10_000_000
+
 config :bodhi, :telegram_client, Bodhi.Telegram.TelegexAdapter
-config :bodhi, :ai_client, Bodhi.OpenRouter
+config :bodhi, :llm_provider, Bodhi.OpenRouter
 
 import_config "#{config_env()}.exs"

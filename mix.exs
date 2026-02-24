@@ -78,6 +78,8 @@ defmodule Bodhi.MixProject do
       {:igniter, "~> 0.5", only: [:dev]},
       {:usage_rules, "~> 1.2", only: [:dev]},
       {:posthog, "~> 2.0"},
+      {:nebulex, "~> 2.6"},
+      {:decorator, "~> 1.4"},
       {:mdex, "~> 0.9.0"},
       {:credo, "~> 1.7", runtime: false},
       {:dialyxir, "~> 1.4", runtime: false},

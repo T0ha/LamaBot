@@ -41,6 +41,10 @@ defmodule BodhiWeb.Router do
     live "/pages/new", PageLive.Form, :new
     live "/pages/:id", PageLive.Show, :show
     live "/pages/:id/edit", PageLive.Form, :edit
+
+    live "/llm-configs", LlmConfigLive.Index, :index
+    live "/llm-configs/new", LlmConfigLive.Form, :new
+    live "/llm-configs/:id/edit", LlmConfigLive.Form, :edit
   end
 
   scope "/", BodhiWeb do

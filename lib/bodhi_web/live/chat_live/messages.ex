@@ -10,7 +10,7 @@ defmodule BodhiWeb.ChatLive.Messages do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(%{"chat_id" => chat_id} = _params, _session, socket) do
-    {:ok, stream(socket, :messages, Chats.get_chat_messages(chat_id))}
+    {:ok, stream(socket, :messages, Chats.get_chat_messages_with_metadata(chat_id))}
   end
 
   @impl true
