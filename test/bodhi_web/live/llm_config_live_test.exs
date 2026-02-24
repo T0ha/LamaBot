@@ -85,6 +85,131 @@ defmodule BodhiWeb.LlmConfigLiveTest do
     end
   end
 
+  describe "Filtering and sorting" do
+    setup [:create_and_log_in_user]
+
+    setup do
+      active =
+        insert(:llm_config,
+          name: "Alpha-GPT",
+          model: "openai/gpt-4o",
+          active: true,
+          position: 0
+        )
+
+      inactive =
+        insert(:llm_config,
+          name: "Beta-Claude",
+          model: "anthropic/claude-3",
+          active: false,
+          position: 1
+        )
+
+      %{active_cfg: active, inactive_cfg: inactive}
+    end
+
+    test "text search filters table rows", %{
+      conn: conn,
+      active_cfg: active,
+      inactive_cfg: inactive
+    } do
+      {:ok, live, html} = live(conn, ~p"/llm-configs")
+
+      assert html =~ active.name
+      assert html =~ inactive.name
+
+      html =
+        live
+        |> form("#filter-form", %{search: "gpt"})
+        |> render_change()
+
+      assert html =~ active.name
+      refute html =~ inactive.name
+    end
+
+    test "active dropdown filters rows", %{
+      conn: conn,
+      active_cfg: active,
+      inactive_cfg: inactive
+    } do
+      {:ok, live, _html} = live(conn, ~p"/llm-configs")
+
+      html =
+        live
+        |> form("#filter-form", %{active: "active"})
+        |> render_change()
+
+      assert html =~ active.name
+      refute html =~ inactive.name
+
+      html =
+        live
+        |> form("#filter-form", %{active: "inactive"})
+        |> render_change()
+
+      refute html =~ active.name
+      assert html =~ inactive.name
+    end
+
+    test "clicking column header sorts by that column",
+         %{conn: conn, active_cfg: active, inactive_cfg: inactive} do
+      {:ok, live, _html} = live(conn, ~p"/llm-configs")
+
+      html =
+        live
+        |> element("th[phx-value-field=name]")
+        |> render_click()
+
+      # Alpha before Beta in asc
+      alpha_pos = :binary.match(html, active.name)
+      beta_pos = :binary.match(html, inactive.name)
+      assert elem(alpha_pos, 0) < elem(beta_pos, 0)
+    end
+
+    test "clicking same header reverses direction",
+         %{conn: conn, active_cfg: active, inactive_cfg: inactive} do
+      {:ok, live, _html} = live(conn, ~p"/llm-configs")
+
+      # First click: name asc
+      live
+      |> element("th[phx-value-field=name]")
+      |> render_click()
+
+      # Second click: name desc
+      html =
+        live
+        |> element("th[phx-value-field=name]")
+        |> render_click()
+
+      # Beta before Alpha in desc
+      alpha_pos = :binary.match(html, active.name)
+      beta_pos = :binary.match(html, inactive.name)
+      assert elem(beta_pos, 0) < elem(alpha_pos, 0)
+    end
+
+    test "filters persist across sort changes", %{
+      conn: conn,
+      active_cfg: active,
+      inactive_cfg: inactive
+    } do
+      {:ok, live, _html} = live(conn, ~p"/llm-configs")
+
+      # Filter to active only
+      live
+      |> form("#filter-form", %{active: "active"})
+      |> render_change()
+
+      # Now sort by name
+      html =
+        live
+        |> element("th[phx-value-field=name]")
+        |> render_click()
+
+      assert html =~ active.name
+      refute html =~ inactive.name
+    end
+  end
+
   describe "Form - new" do
     setup [:create_and_log_in_user]
 

@@ -27,6 +27,196 @@ defmodule Bodhi.LlmConfigsTest do
     end
   end
 
+  describe "list_llm_configs/1 with filters" do
+    test "filters by active: active" do
+      active = insert(:llm_config, active: true)
+      _inactive = insert(:llm_config, active: false)
+
+      result =
+        LlmConfigs.list_llm_configs(%{"active" => "active"})
+
+      assert Enum.map(result, & &1.id) == [active.id]
+    end
+
+    test "filters by active: inactive" do
+      _active = insert(:llm_config, active: true)
+      inactive = insert(:llm_config, active: false)
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "active" => "inactive"
+        })
+
+      assert Enum.map(result, & &1.id) == [inactive.id]
+    end
+
+    test "active: all returns everything" do
+      c1 = insert(:llm_config, active: true, position: 0)
+      c2 = insert(:llm_config, active: false, position: 1)
+
+      result =
+        LlmConfigs.list_llm_configs(%{"active" => "all"})
+
+      assert Enum.map(result, & &1.id) == [c1.id, c2.id]
+    end
+
+    test "filters by search matching name" do
+      match =
+        insert(:llm_config, name: "GPT-4o", model: "x/y")
+
+      _no_match =
+        insert(:llm_config, name: "Claude", model: "a/b")
+
+      result =
+        LlmConfigs.list_llm_configs(%{"search" => "gpt"})
+
+      assert Enum.map(result, & &1.id) == [match.id]
+    end
+
+    test "filters by search matching model" do
+      match =
+        insert(:llm_config,
+          name: "Foo",
+          model: "openai/gpt-4o"
+        )
+
+      _no_match =
+        insert(:llm_config,
+          name: "Bar",
+          model: "anthropic/claude"
+        )
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "search" => "openai"
+        })
+
+      assert Enum.map(result, & &1.id) == [match.id]
+    end
+
+    test "empty search returns all" do
+      c1 = insert(:llm_config, position: 0)
+      c2 = insert(:llm_config, position: 1)
+
+      result =
+        LlmConfigs.list_llm_configs(%{"search" => ""})
+
+      assert Enum.map(result, & &1.id) == [c1.id, c2.id]
+    end
+
+    test "sorts by name asc" do
+      b = insert(:llm_config, name: "Beta", position: 0)
+      a = insert(:llm_config, name: "Alpha", position: 1)
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "sort_by" => "name",
+          "sort_dir" => "asc"
+        })
+
+      assert Enum.map(result, & &1.id) == [a.id, b.id]
+    end
+
+    test "sorts by name desc" do
+      b = insert(:llm_config, name: "Beta", position: 0)
+      a = insert(:llm_config, name: "Alpha", position: 1)
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "sort_by" => "name",
+          "sort_dir" => "desc"
+        })
+
+      assert Enum.map(result, & &1.id) == [b.id, a.id]
+    end
+
+    test "defaults to position asc when no sort" do
+      c2 = insert(:llm_config, position: 2)
+      c0 = insert(:llm_config, position: 0)
+
+      result = LlmConfigs.list_llm_configs(%{})
+
+      assert Enum.map(result, & &1.id) == [c0.id, c2.id]
+    end
+
+    test "falls back to position for invalid sort field" do
+      c2 = insert(:llm_config, position: 2)
+      c0 = insert(:llm_config, position: 0)
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "sort_by" => "hacked",
+          "sort_dir" => "asc"
+        })
+
+      assert Enum.map(result, & &1.id) == [c0.id, c2.id]
+    end
+
+    test "combines active filter with search" do
+      match =
+        insert(:llm_config,
+          name: "GPT-4o",
+          active: true,
+          position: 0
+        )
+
+      _wrong_status =
+        insert(:llm_config,
+          name: "GPT-3.5",
+          active: false,
+          position: 1
+        )
+
+      _wrong_name =
+        insert(:llm_config,
+          name: "Claude",
+          active: true,
+          position: 2
+        )
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "active" => "active",
+          "search" => "gpt"
+        })
+
+      assert Enum.map(result, & &1.id) == [match.id]
+    end
+
+    test "combines filters with sort" do
+      b =
+        insert(:llm_config,
+          name: "Beta-GPT",
+          active: true,
+          position: 0
+        )
+
+      a =
+        insert(:llm_config,
+          name: "Alpha-GPT",
+          active: true,
+          position: 1
+        )
+
+      _inactive =
+        insert(:llm_config,
+          name: "CGPT",
+          active: false,
+          position: 2
+        )
+
+      result =
+        LlmConfigs.list_llm_configs(%{
+          "active" => "active",
+          "search" => "gpt",
+          "sort_by" => "name",
+          "sort_dir" => "asc"
+        })
+
+      assert Enum.map(result, & &1.id) == [a.id, b.id]
+    end
+  end
+
   describe "get_llm_config!/1" do
     test "returns the config with given id" do
       config = insert(:llm_config)

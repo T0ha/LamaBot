@@ -14,13 +14,25 @@ defmodule Bodhi.LlmConfigs do
 
   @cache_key :active_llm_configs
 
+  @allowed_sort_fields ~w(name model position active)a
+
   @doc """
-  Returns all LLM configs ordered by position.
+  Returns LLM configs filtered and sorted by params.
+
+  Supported params (all optional, string keys):
+  - `"active"` — `"active"`, `"inactive"`, or `"all"`
+  - `"search"` — partial match on name or model
+  - `"sort_by"` — column name (name/model/position/active)
+  - `"sort_dir"` — `"asc"` or `"desc"`
+
+  Defaults to all configs ordered by position ascending.
   """
-  @spec list_llm_configs() :: [LlmConfig.t()]
-  def list_llm_configs do
+  @spec list_llm_configs(map()) :: [LlmConfig.t()]
+  def list_llm_configs(params \\ %{}) do
     LlmConfig
-    |> order_by(:position)
+    |> filter_by_active(params)
+    |> filter_by_search(params)
+    |> sort_by(params)
     |> Repo.all()
   end
 
@@ -194,6 +206,49 @@ defmodule Bodhi.LlmConfigs do
   def invalidate_cache do
     Cache.delete(@cache_key)
     :ok
+  end
+
+  defp filter_by_active(query, %{"active" => "active"}),
+    do: where(query, active: true)
+
+  defp filter_by_active(query, %{"active" => "inactive"}),
+    do: where(query, active: false)
+
+  defp filter_by_active(query, _params), do: query
+
+  defp filter_by_search(query, %{"search" => s})
+       when s != "" do
+    term = "%#{s}%"
+
+    where(
+      query,
+      [c],
+      ilike(c.name, ^term) or ilike(c.model, ^term)
+    )
+  end
+
+  defp filter_by_search(query, _params), do: query
+
+  defp sort_by(query, %{
+         "sort_by" => field,
+         "sort_dir" => dir
+       }) do
+    field = safe_sort_field(field)
+    dir = if dir == "desc", do: :desc, else: :asc
+    order_by(query, [{^dir, ^field}])
+  end
+
+  defp sort_by(query, _params),
+    do: order_by(query, :position)
+
+  defp safe_sort_field(field) do
+    field
+    |> String.to_existing_atom()
+    |> then(fn atom ->
+      if atom in @allowed_sort_fields, do: atom, else: :position
+    end)
+  rescue
+    ArgumentError -> :position
   end
 
   defp maybe_invalidate_cache({:ok, _}, attrs) do
