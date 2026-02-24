@@ -18,7 +18,7 @@ defmodule Bodhi.Chats.LlmResponse do
           ai_model: String.t() | nil,
           prompt_tokens: non_neg_integer() | nil,
           completion_tokens: non_neg_integer() | nil,
-          message: Message.t() | Ecto.Association.t() | nil
+          message: Message.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
   schema "llm_responses" do

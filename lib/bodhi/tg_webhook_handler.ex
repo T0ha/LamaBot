@@ -138,11 +138,14 @@ defmodule Bodhi.TgWebhookHandler do
 
     with {:ok, %Response{} = response} <-
            Bodhi.LLM.ask_llm(messages) do
-      metadata = %{
-        ai_model: response.ai_model,
-        prompt_tokens: response.prompt_tokens,
-        completion_tokens: response.completion_tokens
-      }
+      metadata =
+        %{
+          ai_model: response.ai_model,
+          prompt_tokens: response.prompt_tokens,
+          completion_tokens: response.completion_tokens
+        }
+        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+        |> Map.new()
 
       {:ok, response.content, metadata}
     end
@@ -152,8 +155,18 @@ defmodule Bodhi.TgWebhookHandler do
     do: nil
 
   defp maybe_create_llm_response(meta) do
-    {:ok, resp} = Bodhi.Chats.create_llm_response(meta)
-    resp.id
+    case Bodhi.Chats.create_llm_response(meta) do
+      {:ok, resp} ->
+        resp.id
+
+      {:error, reason} ->
+        Logger.warning(
+          "Failed to create llm_response: " <>
+            "#{inspect(reason)}"
+        )
+
+        nil
+    end
   end
 
   defp get_start_message(lang) do

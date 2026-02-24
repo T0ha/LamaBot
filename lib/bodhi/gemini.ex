@@ -104,4 +104,18 @@ defmodule Bodhi.Gemini do
        }) do
     {:ok, %Response{content: text}}
   end
+
+  defp parse_response(%{"error" => error}) do
+    Logger.error("Gemini API error: #{inspect(error)}")
+    {:error, "Gemini API error: #{inspect(error)}"}
+  end
+
+  defp parse_response(response) do
+    Logger.error(
+      "Unexpected Gemini response format: " <>
+        "#{inspect(response)}"
+    )
+
+    {:error, "Unexpected response format"}
+  end
 end

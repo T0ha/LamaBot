@@ -159,6 +159,23 @@ defmodule Bodhi.Chats do
   def get_chat_messages(chat_id) do
     from(m in Message,
       where: m.chat_id == ^chat_id,
+      order_by: [asc: m.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns all messages for chat with LLM response preloaded.
+
+  Used by admin views that display AI model metadata.
+  """
+  @spec get_chat_messages_with_metadata(Chat.t() | non_neg_integer()) :: [Message.t()]
+  def get_chat_messages_with_metadata(%Chat{id: chat_id}),
+    do: get_chat_messages_with_metadata(chat_id)
+
+  def get_chat_messages_with_metadata(chat_id) do
+    from(m in Message,
+      where: m.chat_id == ^chat_id,
       order_by: [asc: m.inserted_at],
       preload: :llm_response
     )
