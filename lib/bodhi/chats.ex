@@ -169,7 +169,9 @@ defmodule Bodhi.Chats do
 
   Used by admin views that display AI model metadata.
   """
-  @spec get_chat_messages_with_metadata(Chat.t() | non_neg_integer()) :: [Message.t()]
+  @spec get_chat_messages_with_metadata(
+          Chat.t() | non_neg_integer()
+        ) :: [Message.t()]
   def get_chat_messages_with_metadata(%Chat{id: chat_id}),
     do: get_chat_messages_with_metadata(chat_id)
 

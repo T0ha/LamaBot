@@ -20,12 +20,12 @@ defmodule Bodhi.Chats.LlmResponseTest do
       assert resp.completion_tokens == 50
     end
 
-    test "creates with empty attrs" do
-      assert {:ok, %LlmResponse{} = resp} =
+    test "rejects empty attrs (ai_model required)" do
+      assert {:error, changeset} =
                Chats.create_llm_response(%{})
 
-      assert resp.ai_model == nil
-      assert resp.prompt_tokens == nil
+      assert %{ai_model: ["can't be blank"]} =
+               errors_on(changeset)
     end
   end
 

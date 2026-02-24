@@ -34,5 +34,6 @@ defmodule Bodhi.Chats.LlmResponse do
   def changeset(llm_response, attrs) do
     llm_response
     |> cast(attrs, @allowed_attrs)
+    |> validate_required([:ai_model])
   end
 end
