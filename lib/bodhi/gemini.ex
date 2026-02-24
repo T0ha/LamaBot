@@ -2,7 +2,7 @@ defmodule Bodhi.Gemini do
   @moduledoc """
   Google Gemini API wrapper
   """
-  @behaviour Bodhi.Behaviours.AIClient
+  @behaviour Bodhi.Behaviours.LLMProvider
 
   @gemini_url "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
@@ -13,10 +13,21 @@ defmodule Bodhi.Gemini do
   require Logger
 
   @doc """
+  Not supported for Gemini provider.
+  """
+  @impl true
+  @spec fetch_models() ::
+          {:ok, [map()]} | {:error, String.t()}
+  def fetch_models do
+    {:error, "not supported"}
+  end
+
+  @doc """
   Request Gemini for bot's response in dialogue.
   """
   @impl true
-  @spec ask_llm([Message.t()]) :: {:ok, String.t()} | {:error, String.t()}
+  @spec ask_llm([Message.t()]) ::
+          {:ok, String.t()} | {:error, String.t()}
   def ask_llm(messages) do
     %Prompt{text: prompt} = Prompts.get_latest_prompt!()
 

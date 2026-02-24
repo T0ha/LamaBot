@@ -18,7 +18,7 @@ defmodule Bodhi.Workers.DailyChatSummarizerTest do
         inserted_at: yesterday_naive
       )
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn messages ->
         assert length(messages) == 2
         {:ok, "Yesterday's summary"}
@@ -90,7 +90,7 @@ defmodule Bodhi.Workers.DailyChatSummarizerTest do
         inserted_at: yesterday_naive
       )
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
         {:error, "API failure"}
       end)

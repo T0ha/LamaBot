@@ -39,5 +39,9 @@ config :posthog,
   test_mode: true
 
 # Configure mocks for testing
+config :bodhi, Bodhi.Cache,
+  gc_interval: :timer.hours(1),
+  max_size: 100
+
 config :bodhi, :telegram_client, Bodhi.TelegramMock
-config :bodhi, :ai_client, Bodhi.GeminiMock
+config :bodhi, :llm_provider, Bodhi.LLMMock

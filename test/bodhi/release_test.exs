@@ -40,7 +40,7 @@ defmodule Bodhi.ReleaseTest do
         inserted_at: ~N[2024-06-15 12:00:00]
       )
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
         {:ok, "Backfill summary"}
       end)
@@ -117,7 +117,7 @@ defmodule Bodhi.ReleaseTest do
         inserted_at: ~N[2024-06-16 12:00:00]
       )
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, 2, fn _messages ->
         {:ok, "Summary"}
       end)
@@ -150,7 +150,7 @@ defmodule Bodhi.ReleaseTest do
         inserted_at: ~N[2024-06-16 12:00:00]
       )
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
         {:error, "API failure"}
       end)
@@ -189,7 +189,7 @@ defmodule Bodhi.ReleaseTest do
         inserted_at: ~N[2024-06-15 12:00:00]
       )
 
-      Bodhi.GeminiMock
+      Bodhi.LLMMock
       |> expect(:ask_llm, fn _messages ->
         {:ok, "Only chat1"}
       end)
