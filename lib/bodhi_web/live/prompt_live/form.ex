@@ -3,7 +3,6 @@ defmodule BodhiWeb.PromptLive.Form do
   use BodhiWeb, :live_view
 
   alias Bodhi.Prompts
-  alias Bodhi.Prompts.Prompt
 
   on_mount BodhiWeb.Plugs.Auth
 
@@ -28,23 +27,6 @@ defmodule BodhiWeb.PromptLive.Form do
           field={@form[:text]}
           type="textarea"
           label="Prompt text"
-        />
-        <.input
-          field={@form[:type]}
-          type="select"
-          label="Type"
-          prompt="Choose a value"
-          options={Ecto.Enum.values(Prompt, :type)}
-        />
-        <.input
-          field={@form[:lang]}
-          type="text"
-          label="Language"
-        />
-        <.input
-          field={@form[:active]}
-          type="checkbox"
-          label="Active"
         />
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">

@@ -3,7 +3,7 @@ defmodule BodhiWeb.PromptLiveTest do
 
   import Phoenix.LiveViewTest
 
-  @invalid_attrs %{text: nil, type: nil, lang: nil}
+  @invalid_attrs %{text: nil}
 
   defp create_prompt(_) do
     prompt = insert(:prompt, type: :context, lang: "en")
@@ -37,8 +37,6 @@ defmodule BodhiWeb.PromptLiveTest do
 
       assert html =~ "Context Prompt"
       assert html =~ prompt.text
-      assert html =~ to_string(prompt.type)
-      assert html =~ prompt.lang
     end
 
     test "has edit button", %{conn: conn} do
@@ -64,11 +62,7 @@ defmodule BodhiWeb.PromptLiveTest do
              )
              |> render_change() =~ "can&#39;t be blank"
 
-      update_attrs = %{
-        text: "Updated prompt text",
-        type: :context,
-        lang: "uk"
-      }
+      update_attrs = %{text: "Updated prompt text"}
 
       assert {:ok, show_live, _html} =
                live
@@ -115,7 +109,7 @@ defmodule BodhiWeb.PromptLiveTest do
       {:ok, live, html} = live(conn, ~p"/prompts")
 
       assert html =~ "Context Prompt"
-      assert html =~ "context"
+      assert html =~ "You are a helpful assistant."
       assert has_element?(live, "a", "Edit")
     end
   end
