@@ -3,8 +3,8 @@ defmodule Bodhi.Repo.Migrations.AddUniqueIndexContextPrompt do
 
   def change do
     create unique_index(:prompts, [:type],
-      where: "type = 'context'",
-      name: :prompts_unique_context_type_index
-    )
+             where: "type = 'context'",
+             name: :prompts_unique_context_type_index
+           )
   end
 end

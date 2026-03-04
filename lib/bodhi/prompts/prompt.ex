@@ -33,8 +33,14 @@ defmodule Bodhi.Prompts.Prompt do
     prompt
     |> cast(attrs, @allowed_fields)
     |> validate_required(@required_fields)
-    |> unique_constraint(:type,
-      name: :prompts_unique_context_type_index
-    )
+    |> maybe_unique_context_constraint()
+  end
+
+  defp maybe_unique_context_constraint(changeset) do
+    if get_field(changeset, :type) == :context do
+      unique_constraint(changeset, :type, name: :prompts_unique_context_type_index)
+    else
+      changeset
+    end
   end
 end

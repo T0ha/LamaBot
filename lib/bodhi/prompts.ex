@@ -129,11 +129,7 @@ defmodule Bodhi.Prompts do
   end
 
   defp latest_context_query do
-    from(p in Prompt,
-      where: p.type == :context,
-      order_by: {:desc, p.inserted_at},
-      limit: 1
-    )
+    from(p in Prompt, where: p.type == :context)
   end
 
   @doc """
