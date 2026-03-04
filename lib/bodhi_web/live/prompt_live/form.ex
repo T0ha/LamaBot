@@ -4,6 +4,8 @@ defmodule BodhiWeb.PromptLive.Form do
   alias Bodhi.Prompts
   alias Bodhi.Prompts.Prompt
 
+  on_mount BodhiWeb.Plugs.Auth
+
   @impl true
   def render(assigns) do
     ~H"""
