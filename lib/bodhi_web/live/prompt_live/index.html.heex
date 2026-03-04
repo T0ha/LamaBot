@@ -1,7 +1,7 @@
 <Layouts.admin flash={@flash}>
   <.header>
     Context Prompt
-    <:actions>
+    <:actions :if={@prompt.id}>
       <.button
         variant="primary"
         navigate={~p"/prompts/#{@prompt}/edit"}

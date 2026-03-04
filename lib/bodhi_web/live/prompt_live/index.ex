@@ -3,6 +3,7 @@ defmodule BodhiWeb.PromptLive.Index do
   use BodhiWeb, :live_view
 
   alias Bodhi.Prompts
+  alias Bodhi.Prompts.Prompt
 
   on_mount BodhiWeb.Plugs.Auth
 
@@ -10,7 +11,10 @@ defmodule BodhiWeb.PromptLive.Index do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    prompt = Prompts.get_or_create_context_prompt()
+    prompt =
+      if connected?(socket),
+        do: Prompts.get_or_create_context_prompt(),
+        else: Prompts.get_latest_prompt() || %Prompt{text: ""}
 
     {:ok,
      socket
