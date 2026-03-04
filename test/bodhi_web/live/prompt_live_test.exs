@@ -112,10 +112,11 @@ defmodule BodhiWeb.PromptLiveTest do
     test "shows message when no context prompt exists", %{
       conn: conn
     } do
-      {:ok, _live, html} = live(conn, ~p"/prompts")
+      {:ok, live, html} = live(conn, ~p"/prompts")
 
       assert html =~ "Context Prompt"
       assert html =~ "No context prompt found"
+      refute has_element?(live, "a", "Edit")
     end
   end
 

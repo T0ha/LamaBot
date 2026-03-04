@@ -40,7 +40,7 @@ defmodule Bodhi.Prompts do
   def get_prompt!(id), do: Repo.get!(Prompt, id)
 
   @doc """
-  Gets the latest active context prompt.
+  Gets the latest context prompt.
 
   Raises `Ecto.NoResultsError` if no context prompt exists.
 
@@ -59,7 +59,7 @@ defmodule Bodhi.Prompts do
   end
 
   @doc """
-  Gets the latest active context prompt,
+  Gets the latest context prompt,
   returning nil if none exists.
 
   ## Examples
@@ -85,17 +85,17 @@ defmodule Bodhi.Prompts do
   end
 
   @doc """
-  Gets a single prompt.
+  Gets the latest start message prompt for the given language.
 
-  Raises `Ecto.NoResultsError` if the Prompt does not exist.
+  Returns nil if no matching prompt exists.
 
   ## Examples
 
-      iex> get_start_message(lang)
-      {:ok, %Prompt{}}
+      iex> get_start_message("en")
+      %Prompt{}
 
-      iex> get_start_message("")
-  {:error
+      iex> get_start_message("xx")
+      nil
 
   """
   @spec get_start_message(String.t()) :: Prompt.t() | nil
