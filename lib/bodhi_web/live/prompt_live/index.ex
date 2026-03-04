@@ -9,39 +9,11 @@ defmodule BodhiWeb.PromptLive.Index do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :prompts, list_prompts())}
-  end
+    prompt = Prompts.get_latest_prompt!()
 
-  @impl true
-  @spec handle_params(
-          map(),
-          String.t(),
-          Phoenix.LiveView.Socket.t()
-        ) :: {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page, %{title: "Listing Prompts"})
-    |> assign(:prompt, nil)
-  end
-
-  @impl true
-  @spec handle_event(
-          String.t(),
-          map(),
-          Phoenix.LiveView.Socket.t()
-        ) :: {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_event("delete", %{"id" => id}, socket) do
-    prompt = Prompts.get_prompt!(id)
-    {:ok, _} = Prompts.delete_prompt(prompt)
-
-    {:noreply, stream_delete(socket, :prompts, prompt)}
-  end
-
-  defp list_prompts do
-    Prompts.list_prompts()
+    {:ok,
+     socket
+     |> assign(:page, %{title: "Context Prompt"})
+     |> assign(:prompt, prompt)}
   end
 end

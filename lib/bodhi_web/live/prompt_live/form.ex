@@ -73,16 +73,6 @@ defmodule BodhiWeb.PromptLive.Form do
     |> assign(:form, to_form(Prompts.change_prompt(prompt)))
   end
 
-  defp apply_action(socket, :new, _assigns) do
-    prompt = %Prompt{}
-
-    socket
-    |> assign(:page, %{title: "New Prompt"})
-    |> assign(:page_title, "New Prompt")
-    |> assign(:prompt, prompt)
-    |> assign(:form, to_form(Prompts.change_prompt(prompt)))
-  end
-
   @impl true
   @spec handle_event(
           String.t(),
@@ -97,28 +87,14 @@ defmodule BodhiWeb.PromptLive.Form do
   end
 
   def handle_event("save", %{"prompt" => prompt_params}, socket) do
-    save_prompt(socket, socket.assigns.live_action, prompt_params)
-  end
-
-  defp save_prompt(socket, :edit, prompt_params) do
-    case Prompts.update_prompt(socket.assigns.prompt, prompt_params) do
+    case Prompts.update_prompt(
+           socket.assigns.prompt,
+           prompt_params
+         ) do
       {:ok, _prompt} ->
         {:noreply,
          socket
          |> put_flash(:info, "Prompt updated successfully")
-         |> push_navigate(to: ~p"/prompts")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-    end
-  end
-
-  defp save_prompt(socket, :new, prompt_params) do
-    case Prompts.create_prompt(prompt_params) do
-      {:ok, _prompt} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Prompt created successfully")
          |> push_navigate(to: ~p"/prompts")}
 
       {:error, %Ecto.Changeset{} = changeset} ->

@@ -6,7 +6,7 @@ defmodule BodhiWeb.PromptLiveTest do
   @invalid_attrs %{text: nil, type: nil, lang: nil}
 
   defp create_prompt(_) do
-    prompt = insert(:prompt, lang: "en")
+    prompt = insert(:prompt, type: :context, lang: "en")
     %{prompt: prompt}
   end
 
@@ -26,71 +26,25 @@ defmodule BodhiWeb.PromptLiveTest do
     {:ok, conn: conn, user: user}
   end
 
-  describe "Index" do
+  describe "Show" do
     setup [:create_prompt, :create_and_log_in_user]
 
-    test "lists all prompts", %{
+    test "displays the context prompt", %{
       conn: conn,
       prompt: prompt
     } do
       {:ok, _live, html} = live(conn, ~p"/prompts")
 
-      assert html =~ "Listing Prompts"
+      assert html =~ "Context Prompt"
       assert html =~ prompt.text
+      assert html =~ to_string(prompt.type)
+      assert html =~ prompt.lang
     end
 
-    test "deletes prompt in listing", %{
-      conn: conn,
-      prompt: prompt
-    } do
+    test "has edit button", %{conn: conn} do
       {:ok, live, _html} = live(conn, ~p"/prompts")
 
-      assert live
-             |> element(
-               "#prompts-#{prompt.id} a",
-               "Delete"
-             )
-             |> render_click()
-
-      refute has_element?(
-               live,
-               "#prompts-#{prompt.id}"
-             )
-    end
-  end
-
-  describe "Form - new" do
-    setup [:create_and_log_in_user]
-
-    test "creates new prompt with valid data", %{
-      conn: conn
-    } do
-      {:ok, live, _html} = live(conn, ~p"/prompts/new")
-
-      assert live
-             |> form("#prompt-form",
-               prompt: @invalid_attrs
-             )
-             |> render_change() =~ "can&#39;t be blank"
-
-      create_attrs = %{
-        text: "Test prompt text",
-        type: :context,
-        lang: "en",
-        active: true
-      }
-
-      assert {:ok, index_live, _html} =
-               live
-               |> form("#prompt-form",
-                 prompt: create_attrs
-               )
-               |> render_submit()
-               |> follow_redirect(conn, ~p"/prompts")
-
-      html = render(index_live)
-      assert html =~ "Prompt created successfully"
-      assert html =~ "Test prompt text"
+      assert has_element?(live, "a", "Edit")
     end
   end
 
@@ -112,11 +66,11 @@ defmodule BodhiWeb.PromptLiveTest do
 
       update_attrs = %{
         text: "Updated prompt text",
-        type: :followup,
+        type: :context,
         lang: "uk"
       }
 
-      assert {:ok, index_live, _html} =
+      assert {:ok, show_live, _html} =
                live
                |> form("#prompt-form",
                  prompt: update_attrs
@@ -124,7 +78,7 @@ defmodule BodhiWeb.PromptLiveTest do
                |> render_submit()
                |> follow_redirect(conn, ~p"/prompts")
 
-      html = render(index_live)
+      html = render(show_live)
       assert html =~ "Prompt updated successfully"
       assert html =~ "Updated prompt text"
     end
@@ -133,32 +87,15 @@ defmodule BodhiWeb.PromptLiveTest do
   describe "Navigation" do
     setup [:create_prompt, :create_and_log_in_user]
 
-    test "navigates from index to new form", %{
-      conn: conn
-    } do
-      {:ok, index_live, _html} = live(conn, ~p"/prompts")
-
-      assert {:ok, _form_live, html} =
-               index_live
-               |> element("a", "New Prompt")
-               |> render_click()
-               |> follow_redirect(conn, ~p"/prompts/new")
-
-      assert html =~ "New Prompt"
-    end
-
-    test "navigates from index to edit form", %{
+    test "navigates from show to edit form", %{
       conn: conn,
       prompt: prompt
     } do
-      {:ok, index_live, _html} = live(conn, ~p"/prompts")
+      {:ok, show_live, _html} = live(conn, ~p"/prompts")
 
       assert {:ok, _form_live, html} =
-               index_live
-               |> element(
-                 "#prompts-#{prompt.id} a",
-                 "Edit"
-               )
+               show_live
+               |> element("a", "Edit")
                |> render_click()
                |> follow_redirect(
                  conn,
