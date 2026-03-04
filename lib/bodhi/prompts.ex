@@ -6,6 +6,8 @@ defmodule Bodhi.Prompts do
   import Ecto.Query, warn: false
   alias Bodhi.Repo
 
+  require Logger
+
   alias Bodhi.Prompts.Prompt
 
   @doc """
@@ -109,10 +111,19 @@ defmodule Bodhi.Prompts do
       {:ok, prompt} ->
         prompt
 
-      {:error, _changeset} ->
+      {:error, changeset} ->
+        Logger.warning(
+          "Failed to create default context prompt: " <>
+            inspect(changeset.errors)
+        )
+
         case get_latest_prompt() do
-          %Prompt{} = prompt -> prompt
-          nil -> raise "Failed to create default context prompt"
+          %Prompt{} = prompt ->
+            prompt
+
+          nil ->
+            raise "Failed to create default context prompt: " <>
+                    inspect(changeset.errors)
         end
     end
   end
