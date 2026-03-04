@@ -1,18 +1,86 @@
-defmodule BodhiWeb.PromptLive.FormComponent do
-  use BodhiWeb, :live_component
+defmodule BodhiWeb.PromptLive.Form do
+  use BodhiWeb, :live_view
 
   alias Bodhi.Prompts
+  alias Bodhi.Prompts.Prompt
 
   @impl true
-  @spec update(map(), Phoenix.LiveView.Socket.t()) ::
-          {:ok, Phoenix.LiveView.Socket.t()}
-  def update(%{prompt: prompt} = assigns, socket) do
-    changeset = Prompts.change_prompt(prompt)
+  def render(assigns) do
+    ~H"""
+    <Layouts.admin flash={@flash}>
+      <.header>
+        {@page_title}
+        <:subtitle>
+          Use this form to manage prompt records in your database.
+        </:subtitle>
+      </.header>
 
+      <.form
+        for={@form}
+        id="prompt-form"
+        phx-change="validate"
+        phx-submit="save"
+      >
+        <.input
+          field={@form[:text]}
+          type="textarea"
+          label="Prompt text"
+        />
+        <.input
+          field={@form[:type]}
+          type="select"
+          label="Type"
+          prompt="Choose a value"
+          options={Ecto.Enum.values(Prompt, :type)}
+        />
+        <.input
+          field={@form[:lang]}
+          type="text"
+          label="Language"
+        />
+        <.input
+          field={@form[:active]}
+          type="checkbox"
+          label="Active"
+        />
+        <footer>
+          <.button phx-disable-with="Saving..." variant="primary">
+            Save Prompt
+          </.button>
+          <.button navigate={~p"/prompts"}>Cancel</.button>
+        </footer>
+      </.form>
+    </Layouts.admin>
+    """
+  end
+
+  @impl true
+  @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:ok, Phoenix.LiveView.Socket.t()}
+  def mount(params, _session, socket) do
     {:ok,
      socket
-     |> assign(assigns)
-     |> assign(:changeset, changeset)}
+     |> apply_action(socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    prompt = Prompts.get_prompt!(id)
+
+    socket
+    |> assign(:page, %{title: "Edit Prompt"})
+    |> assign(:page_title, "Edit Prompt")
+    |> assign(:prompt, prompt)
+    |> assign(:form, to_form(Prompts.change_prompt(prompt)))
+  end
+
+  defp apply_action(socket, :new, _assigns) do
+    prompt = %Prompt{}
+
+    socket
+    |> assign(:page, %{title: "New Prompt"})
+    |> assign(:page_title, "New Prompt")
+    |> assign(:prompt, prompt)
+    |> assign(:form, to_form(Prompts.change_prompt(prompt)))
   end
 
   @impl true
@@ -23,15 +91,13 @@ defmodule BodhiWeb.PromptLive.FormComponent do
         ) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("validate", %{"prompt" => prompt_params}, socket) do
     changeset =
-      socket.assigns.prompt
-      |> Prompts.change_prompt(prompt_params)
-      |> Map.put(:action, :validate)
+      Prompts.change_prompt(socket.assigns.prompt, prompt_params)
 
-    {:noreply, assign(socket, :changeset, changeset)}
+    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
   def handle_event("save", %{"prompt" => prompt_params}, socket) do
-    save_prompt(socket, socket.assigns.action, prompt_params)
+    save_prompt(socket, socket.assigns.live_action, prompt_params)
   end
 
   defp save_prompt(socket, :edit, prompt_params) do
@@ -40,10 +106,10 @@ defmodule BodhiWeb.PromptLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Prompt updated successfully")
-         |> push_patch(to: socket.assigns.return_to)}
+         |> push_navigate(to: ~p"/prompts")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+        {:noreply, assign(socket, form: to_form(changeset))}
     end
   end
 
@@ -53,10 +119,10 @@ defmodule BodhiWeb.PromptLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Prompt created successfully")
-         |> push_patch(to: socket.assigns.return_to)}
+         |> push_navigate(to: ~p"/prompts")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, changeset: changeset)}
+        {:noreply, assign(socket, form: to_form(changeset))}
     end
   end
 end

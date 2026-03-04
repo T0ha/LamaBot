@@ -2,7 +2,6 @@ defmodule BodhiWeb.PromptLive.Index do
   use BodhiWeb, :live_view
 
   alias Bodhi.Prompts
-  alias Bodhi.Prompts.Prompt
 
   on_mount BodhiWeb.Plugs.Auth
 
@@ -23,18 +22,6 @@ defmodule BodhiWeb.PromptLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page, %{title: "Edit Prompt"})
-    |> assign(:prompt, Prompts.get_prompt!(id))
-  end
-
-  defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page, %{title: "New Prompt"})
-    |> assign(:prompt, %Prompt{})
-  end
-
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page, %{title: "Listing Prompts"})
@@ -51,7 +38,7 @@ defmodule BodhiWeb.PromptLive.Index do
     prompt = Prompts.get_prompt!(id)
     {:ok, _} = Prompts.delete_prompt(prompt)
 
-    {:noreply, assign(socket, :prompts, list_prompts())}
+    {:noreply, stream_delete(socket, :prompts, prompt)}
   end
 
   defp list_prompts do

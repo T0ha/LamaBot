@@ -2,8 +2,8 @@
 <.header>
   Listing Prompts
   <:actions>
-    <.link patch={~p"/prompts/new"}>
-      <.button>New Accounts</.button>
+    <.link navigate={~p"/prompts/new"}>
+      <.button>New Prompt</.button>
     </.link>
   </:actions>
 </.header>
@@ -18,7 +18,7 @@
   <:col :let={{_id, prompt}} label="Active">{prompt.active}</:col>
 
   <:action :let={{_id, prompt}}>
-    <.link patch={~p"/prompts/#{prompt}/edit"}>Edit</.link>
+    <.link navigate={~p"/prompts/#{prompt}/edit"}>Edit</.link>
   </:action>
   <:action :let={{id, prompt}}>
     <.link
