@@ -106,6 +106,19 @@ defmodule BodhiWeb.PromptLiveTest do
     end
   end
 
+  describe "Show - no prompt" do
+    setup [:create_and_log_in_user]
+
+    test "shows message when no context prompt exists", %{
+      conn: conn
+    } do
+      {:ok, _live, html} = live(conn, ~p"/prompts")
+
+      assert html =~ "Context Prompt"
+      assert html =~ "No context prompt found"
+    end
+  end
+
   describe "auth required" do
     test "redirects unauthenticated user", %{
       conn: conn

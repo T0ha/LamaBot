@@ -64,6 +64,28 @@ defmodule Bodhi.Prompts do
   end
 
   @doc """
+  Gets the latest context prompt, returning nil if none exists.
+
+  ## Examples
+
+      iex> get_latest_prompt()
+      %Prompt{}
+
+      iex> get_latest_prompt()
+      nil
+
+  """
+  @spec get_latest_prompt() :: Prompt.t() | nil
+  def get_latest_prompt do
+    from(p in Prompt,
+      where: p.type == :context,
+      order_by: {:desc, p.inserted_at},
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  @doc """
   Gets a single prompt.
 
   Raises `Ecto.NoResultsError` if the Prompt does not exist.
