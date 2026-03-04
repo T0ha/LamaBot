@@ -76,6 +76,20 @@ defmodule BodhiWeb.PromptLiveTest do
       assert html =~ "Prompt updated successfully"
       assert html =~ "Updated prompt text"
     end
+
+    test "shows errors on invalid submission", %{
+      conn: conn,
+      prompt: prompt
+    } do
+      {:ok, live, _html} =
+        live(conn, ~p"/prompts/#{prompt.id}/edit")
+
+      assert live
+             |> form("#prompt-form",
+               prompt: @invalid_attrs
+             )
+             |> render_submit() =~ "can&#39;t be blank"
+    end
   end
 
   describe "Navigation" do

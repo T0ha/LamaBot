@@ -13,7 +13,7 @@ defmodule BodhiWeb.PromptLive.Form do
       <.header>
         {@page.title}
         <:subtitle>
-          Use this form to manage prompt records in your database.
+          Edit the context prompt used for AI interactions.
         </:subtitle>
       </.header>
 
