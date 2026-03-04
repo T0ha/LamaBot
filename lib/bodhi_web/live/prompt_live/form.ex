@@ -1,4 +1,5 @@
 defmodule BodhiWeb.PromptLive.Form do
+  @moduledoc false
   use BodhiWeb, :live_view
 
   alias Bodhi.Prompts
@@ -11,7 +12,7 @@ defmodule BodhiWeb.PromptLive.Form do
     ~H"""
     <Layouts.admin flash={@flash}>
       <.header>
-        {@page_title}
+        {@page.title}
         <:subtitle>
           Use this form to manage prompt records in your database.
         </:subtitle>
@@ -60,9 +61,7 @@ defmodule BodhiWeb.PromptLive.Form do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(params, _session, socket) do
-    {:ok,
-     socket
-     |> apply_action(socket.assigns.live_action, params)}
+    {:ok, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -70,7 +69,6 @@ defmodule BodhiWeb.PromptLive.Form do
 
     socket
     |> assign(:page, %{title: "Edit Prompt"})
-    |> assign(:page_title, "Edit Prompt")
     |> assign(:prompt, prompt)
     |> assign(:form, to_form(Prompts.change_prompt(prompt)))
   end
@@ -81,14 +79,25 @@ defmodule BodhiWeb.PromptLive.Form do
           map(),
           Phoenix.LiveView.Socket.t()
         ) :: {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_event("validate", %{"prompt" => prompt_params}, socket) do
+  def handle_event(
+        "validate",
+        %{"prompt" => prompt_params},
+        socket
+      ) do
     changeset =
-      Prompts.change_prompt(socket.assigns.prompt, prompt_params)
+      Prompts.change_prompt(
+        socket.assigns.prompt,
+        prompt_params
+      )
 
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
-  def handle_event("save", %{"prompt" => prompt_params}, socket) do
+  def handle_event(
+        "save",
+        %{"prompt" => prompt_params},
+        socket
+      ) do
     case Prompts.update_prompt(
            socket.assigns.prompt,
            prompt_params

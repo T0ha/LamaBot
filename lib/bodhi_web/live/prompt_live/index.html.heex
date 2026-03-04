@@ -11,14 +11,13 @@
     </:actions>
   </.header>
 
-  <%= if @prompt do %>
-    <.list>
-      <:item title="Text">{@prompt.text}</:item>
-      <:item title="Type">{@prompt.type}</:item>
-      <:item title="Language">{@prompt.lang}</:item>
-      <:item title="Active">{@prompt.active}</:item>
-    </.list>
-  <% else %>
-    <p>No context prompt found in the database.</p>
-  <% end %>
+  <.list :if={@prompt}>
+    <:item title="Text">{@prompt.text}</:item>
+    <:item title="Type">{@prompt.type}</:item>
+    <:item title="Language">{@prompt.lang}</:item>
+    <:item title="Active">{@prompt.active}</:item>
+  </.list>
+  <p :if={!@prompt}>
+    No context prompt found in the database.
+  </p>
 </Layouts.admin>

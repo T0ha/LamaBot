@@ -120,11 +120,21 @@ defmodule BodhiWeb.PromptLiveTest do
   end
 
   describe "auth required" do
-    test "redirects unauthenticated user", %{
+    setup [:create_prompt]
+
+    test "redirects unauthenticated user from show", %{
       conn: conn
     } do
       assert {:error, {:redirect, %{to: "/"}}} =
                live(conn, ~p"/prompts")
+    end
+
+    test "redirects unauthenticated user from edit", %{
+      conn: conn,
+      prompt: prompt
+    } do
+      assert {:error, {:redirect, %{to: "/"}}} =
+               live(conn, ~p"/prompts/#{prompt.id}/edit")
     end
   end
 end

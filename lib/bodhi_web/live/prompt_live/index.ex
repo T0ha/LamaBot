@@ -1,4 +1,5 @@
 defmodule BodhiWeb.PromptLive.Index do
+  @moduledoc false
   use BodhiWeb, :live_view
 
   alias Bodhi.Prompts
