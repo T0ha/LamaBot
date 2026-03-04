@@ -93,15 +93,27 @@ defmodule Bodhi.Prompts do
         prompt
 
       nil ->
-        {:ok, prompt} =
-          create_prompt(%{
-            text: "You are a helpful assistant.",
-            type: :context,
-            lang: "en",
-            active: false
-          })
+        create_default_context_prompt()
+    end
+  end
 
+  defp create_default_context_prompt do
+    attrs = %{
+      text: "You are a helpful assistant.",
+      type: :context,
+      lang: "en",
+      active: false
+    }
+
+    case create_prompt(attrs) do
+      {:ok, prompt} ->
         prompt
+
+      {:error, _changeset} ->
+        case get_latest_prompt() do
+          %Prompt{} = prompt -> prompt
+          nil -> raise "Failed to create default context prompt"
+        end
     end
   end
 
