@@ -1,7 +1,7 @@
 <Layouts.admin flash={@flash}>
   <.header>
     Context Prompt
-    <:actions :if={@prompt}>
+    <:actions>
       <.button
         variant="primary"
         navigate={~p"/prompts/#{@prompt}/edit"}
@@ -11,13 +11,10 @@
     </:actions>
   </.header>
 
-  <.list :if={@prompt}>
+  <.list>
     <:item title="Text">{@prompt.text}</:item>
     <:item title="Type">{@prompt.type}</:item>
     <:item title="Language">{@prompt.lang}</:item>
     <:item title="Active">{@prompt.active}</:item>
   </.list>
-  <p :if={!@prompt}>
-    No context prompt found in the database.
-  </p>
 </Layouts.admin>

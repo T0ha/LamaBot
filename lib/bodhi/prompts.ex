@@ -76,6 +76,35 @@ defmodule Bodhi.Prompts do
     latest_context_query() |> Repo.one()
   end
 
+  @doc """
+  Gets the latest context prompt, creating a default
+  empty one if none exists.
+
+  ## Examples
+
+      iex> get_or_create_context_prompt()
+      %Prompt{type: :context}
+
+  """
+  @spec get_or_create_context_prompt() :: Prompt.t()
+  def get_or_create_context_prompt do
+    case get_latest_prompt() do
+      %Prompt{} = prompt ->
+        prompt
+
+      nil ->
+        {:ok, prompt} =
+          create_prompt(%{
+            text: "You are a helpful assistant.",
+            type: :context,
+            lang: "en",
+            active: false
+          })
+
+        prompt
+    end
+  end
+
   defp latest_context_query do
     from(p in Prompt,
       where: p.type == :context,

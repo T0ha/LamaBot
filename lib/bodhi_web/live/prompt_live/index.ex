@@ -10,9 +10,11 @@ defmodule BodhiWeb.PromptLive.Index do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
+    prompt = Prompts.get_or_create_context_prompt()
+
     {:ok,
      socket
      |> assign(:page, %{title: "Context Prompt"})
-     |> assign(:prompt, Prompts.get_latest_prompt())}
+     |> assign(:prompt, prompt)}
   end
 end
