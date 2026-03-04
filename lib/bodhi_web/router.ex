@@ -34,8 +34,7 @@ defmodule BodhiWeb.Router do
     # live "/chats/:id", ChatLive.Show, :show
 
     live "/prompts", PromptLive.Index, :index
-    live "/prompts/new", PromptLive.Index, :new
-    live "/prompts/:id/edit", PromptLive.Index, :edit
+    live "/prompts/:id/edit", PromptLive.Form, :edit
 
     live "/pages", PageLive.Index, :index
     live "/pages/new", PageLive.Form, :new

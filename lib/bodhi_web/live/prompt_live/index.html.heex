@@ -1,32 +1,17 @@
 <Layouts.admin flash={@flash}>
-<.header>
-  Listing Prompts
-  <:actions>
-    <.link patch={~p"/prompts/new"}>
-      <.button>New Accounts</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.table
-  id="prompts"
-  rows={@streams.prompts}
-  >
-  <:col :let={{_id, prompt}} label="Text">{prompt.text}</:col>
-  <:col :let={{_id, prompt}} label="Type">{prompt.type}</:col>
-  <:col :let={{_id, prompt}} label="Language">{prompt.lang}</:col>
-  <:col :let={{_id, prompt}} label="Active">{prompt.active}</:col>
-
-  <:action :let={{_id, prompt}}>
-    <.link patch={~p"/prompts/#{prompt}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, prompt}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: prompt.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
+  <.header>
+    Context Prompt
+    <:actions :if={@prompt.id}>
+      <.button
+        variant="primary"
+        navigate={~p"/prompts/#{@prompt}/edit"}
       >
-      Delete
-    </.link>
-  </:action>
-</.table>
+        <.icon name="hero-pencil-square" /> Edit
+      </.button>
+    </:actions>
+  </.header>
+
+  <.list>
+    <:item title="Text">{@prompt.text}</:item>
+  </.list>
 </Layouts.admin>

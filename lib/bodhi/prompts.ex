@@ -6,6 +6,8 @@ defmodule Bodhi.Prompts do
   import Ecto.Query, warn: false
   alias Bodhi.Repo
 
+  require Logger
+
   alias Bodhi.Prompts.Prompt
 
   @doc """
@@ -40,9 +42,9 @@ defmodule Bodhi.Prompts do
   def get_prompt!(id), do: Repo.get!(Prompt, id)
 
   @doc """
-  Gets a single prompt.
+  Gets the latest context prompt.
 
-  Raises `Ecto.NoResultsError` if the Prompt does not exist.
+  Raises `Ecto.NoResultsError` if no context prompt exists.
 
   ## Examples
 
@@ -54,27 +56,94 @@ defmodule Bodhi.Prompts do
 
   """
   @spec get_latest_prompt!() :: Prompt.t()
-  def get_latest_prompt!() do
-    from(p in Prompt,
-      where: p.type == :context,
-      order_by: {:desc, p.inserted_at},
-      limit: 1
-    )
-    |> Repo.one!()
+  def get_latest_prompt! do
+    latest_context_query() |> Repo.one!()
   end
 
   @doc """
-  Gets a single prompt.
-
-  Raises `Ecto.NoResultsError` if the Prompt does not exist.
+  Gets the latest context prompt,
+  returning nil if none exists.
 
   ## Examples
 
-      iex> get_start_message(lang)
-      {:ok, %Prompt{}}
+      iex> get_latest_prompt()
+      %Prompt{}
 
-      iex> get_start_message("")
-  {:error
+      iex> get_latest_prompt()
+      nil
+
+  """
+  @spec get_latest_prompt() :: Prompt.t() | nil
+  def get_latest_prompt do
+    latest_context_query() |> Repo.one()
+  end
+
+  @doc """
+  Gets the latest context prompt, creating a default
+  empty one if none exists.
+
+  ## Examples
+
+      iex> get_or_create_context_prompt()
+      %Prompt{type: :context}
+
+  """
+  @spec get_or_create_context_prompt() :: Prompt.t()
+  def get_or_create_context_prompt do
+    case get_latest_prompt() do
+      %Prompt{} = prompt ->
+        prompt
+
+      nil ->
+        create_default_context_prompt()
+    end
+  end
+
+  defp create_default_context_prompt do
+    attrs = %{
+      text: "You are a helpful assistant.",
+      type: :context,
+      lang: "en",
+      active: false
+    }
+
+    case create_prompt(attrs) do
+      {:ok, prompt} ->
+        prompt
+
+      {:error, changeset} ->
+        Logger.warning(
+          "Failed to create default context prompt: " <>
+            inspect(changeset.errors)
+        )
+
+        case get_latest_prompt() do
+          %Prompt{} = prompt ->
+            prompt
+
+          nil ->
+            raise "Failed to create default context prompt: " <>
+                    inspect(changeset.errors)
+        end
+    end
+  end
+
+  defp latest_context_query do
+    from(p in Prompt, where: p.type == :context)
+  end
+
+  @doc """
+  Gets the latest start message prompt for the given language.
+
+  Returns nil if no matching prompt exists.
+
+  ## Examples
+
+      iex> get_start_message("en")
+      %Prompt{}
+
+      iex> get_start_message("xx")
+      nil
 
   """
   @spec get_start_message(String.t()) :: Prompt.t() | nil
