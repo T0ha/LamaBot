@@ -14,7 +14,7 @@ defmodule Bodhi.Prompts.Prompt do
           type: type() | nil,
           text: String.t() | nil,
           lang: String.t(),
-          version: non_neg_integer(),
+          version: non_neg_integer() | nil,
           changed_by: non_neg_integer() | nil,
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil
