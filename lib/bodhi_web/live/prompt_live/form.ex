@@ -38,10 +38,11 @@ defmodule BodhiWeb.PromptLive.Form do
                   @selected_version == v.version
                 }
               >
-                v{v.version} — {Calendar.strftime(
-                  v.valid_from,
-                  "%Y-%m-%d %H:%M"
-                )}
+                v{v.version} — {v.valid_from &&
+                  Calendar.strftime(
+                    v.valid_from,
+                    "%Y-%m-%d %H:%M"
+                  )}
               </option>
             </select>
           </form>
@@ -128,22 +129,30 @@ defmodule BodhiWeb.PromptLive.Form do
         %{"version" => version_str},
         socket
       ) do
-    version = String.to_integer(version_str)
-    prompt = socket.assigns.prompt
+    case Integer.parse(version_str) do
+      {version, ""} ->
+        prompt = socket.assigns.prompt
 
-    old =
-      Prompts.get_prompt_version!(prompt.id, version)
+        old =
+          Prompts.get_prompt_version!(
+            prompt.id,
+            version
+          )
 
-    changeset =
-      Prompts.change_prompt(prompt, %{text: old.text})
+        changeset =
+          Prompts.change_prompt(prompt, %{text: old.text})
 
-    {:noreply,
-     socket
-     |> assign(:selected_version, version)
-     |> assign(
-       :form,
-       to_form(changeset, action: :validate)
-     )}
+        {:noreply,
+         socket
+         |> assign(:selected_version, version)
+         |> assign(
+           :form,
+           to_form(changeset, action: :validate)
+         )}
+
+      _ ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event(
@@ -169,16 +178,10 @@ defmodule BodhiWeb.PromptLive.Form do
         %{"prompt" => prompt_params},
         socket
       ) do
-    prompt_params =
-      Map.put(
-        prompt_params,
-        "changed_by",
-        socket.assigns.current_user.id
-      )
-
     case Prompts.update_prompt(
            socket.assigns.prompt,
-           prompt_params
+           prompt_params,
+           socket.assigns.current_user.id
          ) do
       {:ok, _prompt} ->
         {:noreply,

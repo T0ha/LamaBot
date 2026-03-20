@@ -3,7 +3,7 @@ defmodule Bodhi.Prompts.Prompt do
 
   use Ecto.Schema
   import Ecto.Changeset
-  @allowed_fields ~w(text type active lang changed_by)a
+  @allowed_fields ~w(text type active lang)a
   @required_fields ~w(text type active lang)a
 
   @type type() :: :context | :start_message | :followup

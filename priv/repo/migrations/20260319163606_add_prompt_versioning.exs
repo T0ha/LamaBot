@@ -29,7 +29,7 @@ defmodule Bodhi.Repo.Migrations.AddPromptVersioning do
       add :updated_at, :naive_datetime, null: false
     end
 
-    create index(:prompts_history, [:id, :version])
+    create unique_index(:prompts_history, [:id, :version])
 
     execute("""
     CREATE TRIGGER prompts_versioning_trigger

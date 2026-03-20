@@ -123,7 +123,7 @@ defmodule Bodhi.AccountsTest do
 
       assert v1.text == "v1"
       assert v1.version == 1
-      assert v1.valid_from != nil
+      refute is_nil(v1.valid_from)
     end
 
     test "restore_prompt_version/3 is append-only" do

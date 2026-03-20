@@ -223,11 +223,19 @@ defmodule Bodhi.Prompts do
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec update_prompt(Prompt.t(), map()) :: {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
-  def update_prompt(%Prompt{} = prompt, attrs) do
+  @spec update_prompt(Prompt.t(), map(), non_neg_integer() | nil) ::
+          {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
+  def update_prompt(%Prompt{} = prompt, attrs, changed_by \\ nil) do
     prompt
     |> Prompt.changeset(attrs)
+    |> maybe_put_changed_by(changed_by)
     |> Repo.update()
+  end
+
+  defp maybe_put_changed_by(changeset, nil), do: changeset
+
+  defp maybe_put_changed_by(changeset, user_id) do
+    Ecto.Changeset.put_change(changeset, :changed_by, user_id)
   end
 
   @doc """
@@ -266,7 +274,7 @@ defmodule Bodhi.Prompts do
   version descending. Includes `valid_from` and `valid_to`
   timestamps extracted from `sys_period`.
   """
-  @spec list_prompt_versions(non_neg_integer()) ::
+  @spec list_prompt_versions(pos_integer()) ::
           [PromptVersion.t()]
   def list_prompt_versions(prompt_id) do
     from(v in PromptVersion,
@@ -285,9 +293,26 @@ defmodule Bodhi.Prompts do
 
   Raises `Ecto.NoResultsError` if the version does not exist.
   """
-  @spec get_prompt_version!(non_neg_integer(), non_neg_integer()) ::
+  @spec get_prompt_version!(non_neg_integer(), pos_integer()) ::
           PromptVersion.t()
   def get_prompt_version!(prompt_id, version) do
+    prompt_version_query(prompt_id, version)
+    |> Repo.one!()
+  end
+
+  @doc """
+  Gets a specific version of a prompt from history.
+
+  Returns `nil` if the version does not exist.
+  """
+  @spec get_prompt_version(non_neg_integer(), pos_integer()) ::
+          PromptVersion.t() | nil
+  def get_prompt_version(prompt_id, version) do
+    prompt_version_query(prompt_id, version)
+    |> Repo.one()
+  end
+
+  defp prompt_version_query(prompt_id, version) do
     from(v in PromptVersion,
       where: v.id == ^prompt_id and v.version == ^version,
       select_merge: %{
@@ -295,29 +320,32 @@ defmodule Bodhi.Prompts do
         valid_to: fragment("upper(sys_period)")
       }
     )
-    |> Repo.one!()
   end
 
   @doc """
   Restores a prompt to a previous version. This is
-  append-only: a new version is created with the old text.
+  append-only: a new version is created with the old
+  text. Only the text field is restored.
   """
   @spec restore_prompt_version(
           Prompt.t(),
-          non_neg_integer(),
+          pos_integer(),
           non_neg_integer()
         ) ::
-          {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
+          {:ok, Prompt.t()}
+          | {:error, Ecto.Changeset.t()}
+          | {:error, :version_not_found}
   def restore_prompt_version(
         %Prompt{} = prompt,
         version,
         user_id
       ) do
-    old = get_prompt_version!(prompt.id, version)
+    case get_prompt_version(prompt.id, version) do
+      nil ->
+        {:error, :version_not_found}
 
-    update_prompt(prompt, %{
-      text: old.text,
-      changed_by: user_id
-    })
+      old ->
+        update_prompt(prompt, %{text: old.text}, user_id)
+    end
   end
 end
