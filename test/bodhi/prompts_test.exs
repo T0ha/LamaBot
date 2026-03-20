@@ -146,6 +146,22 @@ defmodule Bodhi.AccountsTest do
       assert length(versions) == 2
     end
 
+    test "restore_prompt_version/3 returns error for missing version" do
+      user = insert(:user)
+      prompt = insert(:prompt, type: :context, text: "v1")
+
+      assert {:error, :version_not_found} =
+               Prompts.restore_prompt_version(prompt, 99, user.id)
+    end
+
+    test "get_prompt_version!/2 raises for non-existent version" do
+      prompt = insert(:prompt, type: :context, text: "v1")
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Prompts.get_prompt_version!(prompt.id, 99)
+      end
+    end
+
     test "unchanged update skips history" do
       prompt = insert(:prompt, type: :context, text: "same")
 

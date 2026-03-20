@@ -293,7 +293,7 @@ defmodule Bodhi.Prompts do
 
   Raises `Ecto.NoResultsError` if the version does not exist.
   """
-  @spec get_prompt_version!(non_neg_integer(), pos_integer()) ::
+  @spec get_prompt_version!(pos_integer(), pos_integer()) ::
           PromptVersion.t()
   def get_prompt_version!(prompt_id, version) do
     prompt_version_query(prompt_id, version)
@@ -305,7 +305,7 @@ defmodule Bodhi.Prompts do
 
   Returns `nil` if the version does not exist.
   """
-  @spec get_prompt_version(non_neg_integer(), pos_integer()) ::
+  @spec get_prompt_version(pos_integer(), pos_integer()) ::
           PromptVersion.t() | nil
   def get_prompt_version(prompt_id, version) do
     prompt_version_query(prompt_id, version)
