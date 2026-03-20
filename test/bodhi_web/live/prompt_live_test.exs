@@ -92,6 +92,86 @@ defmodule BodhiWeb.PromptLiveTest do
     end
   end
 
+  describe "Form - version history" do
+    setup [:create_prompt, :create_and_log_in_user]
+
+    test "version dropdown appears when history exists", %{
+      conn: conn,
+      prompt: prompt
+    } do
+      {:ok, _} =
+        Bodhi.Prompts.update_prompt(prompt, %{
+          text: "v2 text"
+        })
+
+      {:ok, live, html} =
+        live(conn, ~p"/prompts/#{prompt.id}/edit")
+
+      assert html =~ "version_select"
+      assert has_element?(live, "#version_select")
+    end
+
+    test "version dropdown hidden when no history", %{
+      conn: conn,
+      prompt: prompt
+    } do
+      {:ok, _live, html} =
+        live(conn, ~p"/prompts/#{prompt.id}/edit")
+
+      refute html =~ "version_select"
+    end
+
+    test "selecting version populates textarea", %{
+      conn: conn,
+      prompt: prompt
+    } do
+      {:ok, _} =
+        Bodhi.Prompts.update_prompt(prompt, %{
+          text: "v2 text"
+        })
+
+      {:ok, live, _html} =
+        live(conn, ~p"/prompts/#{prompt.id}/edit")
+
+      html =
+        live
+        |> element("#version-select-form")
+        |> render_change(%{version: "1"})
+
+      assert html =~ prompt.text
+      assert html =~ "Restore &amp; Save"
+    end
+
+    test "save after restore creates new version", %{
+      conn: conn,
+      prompt: prompt
+    } do
+      {:ok, _} =
+        Bodhi.Prompts.update_prompt(prompt, %{
+          text: "v2 text"
+        })
+
+      {:ok, live, _html} =
+        live(conn, ~p"/prompts/#{prompt.id}/edit")
+
+      live
+      |> element("#version-select-form")
+      |> render_change(%{version: "1"})
+
+      assert {:ok, _show_live, _html} =
+               live
+               |> form("#prompt-form",
+                 prompt: %{text: prompt.text}
+               )
+               |> render_submit()
+               |> follow_redirect(conn, ~p"/prompts")
+
+      updated = Bodhi.Prompts.get_prompt!(prompt.id)
+      assert updated.version == 3
+      assert updated.text == prompt.text
+    end
+  end
+
   describe "Navigation" do
     setup [:create_prompt, :create_and_log_in_user]
 

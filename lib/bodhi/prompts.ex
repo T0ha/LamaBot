@@ -9,6 +9,7 @@ defmodule Bodhi.Prompts do
   require Logger
 
   alias Bodhi.Prompts.Prompt
+  alias Bodhi.Prompts.PromptVersion
 
   @doc """
   Returns the list of prompts.
@@ -258,5 +259,65 @@ defmodule Bodhi.Prompts do
   @spec change_prompt(Prompt.t(), map()) :: Ecto.Changeset.t()
   def change_prompt(%Prompt{} = prompt, attrs \\ %{}) do
     Prompt.changeset(prompt, attrs)
+  end
+
+  @doc """
+  Returns the version history for a prompt, ordered by
+  version descending. Includes `valid_from` and `valid_to`
+  timestamps extracted from `sys_period`.
+  """
+  @spec list_prompt_versions(non_neg_integer()) ::
+          [PromptVersion.t()]
+  def list_prompt_versions(prompt_id) do
+    from(v in PromptVersion,
+      where: v.id == ^prompt_id,
+      order_by: [desc: v.version],
+      select_merge: %{
+        valid_from: fragment("lower(sys_period)"),
+        valid_to: fragment("upper(sys_period)")
+      }
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a specific version of a prompt from history.
+
+  Raises `Ecto.NoResultsError` if the version does not exist.
+  """
+  @spec get_prompt_version!(non_neg_integer(), non_neg_integer()) ::
+          PromptVersion.t()
+  def get_prompt_version!(prompt_id, version) do
+    from(v in PromptVersion,
+      where: v.id == ^prompt_id and v.version == ^version,
+      select_merge: %{
+        valid_from: fragment("lower(sys_period)"),
+        valid_to: fragment("upper(sys_period)")
+      }
+    )
+    |> Repo.one!()
+  end
+
+  @doc """
+  Restores a prompt to a previous version. This is
+  append-only: a new version is created with the old text.
+  """
+  @spec restore_prompt_version(
+          Prompt.t(),
+          non_neg_integer(),
+          non_neg_integer()
+        ) ::
+          {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
+  def restore_prompt_version(
+        %Prompt{} = prompt,
+        version,
+        user_id
+      ) do
+    old = get_prompt_version!(prompt.id, version)
+
+    update_prompt(prompt, %{
+      text: old.text,
+      changed_by: user_id
+    })
   end
 end

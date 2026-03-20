@@ -15,6 +15,37 @@ defmodule BodhiWeb.PromptLive.Form do
         <:subtitle>
           Edit the context prompt used for AI interactions.
         </:subtitle>
+        <:actions :if={@versions != []}>
+          <form
+            id="version-select-form"
+            phx-change="select_version"
+          >
+            <select
+              id="version_select"
+              name="version"
+              class="select select-bordered select-sm"
+            >
+              <option
+                value="current"
+                selected={@selected_version == :current}
+              >
+                Current (v{@prompt.version})
+              </option>
+              <option
+                :for={v <- @versions}
+                value={v.version}
+                selected={
+                  @selected_version == v.version
+                }
+              >
+                v{v.version} — {Calendar.strftime(
+                  v.valid_from,
+                  "%Y-%m-%d %H:%M"
+                )}
+              </option>
+            </select>
+          </form>
+        </:actions>
       </.header>
 
       <.form
@@ -29,10 +60,17 @@ defmodule BodhiWeb.PromptLive.Form do
           label="Prompt text"
         />
         <footer>
-          <.button phx-disable-with="Saving..." variant="primary">
-            Save Prompt
+          <.button
+            phx-disable-with="Saving..."
+            variant="primary"
+          >
+            {if @selected_version != :current,
+              do: "Restore & Save",
+              else: "Save Prompt"}
           </.button>
-          <.button navigate={~p"/prompts"}>Cancel</.button>
+          <.button navigate={~p"/prompts"}>
+            Cancel
+          </.button>
         </footer>
       </.form>
     </Layouts.admin>
@@ -43,15 +81,23 @@ defmodule BodhiWeb.PromptLive.Form do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(params, _session, socket) do
-    {:ok, apply_action(socket, socket.assigns.live_action, params)}
+    {:ok,
+     apply_action(
+       socket,
+       socket.assigns.live_action,
+       params
+     )}
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     prompt = Prompts.get_prompt!(id)
+    versions = Prompts.list_prompt_versions(prompt.id)
 
     socket
     |> assign(:page, %{title: "Edit Prompt"})
     |> assign(:prompt, prompt)
+    |> assign(:versions, versions)
+    |> assign(:selected_version, :current)
     |> assign(:form, to_form(Prompts.change_prompt(prompt)))
   end
 
@@ -61,6 +107,45 @@ defmodule BodhiWeb.PromptLive.Form do
           map(),
           Phoenix.LiveView.Socket.t()
         ) :: {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_event(
+        "select_version",
+        %{"version" => "current"},
+        socket
+      ) do
+    prompt = socket.assigns.prompt
+
+    {:noreply,
+     socket
+     |> assign(:selected_version, :current)
+     |> assign(
+       :form,
+       to_form(Prompts.change_prompt(prompt))
+     )}
+  end
+
+  def handle_event(
+        "select_version",
+        %{"version" => version_str},
+        socket
+      ) do
+    version = String.to_integer(version_str)
+    prompt = socket.assigns.prompt
+
+    old =
+      Prompts.get_prompt_version!(prompt.id, version)
+
+    changeset =
+      Prompts.change_prompt(prompt, %{text: old.text})
+
+    {:noreply,
+     socket
+     |> assign(:selected_version, version)
+     |> assign(
+       :form,
+       to_form(changeset, action: :validate)
+     )}
+  end
+
   def handle_event(
         "validate",
         %{"prompt" => prompt_params},
@@ -72,7 +157,11 @@ defmodule BodhiWeb.PromptLive.Form do
         prompt_params
       )
 
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    {:noreply,
+     assign(
+       socket,
+       form: to_form(changeset, action: :validate)
+     )}
   end
 
   def handle_event(
@@ -80,6 +169,13 @@ defmodule BodhiWeb.PromptLive.Form do
         %{"prompt" => prompt_params},
         socket
       ) do
+    prompt_params =
+      Map.put(
+        prompt_params,
+        "changed_by",
+        socket.assigns.current_user.id
+      )
+
     case Prompts.update_prompt(
            socket.assigns.prompt,
            prompt_params
