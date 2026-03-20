@@ -14,6 +14,8 @@ defmodule Bodhi.Prompts.Prompt do
           type: type() | nil,
           text: String.t() | nil,
           lang: String.t(),
+          version: non_neg_integer() | nil,
+          changed_by: non_neg_integer() | nil,
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil
         }
@@ -23,6 +25,8 @@ defmodule Bodhi.Prompts.Prompt do
     field :type, Ecto.Enum, values: [:context, :start_message, :followup]
     field :text, :string
     field :lang, :string, default: "en"
+    field :version, :integer, read_after_writes: true
+    field :changed_by, :integer
 
     timestamps()
   end
