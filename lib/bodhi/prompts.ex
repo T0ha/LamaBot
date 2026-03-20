@@ -223,7 +223,7 @@ defmodule Bodhi.Prompts do
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec update_prompt(Prompt.t(), map(), non_neg_integer() | nil) ::
+  @spec update_prompt(Prompt.t(), map(), pos_integer() | nil) ::
           {:ok, Prompt.t()} | {:error, Ecto.Changeset.t()}
   def update_prompt(%Prompt{} = prompt, attrs, changed_by \\ nil) do
     prompt
@@ -232,10 +232,21 @@ defmodule Bodhi.Prompts do
     |> Repo.update()
   end
 
+  # Only set changed_by when there are actual content changes,
+  # so unchanged saves don't defeat the trigger's
+  # ignore_unchanged_values check.
   defp maybe_put_changed_by(changeset, nil), do: changeset
 
   defp maybe_put_changed_by(changeset, user_id) do
-    Ecto.Changeset.put_change(changeset, :changed_by, user_id)
+    if changeset.changes == %{} do
+      changeset
+    else
+      Ecto.Changeset.put_change(
+        changeset,
+        :changed_by,
+        user_id
+      )
+    end
   end
 
   @doc """
@@ -330,7 +341,7 @@ defmodule Bodhi.Prompts do
   @spec restore_prompt_version(
           Prompt.t(),
           pos_integer(),
-          non_neg_integer()
+          pos_integer()
         ) ::
           {:ok, Prompt.t()}
           | {:error, Ecto.Changeset.t()}

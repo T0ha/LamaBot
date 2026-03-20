@@ -154,6 +154,12 @@ defmodule Bodhi.AccountsTest do
                Prompts.restore_prompt_version(prompt, 99, user.id)
     end
 
+    test "get_prompt_version/2 returns nil for non-existent version" do
+      prompt = insert(:prompt, type: :context, text: "v1")
+
+      assert is_nil(Prompts.get_prompt_version(prompt.id, 99))
+    end
+
     test "get_prompt_version!/2 raises for non-existent version" do
       prompt = insert(:prompt, type: :context, text: "v1")
 
@@ -167,6 +173,23 @@ defmodule Bodhi.AccountsTest do
 
       {:ok, same} =
         Prompts.update_prompt(prompt, %{text: "same"})
+
+      assert same.version == prompt.version
+
+      versions = Prompts.list_prompt_versions(prompt.id)
+      assert versions == []
+    end
+
+    test "unchanged update with user_id skips history" do
+      user = insert(:user)
+      prompt = insert(:prompt, type: :context, text: "same")
+
+      {:ok, same} =
+        Prompts.update_prompt(
+          prompt,
+          %{text: "same"},
+          user.id
+        )
 
       assert same.version == prompt.version
 

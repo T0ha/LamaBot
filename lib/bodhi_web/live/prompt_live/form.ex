@@ -133,22 +133,28 @@ defmodule BodhiWeb.PromptLive.Form do
       {version, ""} ->
         prompt = socket.assigns.prompt
 
-        old =
-          Prompts.get_prompt_version!(
-            prompt.id,
-            version
-          )
+        case Prompts.get_prompt_version(
+               prompt.id,
+               version
+             ) do
+          nil ->
+            {:noreply, socket}
 
-        changeset =
-          Prompts.change_prompt(prompt, %{text: old.text})
+          old ->
+            changeset =
+              Prompts.change_prompt(
+                prompt,
+                %{text: old.text}
+              )
 
-        {:noreply,
-         socket
-         |> assign(:selected_version, version)
-         |> assign(
-           :form,
-           to_form(changeset, action: :validate)
-         )}
+            {:noreply,
+             socket
+             |> assign(:selected_version, version)
+             |> assign(
+               :form,
+               to_form(changeset, action: :validate)
+             )}
+        end
 
       _ ->
         {:noreply, socket}
