@@ -162,7 +162,10 @@ defmodule BodhiWeb.CoreComponents do
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class, :string, default: nil, doc: "the input class to use over defaults"
   attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
-  attr :wrapper_class, :string, default: nil, doc: "additional classes for the wrapper div"
+
+  attr :wrapper_class, :string,
+    default: nil,
+    doc: "additional classes for the wrapper div (textarea only)"
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -230,7 +233,7 @@ defmodule BodhiWeb.CoreComponents do
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div class={["fieldset mb-2", @wrapper_class]}>
-      <label class={@wrapper_class}>
+      <label class={@wrapper_class && "flex-1 flex flex-col"}>
         <span :if={@label} class="label mb-1">
           {@label}
         </span>
