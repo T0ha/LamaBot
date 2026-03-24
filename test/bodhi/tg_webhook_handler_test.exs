@@ -51,6 +51,9 @@ defmodule Bodhi.TgWebhookHandlerTest do
       update = gen_update(tags)
       chat_id = update.message.chat.id
 
+      # The typing loop fires every 4s; since LLMMock returns
+      # instantly, only the initial send_chat_action is expected.
+      # Interval calls are covered by the stub in ObanCase.
       expect(Bodhi.TelegramMock, :send_chat_action, fn ^chat_id, "typing" ->
         {:ok, true}
       end)
@@ -83,6 +86,24 @@ defmodule Bodhi.TgWebhookHandlerTest do
            message_id: Faker.random_between(1, 1000),
            text: "reply"
          }}
+      end)
+
+      assert :ok == Bodhi.TgWebhookHandler.on_update(update)
+    end
+
+    @tag text: Faker.Lorem.sentence()
+    test "LLM errors propagate through with_typing",
+         %{bot_user: _bot_user} = tags do
+      insert(:prompt, type: :context, lang: "en")
+      update = gen_update(tags)
+      chat_id = update.message.chat.id
+
+      expect(Bodhi.TelegramMock, :send_chat_action, fn ^chat_id, "typing" ->
+        {:ok, true}
+      end)
+
+      expect(Bodhi.LLMMock, :ask_llm, fn _messages ->
+        {:error, :service_unavailable}
       end)
 
       assert :ok == Bodhi.TgWebhookHandler.on_update(update)

@@ -15,7 +15,13 @@ defmodule Bodhi.Behaviours.TelegramClient do
   @callback get_me() :: {:ok, Telegex.Type.User.t()} | {:error, Telegex.Type.error()}
 
   @doc """
-  Sends a chat action (e.g. "typing") to a chat.
+  Sends a chat action to a chat.
+
+  Valid actions: "typing", "upload_photo", "record_video",
+  "upload_video", "record_voice", "upload_voice",
+  "upload_document", "choose_sticker",
+  "find_location", "record_video_note",
+  "upload_video_note".
   """
   @callback send_chat_action(
               chat_id :: integer(),

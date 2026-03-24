@@ -156,19 +156,20 @@ defmodule Bodhi.TgWebhookHandler do
   defp with_typing(chat_id, fun) do
     _ = Bodhi.Telegram.send_chat_action(chat_id, "typing")
 
-    {:ok, timer_ref} =
-      :timer.apply_interval(
-        4_000,
-        Bodhi.Telegram,
-        :send_chat_action,
-        [chat_id, "typing"]
-      )
+    task =
+      Task.async(fn -> typing_loop(chat_id) end)
 
     try do
       fun.()
     after
-      :timer.cancel(timer_ref)
+      Task.shutdown(task, :brutal_kill)
     end
+  end
+
+  defp typing_loop(chat_id) do
+    Process.sleep(4_000)
+    _ = Bodhi.Telegram.send_chat_action(chat_id, "typing")
+    typing_loop(chat_id)
   end
 
   defp maybe_create_llm_response(meta) when meta == %{},
