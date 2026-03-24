@@ -10,70 +10,75 @@ defmodule BodhiWeb.PromptLive.Form do
   def render(assigns) do
     ~H"""
     <Layouts.admin flash={@flash}>
-      <.header>
-        {@page.title}
-        <:subtitle>
-          Edit the context prompt used for AI interactions.
-        </:subtitle>
-        <:actions :if={@versions != []}>
-          <form
-            id="version-select-form"
-            phx-change="select_version"
-          >
-            <select
-              id="version_select"
-              name="version"
-              class="select select-bordered select-sm"
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <.header>
+          {@page.title}
+          <:subtitle>
+            Edit the context prompt for AI interactions.
+          </:subtitle>
+          <:actions :if={@versions != []}>
+            <form
+              id="version-select-form"
+              phx-change="select_version"
             >
-              <option
-                value="current"
-                selected={@selected_version == :current}
+              <select
+                id="version_select"
+                name="version"
+                class="select select-bordered select-sm"
               >
-                Current (v{@prompt.version})
-              </option>
-              <option
-                :for={v <- @versions}
-                value={v.version}
-                selected={
-                  @selected_version == v.version
-                }
-              >
-                v{v.version} — {v.valid_from &&
-                  Calendar.strftime(
-                    v.valid_from,
-                    "%Y-%m-%d %H:%M"
-                  )}
-              </option>
-            </select>
-          </form>
-        </:actions>
-      </.header>
+                <option
+                  value="current"
+                  selected={@selected_version == :current}
+                >
+                  Current (v{@prompt.version})
+                </option>
+                <option
+                  :for={v <- @versions}
+                  value={v.version}
+                  selected={
+                    @selected_version == v.version
+                  }
+                >
+                  v{v.version} — {v.valid_from &&
+                    Calendar.strftime(
+                      v.valid_from,
+                      "%Y-%m-%d %H:%M"
+                    )}
+                </option>
+              </select>
+            </form>
+          </:actions>
+        </.header>
 
-      <.form
-        for={@form}
-        id="prompt-form"
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <.input
-          field={@form[:text]}
-          type="textarea"
-          label="Prompt text"
-        />
-        <footer>
-          <.button
-            phx-disable-with="Saving..."
-            variant="primary"
-          >
-            {if @selected_version != :current,
-              do: "Restore & Save",
-              else: "Save Prompt"}
-          </.button>
-          <.button navigate={~p"/prompts"}>
-            Cancel
-          </.button>
-        </footer>
-      </.form>
+        <.form
+          for={@form}
+          id="prompt-form"
+          phx-change="validate"
+          phx-submit="save"
+          class="flex-1 flex flex-col overflow-hidden"
+        >
+          <.input
+            field={@form[:text]}
+            type="textarea"
+            label="Prompt text"
+            class="w-full textarea flex-1"
+            wrapper_class="flex-1 flex flex-col"
+          />
+          <footer class="flex-none py-2">
+            <.button
+              phx-disable-with="Saving..."
+              variant="primary"
+            >
+              {if @selected_version != :current,
+                do: "Restore & Save",
+                else: "Save Prompt"}
+            </.button>
+            <.button navigate={~p"/prompts"}>
+              Cancel
+            </.button>
+          </footer>
+        </.form>
+      </div>
     </Layouts.admin>
     """
   end

@@ -163,6 +163,12 @@ defmodule BodhiWeb.CoreComponents do
   attr :class, :string, default: nil, doc: "the input class to use over defaults"
   attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
 
+  attr :wrapper_class, :string,
+    default: nil,
+    doc:
+      "additional classes for the wrapper div " <>
+        "(textarea only, ignored for other input types)"
+
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
@@ -228,15 +234,22 @@ defmodule BodhiWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
-      <label>
-        <span :if={@label} class="label mb-1">{@label}</span>
+    <div class={[
+      "fieldset",
+      !@wrapper_class && "mb-2",
+      @wrapper_class
+    ]}>
+      <label class="flex-1 flex flex-col">
+        <span :if={@label} class="label mb-1">
+          {@label}
+        </span>
         <textarea
           id={@id}
           name={@name}
           class={[
             @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @errors != [] &&
+              (@error_class || "textarea-error")
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
