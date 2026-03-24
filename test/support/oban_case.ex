@@ -74,6 +74,9 @@ defmodule Bodhi.ObanCase do
          text: text
        }}
     end)
+    |> stub(:send_chat_action, fn _chat_id, _action ->
+      {:ok, true}
+    end)
     |> stub(:get_me, fn ->
       {:ok,
        %Telegex.Type.User{

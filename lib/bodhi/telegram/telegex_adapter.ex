@@ -14,4 +14,9 @@ defmodule Bodhi.Telegram.TelegexAdapter do
   def get_me do
     Telegex.get_me()
   end
+
+  @impl true
+  def send_chat_action(chat_id, action) do
+    Telegex.send_chat_action(chat_id, action)
+  end
 end

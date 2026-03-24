@@ -137,7 +137,9 @@ defmodule Bodhi.TgWebhookHandler do
     messages = Bodhi.Chats.get_chat_context_for_ai(chat_id)
 
     with {:ok, %Response{} = response} <-
-           Bodhi.LLM.ask_llm(messages) do
+           with_typing(chat_id, fn ->
+             Bodhi.LLM.ask_llm(messages)
+           end) do
       metadata =
         %{
           ai_model: response.ai_model,
@@ -149,6 +151,27 @@ defmodule Bodhi.TgWebhookHandler do
 
       {:ok, response.content, metadata}
     end
+  end
+
+  @spec with_typing(integer(), (-> result)) :: result
+        when result: var
+  defp with_typing(chat_id, fun) do
+    _ = Bodhi.Telegram.send_chat_action(chat_id, "typing")
+
+    {:ok, pid} =
+      Task.start(fn -> typing_loop(chat_id) end)
+
+    try do
+      fun.()
+    after
+      Process.exit(pid, :kill)
+    end
+  end
+
+  defp typing_loop(chat_id) do
+    Process.sleep(4_000)
+    _ = Bodhi.Telegram.send_chat_action(chat_id, "typing")
+    typing_loop(chat_id)
   end
 
   defp maybe_create_llm_response(meta) when meta == %{},
