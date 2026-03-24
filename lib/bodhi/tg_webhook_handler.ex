@@ -137,7 +137,9 @@ defmodule Bodhi.TgWebhookHandler do
     messages = Bodhi.Chats.get_chat_context_for_ai(chat_id)
 
     with {:ok, %Response{} = response} <-
-           Bodhi.LLM.ask_llm(messages) do
+           with_typing(chat_id, fn ->
+             Bodhi.LLM.ask_llm(messages)
+           end) do
       metadata =
         %{
           ai_model: response.ai_model,
@@ -148,6 +150,24 @@ defmodule Bodhi.TgWebhookHandler do
         |> Map.new()
 
       {:ok, response.content, metadata}
+    end
+  end
+
+  defp with_typing(chat_id, fun) do
+    Bodhi.Telegram.send_chat_action(chat_id, "typing")
+
+    {:ok, timer_ref} =
+      :timer.apply_interval(
+        4_000,
+        Bodhi.Telegram,
+        :send_chat_action,
+        [chat_id, "typing"]
+      )
+
+    try do
+      fun.()
+    after
+      {:ok, :cancel} = :timer.cancel(timer_ref)
     end
   end
 

@@ -22,6 +22,14 @@ defmodule Bodhi.Telegram do
     impl().get_me()
   end
 
+  @doc """
+  Sends a chat action (e.g. "typing") to a chat.
+  """
+  @impl true
+  def send_chat_action(chat_id, action) do
+    impl().send_chat_action(chat_id, action)
+  end
+
   defp impl do
     Application.get_env(:bodhi, :telegram_client, Bodhi.Telegram.TelegexAdapter)
   end

@@ -13,4 +13,12 @@ defmodule Bodhi.Behaviours.TelegramClient do
   Gets information about the bot.
   """
   @callback get_me() :: {:ok, Telegex.Type.User.t()} | {:error, Telegex.Type.error()}
+
+  @doc """
+  Sends a chat action (e.g. "typing") to a chat.
+  """
+  @callback send_chat_action(
+              chat_id :: integer(),
+              action :: String.t()
+            ) :: {:ok, boolean()} | {:error, Telegex.Type.error()}
 end

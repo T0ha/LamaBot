@@ -43,6 +43,50 @@ defmodule Bodhi.TgWebhookHandlerTest do
     test "Unknown / commands are handled correctly", %{bot_user: bot_user} = tags do
       test_handle_message(tags, bot_user)
     end
+
+    @tag text: Faker.Lorem.sentence()
+    test "sends typing indicator during LLM call",
+         %{bot_user: bot_user} = tags do
+      insert(:prompt, type: :context, lang: "en")
+      update = gen_update(tags)
+      chat_id = update.message.chat.id
+
+      expect(Bodhi.TelegramMock, :send_chat_action, fn ^chat_id, "typing" ->
+        {:ok, true}
+      end)
+
+      expect(Bodhi.LLMMock, :ask_llm, fn _messages ->
+        {:ok,
+         %Bodhi.LLM.Response{
+           content: Faker.Lorem.paragraph(),
+           ai_model: "test/model",
+           prompt_tokens: 10,
+           completion_tokens: 20
+         }}
+      end)
+
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, _text ->
+        {:ok,
+         %Telegex.Type.Message{
+           from: %Telegex.Type.User{
+             id: bot_user.id,
+             first_name: bot_user.first_name,
+             last_name: bot_user.last_name,
+             username: bot_user.username,
+             is_bot: true
+           },
+           chat: %Telegex.Type.Chat{
+             id: chat_id,
+             type: "private"
+           },
+           date: DateTime.utc_now() |> DateTime.to_unix(),
+           message_id: Faker.random_between(1, 1000),
+           text: "reply"
+         }}
+      end)
+
+      assert :ok == Bodhi.TgWebhookHandler.on_update(update)
+    end
   end
 
   describe "send_message/2" do
