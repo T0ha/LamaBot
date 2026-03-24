@@ -167,6 +167,10 @@ defmodule BodhiWeb.CoreComponents do
     default: nil,
     doc: "additional classes for the wrapper div (textarea only)"
 
+  attr :grow, :boolean,
+    default: false,
+    doc: "when true, textarea grows to fill available flex space"
+
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
@@ -232,8 +236,12 @@ defmodule BodhiWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class={["fieldset mb-2", @wrapper_class]}>
-      <label class={@wrapper_class && "flex-1 flex flex-col"}>
+    <div class={[
+      "fieldset mb-2",
+      @wrapper_class,
+      @grow && "flex-1 flex flex-col"
+    ]}>
+      <label class={[@grow && "flex-1 flex flex-col"]}>
         <span :if={@label} class="label mb-1">
           {@label}
         </span>

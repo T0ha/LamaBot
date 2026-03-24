@@ -62,7 +62,7 @@ defmodule BodhiWeb.PromptLive.Form do
             type="textarea"
             label="Prompt text"
             class="w-full textarea flex-1"
-            wrapper_class="flex-1 flex flex-col"
+            grow
           />
           <footer class="flex-none py-2">
             <.button
