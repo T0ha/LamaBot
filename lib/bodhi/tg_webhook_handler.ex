@@ -172,8 +172,6 @@ defmodule Bodhi.TgWebhookHandler do
     Process.sleep(4_000)
     _ = Bodhi.Telegram.send_chat_action(chat_id, "typing")
     typing_loop(chat_id)
-  rescue
-    _ -> :ok
   end
 
   defp maybe_create_llm_response(meta) when meta == %{},
