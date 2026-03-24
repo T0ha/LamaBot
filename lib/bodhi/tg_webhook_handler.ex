@@ -154,7 +154,7 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   defp with_typing(chat_id, fun) do
-    Bodhi.Telegram.send_chat_action(chat_id, "typing")
+    _ = Bodhi.Telegram.send_chat_action(chat_id, "typing")
 
     {:ok, timer_ref} =
       :timer.apply_interval(
@@ -167,7 +167,7 @@ defmodule Bodhi.TgWebhookHandler do
     try do
       fun.()
     after
-      {:ok, :cancel} = :timer.cancel(timer_ref)
+      :timer.cancel(timer_ref)
     end
   end
 
