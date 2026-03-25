@@ -6,8 +6,13 @@ defmodule Bodhi.Behaviours.TelegramClient do
   @doc """
   Sends a text message to a chat.
   """
-  @callback send_message(chat_id :: integer(), text :: String.t()) ::
-              {:ok, Telegex.Type.Message.t()} | {:error, Telegex.Type.error()}
+  @callback send_message(
+              chat_id :: integer(),
+              text :: String.t(),
+              opts :: keyword()
+            ) ::
+              {:ok, Telegex.Type.Message.t()}
+              | {:error, Telegex.Type.error()}
 
   @doc """
   Gets information about the bot.

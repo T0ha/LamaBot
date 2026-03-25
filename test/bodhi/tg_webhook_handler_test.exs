@@ -68,7 +68,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
          }}
       end)
 
-      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, _text ->
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, _text, _opts ->
         {:ok,
          %Telegex.Type.Message{
            from: %Telegex.Type.User{
@@ -113,10 +113,11 @@ defmodule Bodhi.TgWebhookHandlerTest do
   describe "send_message/2" do
     test "Sends and saves message correctly", %{chat: chat, bot_user: bot_user} do
       text = Faker.Lorem.paragraph()
+      {expected_html, _} = Bodhi.Telegram.Formatter.format(text)
       chat_id = chat.id
 
       # Expect send_message to be called once with these exact arguments
-      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, ^text ->
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, ^expected_html, _opts ->
         {:ok,
          %Telegex.Type.Message{
            from: %Telegex.Type.User{
@@ -214,7 +215,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
     if reply? do
       expected_reply = Keyword.get(opts, :reply)
 
-      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text ->
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text, _opts ->
         # If a specific reply is expected, verify it matches
         if expected_reply do
           assert text == expected_reply

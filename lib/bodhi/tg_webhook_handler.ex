@@ -56,7 +56,7 @@ defmodule Bodhi.TgWebhookHandler do
          true <- db_user.is_admin,
          token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
          url <- url(~p"/login?#{[token: token]}") do
-      Bodhi.Telegram.send_message(chat.id, url)
+      Bodhi.Telegram.send_message(chat.id, url, [])
     else
       _ ->
         :ok
@@ -91,16 +91,37 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   def send_message(chat_id, text, metadata \\ %{}) do
-    with {:ok, message} <- Bodhi.Telegram.send_message(chat_id, text) do
-      llm_response_id = maybe_create_llm_response(metadata)
+    {html, opts} = Bodhi.Telegram.Formatter.format(text)
+    chunks = Bodhi.Telegram.Formatter.split(html)
 
-      save_message(
-        message,
-        chat_id,
-        message.from,
-        %{llm_response_id: llm_response_id}
-      )
-    end
+    Enum.reduce_while(
+      chunks,
+      {nil, nil},
+      fn chunk, {_result, llm_id} ->
+        case Bodhi.Telegram.send_message(
+               chat_id,
+               chunk,
+               opts
+             ) do
+          {:ok, message} ->
+            llm_id = llm_id || maybe_create_llm_response(metadata)
+
+            result =
+              save_message(
+                message,
+                chat_id,
+                message.from,
+                %{llm_response_id: llm_id}
+              )
+
+            {:cont, {result, llm_id}}
+
+          {:error, _} = error ->
+            {:halt, {error, llm_id}}
+        end
+      end
+    )
+    |> then(fn {result, _llm_id} -> result end)
   end
 
   defp save_chat(chat, user) do
