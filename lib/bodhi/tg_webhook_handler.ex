@@ -91,16 +91,27 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   def send_message(chat_id, text, metadata \\ %{}) do
-    with {:ok, message} <- Bodhi.Telegram.send_message(chat_id, text) do
-      llm_response_id = maybe_create_llm_response(metadata)
+    {html, opts} = Bodhi.Telegram.Formatter.format(text)
+    chunks = Bodhi.Telegram.Formatter.split(html)
+    llm_response_id = maybe_create_llm_response(metadata)
 
-      save_message(
-        message,
-        chat_id,
-        message.from,
-        %{llm_response_id: llm_response_id}
-      )
-    end
+    Enum.reduce_while(chunks, nil, fn chunk, _acc ->
+      case Bodhi.Telegram.send_message(chat_id, chunk, opts) do
+        {:ok, message} ->
+          result =
+            save_message(
+              message,
+              chat_id,
+              message.from,
+              %{llm_response_id: llm_response_id}
+            )
+
+          {:cont, result}
+
+        {:error, _} = error ->
+          {:halt, error}
+      end
+    end)
   end
 
   defp save_chat(chat, user) do

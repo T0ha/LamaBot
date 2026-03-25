@@ -40,7 +40,7 @@ defmodule Bodhi.PeriodicMessagesTest do
       chat_id = chat.id
       prompt_text = prompt.text
 
-      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text ->
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text, _opts ->
         assert text == prompt_text
 
         {:ok,
