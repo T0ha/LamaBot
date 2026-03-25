@@ -38,10 +38,12 @@ defmodule Bodhi.PeriodicMessagesTest do
 
       # Expect the Telegram message to be sent
       chat_id = chat.id
-      prompt_text = prompt.text
+
+      {expected_html, _opts} =
+        Bodhi.Telegram.Formatter.format(prompt.text)
 
       expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text, _opts ->
-        assert text == prompt_text
+        assert text == expected_html
 
         {:ok,
          %Telegex.Type.Message{

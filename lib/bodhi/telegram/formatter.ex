@@ -171,11 +171,12 @@ defmodule Bodhi.Telegram.Formatter do
     |> String.replace("\"", "&quot;")
   end
 
+  # Semantic alias — today identical to escape/1, but kept
+  # separate for future URL-specific encoding if needed.
   defp escape_attr(text), do: escape(text)
 
   # -- Splitting --
 
-  defp chunk_blocks([], []), do: [""]
   defp chunk_blocks([], acc), do: acc
 
   defp chunk_blocks([block | rest], []) do
@@ -207,22 +208,36 @@ defmodule Bodhi.Telegram.Formatter do
     text
     |> String.split("\n")
     |> chunk_lines([])
-    |> Enum.reverse()
   end
 
   defp chunk_lines([], acc), do: acc
 
-  defp chunk_lines([line | rest], []) do
-    chunk_lines(rest, [line])
+  defp chunk_lines([line | rest], acc) do
+    if String.length(line) > @max_length do
+      chunks = split_long_line(line)
+      chunk_lines(rest, chunks ++ acc)
+    else
+      case acc do
+        [] ->
+          chunk_lines(rest, [line])
+
+        [current | done] ->
+          combined = current <> "\n" <> line
+
+          if String.length(combined) <= @max_length do
+            chunk_lines(rest, [combined | done])
+          else
+            chunk_lines(rest, [line, current | done])
+          end
+      end
+    end
   end
 
-  defp chunk_lines([line | rest], [current | done]) do
-    combined = current <> "\n" <> line
-
-    if String.length(combined) <= @max_length do
-      chunk_lines(rest, [combined | done])
-    else
-      chunk_lines(rest, [line, current | done])
-    end
+  defp split_long_line(line) do
+    line
+    |> String.graphemes()
+    |> Enum.chunk_every(@max_length)
+    |> Enum.map(&Enum.join/1)
+    |> Enum.reverse()
   end
 end

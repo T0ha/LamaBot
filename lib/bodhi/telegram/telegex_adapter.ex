@@ -6,7 +6,7 @@ defmodule Bodhi.Telegram.TelegexAdapter do
   @behaviour Bodhi.Behaviours.TelegramClient
 
   @impl true
-  def send_message(chat_id, text, opts \\ []) do
+  def send_message(chat_id, text, opts) do
     Telegex.send_message(chat_id, text, opts)
   end
 

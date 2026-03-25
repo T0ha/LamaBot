@@ -177,6 +177,14 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert Enum.all?(chunks, &(String.length(&1) <= 4096))
     end
 
+    test "single line over 4096 chars is byte-split" do
+      line = String.duplicate("a", 5000)
+      chunks = Formatter.split(line)
+      assert length(chunks) == 2
+      assert Enum.all?(chunks, &(String.length(&1) <= 4096))
+      assert Enum.join(chunks, "") == line
+    end
+
     test "empty text returns single empty chunk" do
       assert Formatter.split("") == [""]
     end
