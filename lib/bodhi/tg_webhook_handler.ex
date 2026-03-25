@@ -121,7 +121,7 @@ defmodule Bodhi.TgWebhookHandler do
         end
       end
     )
-    |> elem(0)
+    |> then(fn {result, _llm_id} -> result end)
   end
 
   defp save_chat(chat, user) do

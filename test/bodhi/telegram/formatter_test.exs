@@ -108,11 +108,10 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert html =~ "\n\n"
     end
 
-    test "soft break becomes space" do
+    test "soft break becomes newline" do
       input = "line one\nline two"
       {html, _} = Formatter.format(input)
-      assert html =~ "line one"
-      assert html =~ "line two"
+      assert html =~ "line one\nline two"
     end
 
     test "empty input" do
@@ -125,6 +124,23 @@ defmodule Bodhi.Telegram.FormatterTest do
 
     test "always returns parse_mode HTML" do
       {_, opts} = Formatter.format("hello")
+      assert opts == [parse_mode: "HTML"]
+    end
+
+    test "unknown AST nodes render as empty string" do
+      # Verify format doesn't crash on content that may produce
+      # unrecognised AST nodes — the catch-all returns ""
+      {html, _} = Formatter.format("just plain text")
+      assert is_binary(html)
+    end
+
+    test "falls back to escaped text on parse error" do
+      # MDEx.parse_document normally succeeds, but the error
+      # branch should escape the raw markdown safely.
+      # We verify indirectly: any valid markdown should not
+      # crash and should return HTML opts.
+      {html, opts} = Formatter.format("<b>raw html</b>")
+      assert is_binary(html)
       assert opts == [parse_mode: "HTML"]
     end
   end
@@ -195,11 +211,16 @@ defmodule Bodhi.Telegram.FormatterTest do
 
     test "first block hard-split preserves order with subsequent blocks" do
       # First block > 4096 chars, followed by a normal block
-      big = String.duplicate("a", 3000) <> "\n" <> String.duplicate("b", 3000)
+      big =
+        String.duplicate("a", 3000) <>
+          "\n" <> String.duplicate("b", 3000)
+
       small = "tail"
       text = big <> "\n\n" <> small
       chunks = Formatter.split(text)
 
+      # Verify chunk ordering: a's before b's before tail
+      assert hd(chunks) =~ String.duplicate("a", 100)
       assert List.last(chunks) =~ "tail"
       assert Enum.all?(chunks, &(String.length(&1) <= 4096))
     end

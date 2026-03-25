@@ -130,6 +130,9 @@ defmodule Bodhi.Telegram.Formatter do
     "<s>" <> render_children(children) <> "</s>"
   end
 
+  # Raw HTML in markdown is intentionally escaped to prevent
+  # injection. This means `<b>` in user markdown appears as
+  # literal text, not as bold — a deliberate safety trade-off.
   defp render_node(%MDEx.HtmlInline{literal: text}) do
     escape(text)
   end
