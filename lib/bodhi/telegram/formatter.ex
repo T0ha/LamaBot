@@ -85,8 +85,13 @@ defmodule Bodhi.Telegram.Formatter do
   end
 
   defp render_node(%MDEx.CodeBlock{info: info, literal: text}) do
-    if info != "" do
-      "<pre><code class=\"language-#{escape(info)}\">" <>
+    lang =
+      info
+      |> String.split(" ", parts: 2)
+      |> List.first("")
+
+    if lang != "" do
+      "<pre><code class=\"language-#{escape(lang)}\">" <>
         escape(text) <> "</code></pre>"
     else
       "<pre><code>" <> escape(text) <> "</code></pre>"
@@ -183,7 +188,7 @@ defmodule Bodhi.Telegram.Formatter do
     if String.length(block) <= @max_length do
       chunk_blocks(rest, [block])
     else
-      hard_split(block) ++ chunk_blocks(rest, [])
+      chunk_blocks(rest, hard_split(block))
     end
   end
 

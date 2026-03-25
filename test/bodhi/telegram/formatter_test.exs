@@ -42,6 +42,14 @@ defmodule Bodhi.Telegram.FormatterTest do
                Formatter.format(input)
     end
 
+    test "code block info string uses only first word as language" do
+      input = "```python title=\"example.py\"\nprint(1)\n```"
+
+      {html, _} = Formatter.format(input)
+      assert html =~ "language-python"
+      refute html =~ "title="
+    end
+
     test "link" do
       assert {"<a href=\"http://ex.com\">text</a>", _} =
                Formatter.format("[text](http://ex.com)")
@@ -183,6 +191,17 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert length(chunks) == 2
       assert Enum.all?(chunks, &(String.length(&1) <= 4096))
       assert Enum.join(chunks, "") == line
+    end
+
+    test "first block hard-split preserves order with subsequent blocks" do
+      # First block > 4096 chars, followed by a normal block
+      big = String.duplicate("a", 3000) <> "\n" <> String.duplicate("b", 3000)
+      small = "tail"
+      text = big <> "\n\n" <> small
+      chunks = Formatter.split(text)
+
+      assert List.last(chunks) =~ "tail"
+      assert Enum.all?(chunks, &(String.length(&1) <= 4096))
     end
 
     test "empty text returns single empty chunk" do

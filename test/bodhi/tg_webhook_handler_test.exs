@@ -113,10 +113,11 @@ defmodule Bodhi.TgWebhookHandlerTest do
   describe "send_message/2" do
     test "Sends and saves message correctly", %{chat: chat, bot_user: bot_user} do
       text = Faker.Lorem.paragraph()
+      {expected_html, _} = Bodhi.Telegram.Formatter.format(text)
       chat_id = chat.id
 
       # Expect send_message to be called once with these exact arguments
-      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, ^text, _opts ->
+      expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, ^expected_html, _opts ->
         {:ok,
          %Telegex.Type.Message{
            from: %Telegex.Type.User{
