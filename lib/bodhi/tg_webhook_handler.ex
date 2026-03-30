@@ -51,6 +51,8 @@ defmodule Bodhi.TgWebhookHandler do
     )
   end
 
+  # Login URL is plain text — sent without parse_mode
+  # to avoid HTML-escaping the URL query string.
   defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do
     with db_user <- Bodhi.Users.get_user!(user.id),
          true <- db_user.is_admin,
@@ -92,8 +94,17 @@ defmodule Bodhi.TgWebhookHandler do
 
   def send_message(chat_id, text, metadata \\ %{}) do
     {html, opts} = Bodhi.Telegram.Formatter.format(text)
-    chunks = Bodhi.Telegram.Formatter.split(html)
 
+    case Bodhi.Telegram.Formatter.split(html) do
+      [""] ->
+        {:ok, nil}
+
+      chunks ->
+        send_chunks(chat_id, chunks, opts, metadata)
+    end
+  end
+
+  defp send_chunks(chat_id, chunks, opts, metadata) do
     Enum.reduce_while(
       chunks,
       {nil, nil},

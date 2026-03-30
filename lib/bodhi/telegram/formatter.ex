@@ -5,10 +5,16 @@ defmodule Bodhi.Telegram.Formatter do
   Telegram supports a limited subset of HTML:
   `<b>`, `<i>`, `<u>`, `<s>`, `<code>`, `<pre>`,
   `<pre><code class="language-X">`, `<a href="">`,
-  `<blockquote>`, `<tg-spoiler>`.
+  `<blockquote>`, `<tg-spoiler>` (not yet implemented).
 
   Uses MDEx to parse markdown into an AST, then renders
   each node to the supported HTML subset.
+
+  Note: Telegram counts message length in UTF-16 code
+  units, not grapheme clusters. The current `@max_length`
+  check uses `String.length/1` (graphemes), which is safe
+  for ASCII-heavy LLM output but may under-count for
+  text with many non-BMP characters.
   """
 
   @max_length 4096
@@ -99,12 +105,12 @@ defmodule Bodhi.Telegram.Formatter do
   end
 
   defp render_node(%MDEx.Link{url: url, nodes: children}) do
-    "<a href=\"#{escape_attr(url)}\">" <>
+    "<a href=\"#{escape(url)}\">" <>
       render_children(children) <> "</a>"
   end
 
   defp render_node(%MDEx.Image{url: url, nodes: children}) do
-    "<a href=\"#{escape_attr(url)}\">" <>
+    "<a href=\"#{escape(url)}\">" <>
       render_children(children) <> "</a>"
   end
 
@@ -178,10 +184,6 @@ defmodule Bodhi.Telegram.Formatter do
     |> String.replace(">", "&gt;")
     |> String.replace("\"", "&quot;")
   end
-
-  # Semantic alias — today identical to escape/1, but kept
-  # separate for future URL-specific encoding if needed.
-  defp escape_attr(text), do: escape(text)
 
   # -- Splitting --
 

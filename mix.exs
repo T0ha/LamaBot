@@ -99,7 +99,7 @@ defmodule Bodhi.MixProject do
       "coveralls.html": :test,
       "coveralls.json": :test,
       credo: :test,
-      dialyzer: :test
+      dialyzer: :dev
     ]
   end
 

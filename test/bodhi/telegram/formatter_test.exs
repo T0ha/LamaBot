@@ -74,6 +74,13 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert html =~ "2. second"
     end
 
+    test "ordered list starting at non-1 offset" do
+      input = "3. third\n4. fourth"
+      {html, _} = Formatter.format(input)
+      assert html =~ "3. third"
+      assert html =~ "4. fourth"
+    end
+
     test "strikethrough" do
       assert {"<s>strike</s>", _} = Formatter.format("~~strike~~")
     end
