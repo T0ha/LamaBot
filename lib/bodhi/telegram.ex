@@ -10,8 +10,8 @@ defmodule Bodhi.Telegram do
   Sends a text message to a chat.
   """
   @impl true
-  def send_message(chat_id, text) do
-    impl().send_message(chat_id, text)
+  def send_message(chat_id, text, opts) do
+    impl().send_message(chat_id, text, opts)
   end
 
   @doc """
