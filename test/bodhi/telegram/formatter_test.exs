@@ -150,6 +150,85 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert is_binary(html)
       assert opts == [parse_mode: "HTML"]
     end
+
+    test "javascript: links are stripped" do
+      input = "[click](javascript:alert(1))"
+      {html, _} = Formatter.format(input)
+      refute html =~ "javascript:"
+      assert html =~ "click"
+    end
+
+    test "safe http links are preserved" do
+      input = "[click](https://example.com)"
+      {html, _} = Formatter.format(input)
+      assert html =~ "https://example.com"
+      assert html =~ "<a href="
+    end
+
+    test "javascript: image URLs are stripped" do
+      input = "![alt](javascript:void(0))"
+      {html, _} = Formatter.format(input)
+      refute html =~ "javascript:"
+      assert html =~ "alt"
+    end
+  end
+
+  describe "format_chunks/1" do
+    test "nil input returns single empty chunk" do
+      assert {[""], [parse_mode: "HTML"]} =
+               Formatter.format_chunks(nil)
+    end
+
+    test "empty input returns single empty chunk" do
+      assert {[""], [parse_mode: "HTML"]} =
+               Formatter.format_chunks("")
+    end
+
+    test "short text returns single chunk" do
+      {chunks, opts} = Formatter.format_chunks("hello")
+      assert length(chunks) == 1
+      assert hd(chunks) =~ "hello"
+      assert opts == [parse_mode: "HTML"]
+    end
+
+    test "code block with blank lines is not split mid-tag" do
+      input = """
+      ```python
+      def foo():
+          pass
+
+      def bar():
+          pass
+      ```
+      """
+
+      {chunks, _} = Formatter.format_chunks(input)
+      assert length(chunks) == 1
+      assert hd(chunks) =~ "<pre><code"
+      assert hd(chunks) =~ "</code></pre>"
+    end
+
+    test "thematic breaks do not produce empty chunks" do
+      input = "Hello\n\n---\n\nWorld"
+      {chunks, _} = Formatter.format_chunks(input)
+      refute Enum.any?(chunks, &(&1 == ""))
+    end
+
+    test "each chunk under 4096 chars" do
+      blocks =
+        for i <- 1..10 do
+          "## Block #{i}\n\n" <>
+            String.duplicate("x", 1000)
+        end
+
+      input = Enum.join(blocks, "\n\n")
+      {chunks, _} = Formatter.format_chunks(input)
+
+      assert Enum.all?(
+               chunks,
+               &(String.length(&1) <= 4096)
+             )
+    end
   end
 
   describe "split/1" do

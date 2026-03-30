@@ -1,7 +1,5 @@
 # Feature Implementation Flow
 
-**Never push changes or create a pull request until everyting is clarified, done and all chacks are passed.**
-
 - Create a new branch from `main` for the feature
 - Implement tests first (TDD)
 - Implement the feature code

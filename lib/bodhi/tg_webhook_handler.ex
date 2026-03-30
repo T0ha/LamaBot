@@ -93,17 +93,22 @@ defmodule Bodhi.TgWebhookHandler do
   end
 
   def send_message(chat_id, text, metadata \\ %{}) do
-    {html, opts} = Bodhi.Telegram.Formatter.format(text)
+    {chunks, opts} =
+      Bodhi.Telegram.Formatter.format_chunks(text)
 
-    case Bodhi.Telegram.Formatter.split(html) do
+    case chunks do
       [""] ->
         {:ok, nil}
 
-      chunks ->
+      _ ->
         send_chunks(chat_id, chunks, opts, metadata)
     end
   end
 
+  # Note: if chunk N succeeds but chunk N+1 fails, an
+  # LLM response record exists pointing to only a subset
+  # of the expected messages. This is an acceptable
+  # trade-off — the record is still useful for tracking.
   defp send_chunks(chat_id, chunks, opts, metadata) do
     Enum.reduce_while(
       chunks,

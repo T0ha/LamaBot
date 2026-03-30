@@ -48,6 +48,42 @@ defmodule Bodhi.Telegram.Formatter do
   end
 
   @doc """
+  Formats markdown and splits into chunks safe for
+  Telegram (at most 4096 characters each).
+
+  Splits at AST block boundaries to avoid breaking
+  HTML tags inside `<pre><code>` blocks.
+
+  Returns `{[chunk], [parse_mode: "HTML"]}`.
+  """
+  @spec format_chunks(String.t() | nil) ::
+          {[String.t()], [{:parse_mode, String.t()}]}
+  def format_chunks(nil), do: {[""], [parse_mode: "HTML"]}
+  def format_chunks(""), do: {[""], [parse_mode: "HTML"]}
+
+  def format_chunks(markdown) when is_binary(markdown) do
+    blocks =
+      case MDEx.parse_document(markdown, @parse_opts) do
+        {:ok, doc} ->
+          doc.nodes
+          |> Enum.map(&render_node/1)
+          |> Enum.reject(&(&1 == ""))
+
+        {:error, _} ->
+          [escape(markdown)]
+      end
+
+    chunks =
+      blocks
+      |> chunk_blocks([])
+      |> Enum.reverse()
+      |> Enum.reject(&(&1 == ""))
+
+    chunks = if chunks == [], do: [""], else: chunks
+    {chunks, [parse_mode: "HTML"]}
+  end
+
+  @doc """
   Splits HTML text into chunks of at most 4096 characters.
 
   Splits at block boundaries (`\\n\\n`) first, then at
@@ -105,13 +141,21 @@ defmodule Bodhi.Telegram.Formatter do
   end
 
   defp render_node(%MDEx.Link{url: url, nodes: children}) do
-    "<a href=\"#{escape(url)}\">" <>
-      render_children(children) <> "</a>"
+    if safe_url?(url) do
+      "<a href=\"#{escape(url)}\">" <>
+        render_children(children) <> "</a>"
+    else
+      render_children(children)
+    end
   end
 
   defp render_node(%MDEx.Image{url: url, nodes: children}) do
-    "<a href=\"#{escape(url)}\">" <>
-      render_children(children) <> "</a>"
+    if safe_url?(url) do
+      "<a href=\"#{escape(url)}\">" <>
+        render_children(children) <> "</a>"
+    else
+      render_children(children)
+    end
   end
 
   defp render_node(%MDEx.BlockQuote{nodes: children}) do
@@ -173,6 +217,21 @@ defmodule Bodhi.Telegram.Formatter do
 
   defp render_children(nodes) do
     Enum.map_join(nodes, "", &render_node/1)
+  end
+
+  # -- URL validation --
+
+  @allowed_schemes ["http", "https", "tg"]
+
+  defp safe_url?(url) do
+    case URI.parse(url) do
+      %URI{scheme: scheme} when not is_nil(scheme) ->
+        String.downcase(scheme) in @allowed_schemes
+
+      _ ->
+        # Relative URLs or fragment-only are safe
+        not String.starts_with?(url, "javascript:")
+    end
   end
 
   # -- HTML escaping --
