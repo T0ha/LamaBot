@@ -110,7 +110,12 @@ defmodule Bodhi.TgWebhookHandlerTest do
     end
   end
 
-  describe "send_message/2" do
+  describe "send_message/3" do
+    test "empty text returns early without calling Telegram", %{chat: chat} do
+      assert {:ok, nil} ==
+               TgWebhookHandler.send_message(chat.id, "")
+    end
+
     test "Sends and saves message correctly", %{chat: chat, bot_user: bot_user} do
       text = Faker.Lorem.paragraph()
       {expected_html, _} = Bodhi.Telegram.Formatter.format(text)
@@ -142,6 +147,96 @@ defmodule Bodhi.TgWebhookHandlerTest do
 
       assert message ==
                Bodhi.Chats.get_last_message(chat_id)
+    end
+
+    test "multi-chunk text sends all chunks and creates one LLM response",
+         %{chat: chat, bot_user: bot_user} do
+      # Build text that splits into 2 chunks
+      block = String.duplicate("a", 3000)
+      text = block <> "\n\n" <> block
+      {html, _} = Bodhi.Telegram.Formatter.format(text)
+      chunks = Bodhi.Telegram.Formatter.split(html)
+      assert length(chunks) == 2
+
+      chat_id = chat.id
+      call_count = :counters.new(1, [:atomics])
+
+      Bodhi.TelegramMock
+      |> expect(:send_message, 2, fn ^chat_id, _text, _opts ->
+        :counters.add(call_count, 1, 1)
+
+        {:ok,
+         %Telegex.Type.Message{
+           from: %Telegex.Type.User{
+             id: bot_user.id,
+             first_name: bot_user.first_name,
+             last_name: bot_user.last_name,
+             username: bot_user.username,
+             is_bot: true
+           },
+           chat: %Telegex.Type.Chat{
+             id: chat_id,
+             type: "private"
+           },
+           date: DateTime.utc_now() |> DateTime.to_unix(),
+           message_id: Faker.random_between(1, 1000),
+           text: "chunk"
+         }}
+      end)
+
+      metadata = %{
+        ai_model: "test/model",
+        prompt_tokens: 10,
+        completion_tokens: 20
+      }
+
+      assert {:ok, _msg} =
+               TgWebhookHandler.send_message(
+                 chat_id,
+                 text,
+                 metadata
+               )
+
+      # Both chunks were sent
+      assert :counters.get(call_count, 1) == 2
+
+      # Only one LLM response record created
+      assert [_single] =
+               Bodhi.Repo.all(Bodhi.Chats.LlmResponse)
+    end
+
+    test "failure on second chunk halts and returns error",
+         %{chat: chat, bot_user: bot_user} do
+      block = String.duplicate("a", 3000)
+      text = block <> "\n\n" <> block
+      chat_id = chat.id
+
+      Bodhi.TelegramMock
+      |> expect(:send_message, fn ^chat_id, _text, _opts ->
+        {:ok,
+         %Telegex.Type.Message{
+           from: %Telegex.Type.User{
+             id: bot_user.id,
+             first_name: bot_user.first_name,
+             last_name: bot_user.last_name,
+             username: bot_user.username,
+             is_bot: true
+           },
+           chat: %Telegex.Type.Chat{
+             id: chat_id,
+             type: "private"
+           },
+           date: DateTime.utc_now() |> DateTime.to_unix(),
+           message_id: Faker.random_between(1, 1000),
+           text: "chunk"
+         }}
+      end)
+      |> expect(:send_message, fn ^chat_id, _text, _opts ->
+        {:error, %Telegex.RequestError{reason: :timeout}}
+      end)
+
+      assert {:error, _} =
+               TgWebhookHandler.send_message(chat_id, text)
     end
   end
 
@@ -217,8 +312,12 @@ defmodule Bodhi.TgWebhookHandlerTest do
 
       expect(Bodhi.TelegramMock, :send_message, fn ^chat_id, text, _opts ->
         # If a specific reply is expected, verify it matches
+        # against the formatted version (formatter escapes HTML entities).
         if expected_reply do
-          assert text == expected_reply
+          {expected_html, _} =
+            Bodhi.Telegram.Formatter.format(expected_reply)
+
+          assert text == expected_html
         end
 
         {:ok,
@@ -253,7 +352,10 @@ defmodule Bodhi.TgWebhookHandlerTest do
 
         # credo:disable-for-next-line
         if opts[:reply] do
-          assert response.text == Keyword.get(opts, :reply)
+          {expected_html, _} =
+            Bodhi.Telegram.Formatter.format(Keyword.get(opts, :reply))
+
+          assert response.text == expected_html
         end
       else
         assert other == []
