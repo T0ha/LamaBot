@@ -115,7 +115,7 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert html =~ "\n\n"
     end
 
-    test "soft break becomes newline" do
+    test "soft break becomes a newline" do
       input = "line one\nline two"
       {html, _} = Formatter.format(input)
       assert html =~ "line one\nline two"

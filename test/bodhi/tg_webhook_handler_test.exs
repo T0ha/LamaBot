@@ -154,8 +154,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
       # Build text that splits into 2 chunks
       block = String.duplicate("a", 3000)
       text = block <> "\n\n" <> block
-      {html, _} = Bodhi.Telegram.Formatter.format(text)
-      chunks = Bodhi.Telegram.Formatter.split(html)
+      {chunks, _} = Bodhi.Telegram.Formatter.format_chunks(text)
       assert length(chunks) == 2
 
       chat_id = chat.id

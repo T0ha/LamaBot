@@ -98,6 +98,11 @@ defmodule Bodhi.Telegram.Formatter do
     |> String.split("\n\n")
     |> chunk_blocks([])
     |> Enum.reverse()
+    |> Enum.reject(&(&1 == ""))
+    |> case do
+      [] -> [""]
+      chunks -> chunks
+    end
   end
 
   # -- AST rendering --
@@ -228,9 +233,9 @@ defmodule Bodhi.Telegram.Formatter do
       %URI{scheme: scheme} when not is_nil(scheme) ->
         String.downcase(scheme) in @allowed_schemes
 
+      # Relative URLs or fragment-only (no scheme) are safe
       _ ->
-        # Relative URLs or fragment-only are safe
-        not String.starts_with?(url, "javascript:")
+        true
     end
   end
 
@@ -252,7 +257,7 @@ defmodule Bodhi.Telegram.Formatter do
     if String.length(block) <= @max_length do
       chunk_blocks(rest, [block])
     else
-      chunk_blocks(rest, hard_split(block))
+      chunk_blocks(rest, Enum.reverse(hard_split(block)))
     end
   end
 
@@ -267,7 +272,8 @@ defmodule Bodhi.Telegram.Formatter do
       else
         chunk_blocks(
           rest,
-          hard_split(block) ++ [current | done]
+          Enum.reverse(hard_split(block)) ++
+            [current | done]
         )
       end
     end
@@ -277,6 +283,7 @@ defmodule Bodhi.Telegram.Formatter do
     text
     |> String.split("\n")
     |> chunk_lines([])
+    |> Enum.reverse()
   end
 
   defp chunk_lines([], acc), do: acc
