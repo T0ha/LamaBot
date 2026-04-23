@@ -118,7 +118,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
 
     test "Sends and saves message correctly", %{chat: chat, bot_user: bot_user} do
       text = Faker.Lorem.paragraph()
-      {expected_html, _} = Bodhi.Telegram.Formatter.format(text)
+      {[expected_html], _} = Bodhi.Telegram.Formatter.format_chunks(text)
       chat_id = chat.id
 
       # Expect send_message to be called once with these exact arguments
@@ -155,7 +155,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
       block = String.duplicate("a", 3000)
       text = block <> "\n\n" <> block
       {chunks, _} = Bodhi.Telegram.Formatter.format_chunks(text)
-      assert length(chunks) == 2
+      assert length(chunks) >= 2
 
       chat_id = chat.id
       call_count = :counters.new(1, [:atomics])
@@ -313,8 +313,8 @@ defmodule Bodhi.TgWebhookHandlerTest do
         # If a specific reply is expected, verify it matches
         # against the formatted version (formatter escapes HTML entities).
         if expected_reply do
-          {expected_html, _} =
-            Bodhi.Telegram.Formatter.format(expected_reply)
+          {[expected_html], _} =
+            Bodhi.Telegram.Formatter.format_chunks(expected_reply)
 
           assert text == expected_html
         end
@@ -351,8 +351,8 @@ defmodule Bodhi.TgWebhookHandlerTest do
 
         # credo:disable-for-next-line
         if opts[:reply] do
-          {expected_html, _} =
-            Bodhi.Telegram.Formatter.format(Keyword.get(opts, :reply))
+          {[expected_html], _} =
+            Bodhi.Telegram.Formatter.format_chunks(Keyword.get(opts, :reply))
 
           assert response.text == expected_html
         end

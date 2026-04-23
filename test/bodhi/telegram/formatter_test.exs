@@ -174,13 +174,13 @@ defmodule Bodhi.Telegram.FormatterTest do
   end
 
   describe "format_chunks/1" do
-    test "nil input returns single empty chunk" do
-      assert {[""], [parse_mode: "HTML"]} =
+    test "nil input returns empty list" do
+      assert {[], [parse_mode: "HTML"]} =
                Formatter.format_chunks(nil)
     end
 
-    test "empty input returns single empty chunk" do
-      assert {[""], [parse_mode: "HTML"]} =
+    test "empty input returns empty list" do
+      assert {[], [parse_mode: "HTML"]} =
                Formatter.format_chunks("")
     end
 

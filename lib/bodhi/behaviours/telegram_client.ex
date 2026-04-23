@@ -9,7 +9,7 @@ defmodule Bodhi.Behaviours.TelegramClient do
   @callback send_message(
               chat_id :: integer(),
               text :: String.t(),
-              opts :: keyword()
+              opts :: Keyword.t()
             ) ::
               {:ok, Telegex.Type.Message.t()}
               | {:error, Telegex.Type.error()}

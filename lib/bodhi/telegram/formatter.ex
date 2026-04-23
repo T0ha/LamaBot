@@ -58,8 +58,8 @@ defmodule Bodhi.Telegram.Formatter do
   """
   @spec format_chunks(String.t() | nil) ::
           {[String.t()], [{:parse_mode, String.t()}]}
-  def format_chunks(nil), do: {[""], [parse_mode: "HTML"]}
-  def format_chunks(""), do: {[""], [parse_mode: "HTML"]}
+  def format_chunks(nil), do: {[], [parse_mode: "HTML"]}
+  def format_chunks(""), do: {[], [parse_mode: "HTML"]}
 
   def format_chunks(markdown) when is_binary(markdown) do
     blocks =
@@ -79,7 +79,6 @@ defmodule Bodhi.Telegram.Formatter do
       |> Enum.reverse()
       |> Enum.reject(&(&1 == ""))
 
-    chunks = if chunks == [], do: [""], else: chunks
     {chunks, [parse_mode: "HTML"]}
   end
 

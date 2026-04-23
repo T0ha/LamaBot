@@ -97,7 +97,7 @@ defmodule Bodhi.TgWebhookHandler do
       Bodhi.Telegram.Formatter.format_chunks(text)
 
     case chunks do
-      [""] ->
+      [] ->
         {:ok, nil}
 
       _ ->
