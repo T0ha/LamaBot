@@ -92,6 +92,8 @@ defmodule Bodhi.TgWebhookHandler do
     end
   end
 
+  # Returns {:ok, %Chats.Message{}} or {:error, _},
+  # not the raw Telegex message.
   def send_message(chat_id, text, metadata \\ %{}) do
     {chunks, opts} =
       Bodhi.Telegram.Formatter.format_chunks(text)

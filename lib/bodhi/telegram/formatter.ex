@@ -5,7 +5,7 @@ defmodule Bodhi.Telegram.Formatter do
   Telegram supports a limited subset of HTML:
   `<b>`, `<i>`, `<u>`, `<s>`, `<code>`, `<pre>`,
   `<pre><code class="language-X">`, `<a href="">`,
-  `<blockquote>`, `<tg-spoiler>` (not yet implemented).
+  `<blockquote>`.
 
   Uses MDEx to parse markdown into an AST, then renders
   each node to the supported HTML subset.

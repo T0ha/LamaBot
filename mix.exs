@@ -12,7 +12,6 @@ defmodule Bodhi.MixProject do
       listeners: [Phoenix.CodeReloader],
       aliases: aliases(),
       deps: deps(),
-      preferred_cli_env: preferred_cli_env(),
       usage_rules: usage_rules(),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
@@ -91,15 +90,17 @@ defmodule Bodhi.MixProject do
     ]
   end
 
-  defp preferred_cli_env do
+  def cli do
     [
-      coveralls: :test,
-      "coveralls.detail": :test,
-      "coveralls.post": :test,
-      "coveralls.html": :test,
-      "coveralls.json": :test,
-      credo: :dev,
-      dialyzer: :dev
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test,
+        credo: :dev,
+        dialyzer: :dev
+      ]
     ]
   end
 
