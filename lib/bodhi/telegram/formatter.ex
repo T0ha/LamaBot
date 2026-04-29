@@ -31,7 +31,7 @@ defmodule Bodhi.Telegram.Formatter do
   def format(nil), do: {"", [parse_mode: "HTML"]}
   def format(""), do: {"", [parse_mode: "HTML"]}
 
-  def format(markdown) when is_binary(markdown) do
+  def format(markdown) do
     html =
       case MDEx.parse_document(markdown, @parse_opts) do
         {:ok, doc} ->
@@ -60,7 +60,7 @@ defmodule Bodhi.Telegram.Formatter do
   def format_chunks(nil), do: {[], [parse_mode: "HTML"]}
   def format_chunks(""), do: {[], [parse_mode: "HTML"]}
 
-  def format_chunks(markdown) when is_binary(markdown) do
+  def format_chunks(markdown) do
     blocks =
       case MDEx.parse_document(markdown, @parse_opts) do
         {:ok, doc} ->
@@ -91,7 +91,7 @@ defmodule Bodhi.Telegram.Formatter do
   @spec split(String.t()) :: [String.t()]
   def split(""), do: [""]
 
-  def split(text) when is_binary(text) do
+  def split(text) do
     text
     |> String.split("\n\n")
     |> chunk_blocks([])
@@ -130,16 +130,16 @@ defmodule Bodhi.Telegram.Formatter do
   end
 
   defp render_node(%MDEx.CodeBlock{info: info, literal: text}) do
-    lang =
-      info
-      |> String.split(" ", parts: 2)
-      |> List.first("")
+    info
+    |> String.split(" ", parts: 2)
+    |> List.first("")
+    |> case do
+      "" ->
+        "<pre><code>" <> escape(text) <> "</code></pre>"
 
-    if lang != "" do
-      "<pre><code class=\"language-#{escape(lang)}\">" <>
-        escape(text) <> "</code></pre>"
-    else
-      "<pre><code>" <> escape(text) <> "</code></pre>"
+      lang ->
+        "<pre><code class=\"language-#{escape(lang)}\">" <>
+          escape(text) <> "</code></pre>"
     end
   end
 
@@ -213,12 +213,11 @@ defmodule Bodhi.Telegram.Formatter do
 
   defp safe_url?(url) do
     case URI.parse(url) do
-      %URI{scheme: scheme} when not is_nil(scheme) ->
-        String.downcase(scheme) in @allowed_schemes
-
-      # Relative URLs or fragment-only (no scheme) are safe
-      _ ->
+      %URI{scheme: nil} ->
         true
+
+      %URI{scheme: scheme} ->
+        String.downcase(scheme) in @allowed_schemes
     end
   end
 
@@ -237,28 +236,28 @@ defmodule Bodhi.Telegram.Formatter do
   defp chunk_blocks([], acc), do: acc
 
   defp chunk_blocks([block | rest], []) do
-    if String.length(block) <= @max_length do
-      chunk_blocks(rest, [block])
-    else
-      chunk_blocks(rest, Enum.reverse(hard_split(block)))
-    end
+    chunk_blocks(rest, split_block(block))
   end
 
   defp chunk_blocks([block | rest], [current | done]) do
     combined = current <> "\n\n" <> block
 
-    if String.length(combined) <= @max_length do
-      chunk_blocks(rest, [combined | done])
-    else
-      if String.length(block) <= @max_length do
-        chunk_blocks(rest, [block, current | done])
-      else
+    case String.length(combined) <= @max_length do
+      true ->
+        chunk_blocks(rest, [combined | done])
+
+      false ->
         chunk_blocks(
           rest,
-          Enum.reverse(hard_split(block)) ++
-            [current | done]
+          split_block(block) ++ [current | done]
         )
-      end
+    end
+  end
+
+  defp split_block(block) do
+    case String.length(block) <= @max_length do
+      true -> [block]
+      false -> Enum.reverse(hard_split(block))
     end
   end
 
