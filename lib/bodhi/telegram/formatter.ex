@@ -2,8 +2,8 @@ defmodule Bodhi.Telegram.Formatter do
   @moduledoc """
   Converts markdown text to Telegram-compatible HTML.
 
-  Telegram supports a limited subset of HTML:
-  `<b>`, `<i>`, `<u>`, `<s>`, `<code>`, `<pre>`,
+  Telegram supports a limited subset of HTML. This module
+  renders to: `<b>`, `<i>`, `<s>`, `<code>`, `<pre>`,
   `<pre><code class="language-X">`, `<a href="">`,
   `<blockquote>`.
 
@@ -278,40 +278,62 @@ defmodule Bodhi.Telegram.Formatter do
     end
   end
 
+  # When splitting a rendered HTML block that contains
+  # <pre><code> tags, strip the wrapper, split the inner
+  # content, and re-wrap each chunk so tags stay balanced.
   defp hard_split(text) do
-    text
-    |> String.split("\n")
-    |> chunk_lines([])
-    |> Enum.reverse()
+    case Regex.run(
+           ~r/\A(<pre><code[^>]*>)(.*?)(<\/code><\/pre>)\z/s,
+           text
+         ) do
+      [_, open, inner, close] ->
+        inner
+        |> String.split("\n")
+        |> chunk_lines([], @max_length - tag_overhead(open, close))
+        |> Enum.reverse()
+        |> Enum.map(fn chunk -> open <> chunk <> close end)
+
+      _ ->
+        text
+        |> String.split("\n")
+        |> chunk_lines([])
+        |> Enum.reverse()
+    end
   end
 
-  defp chunk_lines([], acc), do: acc
+  defp tag_overhead(open, close) do
+    String.length(open) + String.length(close)
+  end
 
-  defp chunk_lines([line | rest], acc) do
-    if String.length(line) > @max_length do
-      chunks = split_long_line(line)
-      chunk_lines(rest, chunks ++ acc)
+  defp chunk_lines(lines, acc, max \\ @max_length)
+
+  defp chunk_lines([], acc, _max), do: acc
+
+  defp chunk_lines([line | rest], acc, max) do
+    if String.length(line) > max do
+      chunks = split_long_line(line, max)
+      chunk_lines(rest, chunks ++ acc, max)
     else
       case acc do
         [] ->
-          chunk_lines(rest, [line])
+          chunk_lines(rest, [line], max)
 
         [current | done] ->
           combined = current <> "\n" <> line
 
-          if String.length(combined) <= @max_length do
-            chunk_lines(rest, [combined | done])
+          if String.length(combined) <= max do
+            chunk_lines(rest, [combined | done], max)
           else
-            chunk_lines(rest, [line, current | done])
+            chunk_lines(rest, [line, current | done], max)
           end
       end
     end
   end
 
-  defp split_long_line(line) do
+  defp split_long_line(line, max) do
     line
     |> String.graphemes()
-    |> Enum.chunk_every(@max_length)
+    |> Enum.chunk_every(max)
     |> Enum.map(&Enum.join/1)
     |> Enum.reverse()
   end

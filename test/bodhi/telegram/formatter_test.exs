@@ -208,6 +208,23 @@ defmodule Bodhi.Telegram.FormatterTest do
       assert hd(chunks) =~ "</code></pre>"
     end
 
+    test "oversized code block keeps tags balanced" do
+      # A code block > 4096 chars should be split into
+      # multiple chunks, each with valid <pre><code> tags.
+      lines = for i <- 1..100, do: "line_#{i}_" <> String.duplicate("x", 80)
+      code = Enum.join(lines, "\n")
+      input = "```python\n#{code}\n```"
+
+      {chunks, _} = Formatter.format_chunks(input)
+      assert length(chunks) > 1
+
+      for chunk <- chunks do
+        assert chunk =~ ~r/\A<pre><code/
+        assert chunk =~ ~r/<\/code><\/pre>\z/
+        assert String.length(chunk) <= 4096
+      end
+    end
+
     test "thematic breaks do not produce empty chunks" do
       input = "Hello\n\n---\n\nWorld"
       {chunks, _} = Formatter.format_chunks(input)
