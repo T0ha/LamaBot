@@ -21,6 +21,15 @@ defmodule Bodhi.Telegram.Formatter do
 
   @parse_opts [extension: [strikethrough: true]]
 
+  defguardp safe_url?(url)
+            when is_binary(url) and
+                   ((byte_size(url) >= 8 and
+                       binary_part(url, 0, 8) == "https://") or
+                      (byte_size(url) >= 7 and
+                         binary_part(url, 0, 7) == "http://") or
+                      (byte_size(url) >= 3 and
+                         binary_part(url, 0, 3) == "tg:"))
+
   @doc """
   Formats markdown text to Telegram HTML.
 
@@ -143,22 +152,24 @@ defmodule Bodhi.Telegram.Formatter do
     end
   end
 
-  defp render_node(%MDEx.Link{url: url, nodes: children}) do
-    if safe_url?(url) do
-      "<a href=\"#{escape(url)}\">" <>
-        render_children(children) <> "</a>"
-    else
-      render_children(children)
-    end
+  defp render_node(%MDEx.Link{url: url, nodes: children})
+       when safe_url?(url) do
+    "<a href=\"#{escape(url)}\">" <>
+      render_children(children) <> "</a>"
   end
 
-  defp render_node(%MDEx.Image{url: url, nodes: children}) do
-    if safe_url?(url) do
-      "<a href=\"#{escape(url)}\">" <>
-        render_children(children) <> "</a>"
-    else
-      render_children(children)
-    end
+  defp render_node(%MDEx.Link{nodes: children}) do
+    render_children(children)
+  end
+
+  defp render_node(%MDEx.Image{url: url, nodes: children})
+       when safe_url?(url) do
+    "<a href=\"#{escape(url)}\">" <>
+      render_children(children) <> "</a>"
+  end
+
+  defp render_node(%MDEx.Image{nodes: children}) do
+    render_children(children)
   end
 
   defp render_node(%MDEx.BlockQuote{nodes: children}) do
@@ -207,20 +218,6 @@ defmodule Bodhi.Telegram.Formatter do
     Enum.map_join(nodes, "", &render_node/1)
   end
 
-  # -- URL validation --
-
-  @allowed_schemes ["http", "https", "tg"]
-
-  defp safe_url?(url) do
-    case URI.parse(url) do
-      %URI{scheme: nil} ->
-        true
-
-      %URI{scheme: scheme} ->
-        String.downcase(scheme) in @allowed_schemes
-    end
-  end
-
   # -- HTML escaping --
 
   defp escape(text) do
@@ -241,24 +238,25 @@ defmodule Bodhi.Telegram.Formatter do
 
   defp chunk_blocks([block | rest], [current | done]) do
     combined = current <> "\n\n" <> block
+    combine_or_split(rest, combined, block, current, done)
+  end
 
-    case String.length(combined) <= @max_length do
-      true ->
-        chunk_blocks(rest, [combined | done])
+  defp combine_or_split(rest, combined, _block, _current, done)
+       when byte_size(combined) <= @max_length do
+    chunk_blocks(rest, [combined | done])
+  end
 
-      false ->
-        chunk_blocks(
-          rest,
-          split_block(block) ++ [current | done]
-        )
-    end
+  defp combine_or_split(rest, _combined, block, current, done) do
+    chunk_blocks(rest, split_block(block) ++ [current | done])
+  end
+
+  defp split_block(block)
+       when byte_size(block) <= @max_length do
+    [block]
   end
 
   defp split_block(block) do
-    case String.length(block) <= @max_length do
-      true -> [block]
-      false -> Enum.reverse(hard_split(block))
-    end
+    Enum.reverse(hard_split(block))
   end
 
   # When splitting a rendered HTML block that contains
@@ -292,29 +290,28 @@ defmodule Bodhi.Telegram.Formatter do
 
   defp chunk_lines([], acc, _max), do: acc
 
-  defp chunk_lines([line | rest], acc, max) do
-    cond do
-      String.length(line) > max ->
-        chunks = split_long_line(line, max)
-        chunk_lines(rest, chunks ++ acc, max)
-
-      acc == [] ->
-        chunk_lines(rest, [line], max)
-
-      true ->
-        [current | done] = acc
-        combined = current <> "\n" <> line
-        new_acc = append_or_start(combined, line, current, done, max)
-        chunk_lines(rest, new_acc, max)
-    end
+  defp chunk_lines([line | rest], acc, max)
+       when byte_size(line) > max do
+    chunks = split_long_line(line, max)
+    chunk_lines(rest, chunks ++ acc, max)
   end
 
-  defp append_or_start(combined, line, current, done, max) do
-    if String.length(combined) <= max do
-      [combined | done]
-    else
-      [line, current | done]
-    end
+  defp chunk_lines([line | rest], [], max) do
+    chunk_lines(rest, [line], max)
+  end
+
+  defp chunk_lines([line | rest], [current | done], max) do
+    combined = current <> "\n" <> line
+    append_or_start(rest, combined, line, current, done, max)
+  end
+
+  defp append_or_start(rest, combined, _line, _current, done, max)
+       when byte_size(combined) <= max do
+    chunk_lines(rest, [combined | done], max)
+  end
+
+  defp append_or_start(rest, _combined, line, current, done, max) do
+    chunk_lines(rest, [line, current | done], max)
   end
 
   defp split_long_line(line, max) do

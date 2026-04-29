@@ -58,7 +58,7 @@ defmodule Bodhi.TgWebhookHandler do
          true <- db_user.is_admin,
          token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
          url <- url(~p"/login?#{[token: token]}") do
-      Bodhi.Telegram.send_message(chat.id, url, [])
+      Bodhi.Telegram.send_message(chat.id, url)
     else
       _ ->
         :ok
@@ -98,13 +98,11 @@ defmodule Bodhi.TgWebhookHandler do
     {chunks, opts} =
       Bodhi.Telegram.Formatter.format_chunks(text)
 
-    case chunks do
-      [] ->
-        {:ok, nil}
+    send_chunks(chat_id, chunks, opts, metadata)
+  end
 
-      _ ->
-        send_chunks(chat_id, chunks, opts, metadata)
-    end
+  defp send_chunks(_chat_id, [], _opts, _metadata) do
+    {:ok, nil}
   end
 
   # Note: if chunk N succeeds but chunk N+1 fails, an
@@ -112,8 +110,8 @@ defmodule Bodhi.TgWebhookHandler do
   # of the expected messages. This is an acceptable
   # trade-off — the record is still useful for tracking.
   defp send_chunks(chat_id, chunks, opts, metadata) do
-    Enum.reduce_while(
-      chunks,
+    chunks
+    |> Enum.reduce_while(
       {nil, nil},
       fn chunk, {_result, llm_id} ->
         case Bodhi.Telegram.send_message(
@@ -122,7 +120,8 @@ defmodule Bodhi.TgWebhookHandler do
                opts
              ) do
           {:ok, message} ->
-            llm_id = llm_id || maybe_create_llm_response(metadata)
+            llm_id =
+              llm_id || maybe_create_llm_response(metadata)
 
             result =
               save_message(
@@ -139,8 +138,10 @@ defmodule Bodhi.TgWebhookHandler do
         end
       end
     )
-    |> then(fn {result, _llm_id} -> result end)
+    |> extract_result()
   end
+
+  defp extract_result({result, _llm_id}), do: result
 
   defp save_chat(chat, user) do
     chat
