@@ -37,9 +37,11 @@ defmodule Bodhi.Telegram.FormatterTest do
     test "code block with language" do
       input = "```elixir\nIO.puts(\"hi\")\n```"
 
-      assert {"<pre><code class=\"language-elixir\">" <>
-                "IO.puts(&quot;hi&quot;)\n</code></pre>", _} =
-               Formatter.format(input)
+      {html, _} = Formatter.format(input)
+
+      assert html ==
+               "<pre><code class=\"language-elixir\">" <>
+                 "IO.puts(&quot;hi&quot;)\n</code></pre>"
     end
 
     test "code block info string uses only first word as language" do

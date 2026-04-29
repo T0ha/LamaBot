@@ -36,8 +36,7 @@ defmodule Bodhi.Telegram.Formatter do
       case MDEx.parse_document(markdown, @parse_opts) do
         {:ok, doc} ->
           doc.nodes
-          |> Enum.map(&render_node/1)
-          |> Enum.join("\n\n")
+          |> Enum.map_join("\n\n", &render_node/1)
           |> String.trim()
 
         {:error, _} ->
@@ -163,21 +162,16 @@ defmodule Bodhi.Telegram.Formatter do
   end
 
   defp render_node(%MDEx.BlockQuote{nodes: children}) do
-    inner =
-      children
-      |> Enum.map(&render_node/1)
-      |> Enum.join("\n")
-
+    inner = Enum.map_join(children, "\n", &render_node/1)
     "<blockquote>" <> inner <> "</blockquote>"
   end
 
   defp render_node(%MDEx.List{nodes: items} = list) do
     items
     |> Enum.with_index(list.start)
-    |> Enum.map(fn {item, idx} ->
+    |> Enum.map_join("\n", fn {item, idx} ->
       render_list_item(item, list.list_type, idx)
     end)
-    |> Enum.join("\n")
   end
 
   defp render_node(%MDEx.Strikethrough{nodes: children}) do
@@ -202,21 +196,11 @@ defmodule Bodhi.Telegram.Formatter do
   defp render_node(_unknown), do: ""
 
   defp render_list_item(item, :bullet, _idx) do
-    inner =
-      item.nodes
-      |> Enum.map(&render_node/1)
-      |> Enum.join("")
-
-    "• " <> inner
+    "• " <> Enum.map_join(item.nodes, "", &render_node/1)
   end
 
   defp render_list_item(item, :ordered, idx) do
-    inner =
-      item.nodes
-      |> Enum.map(&render_node/1)
-      |> Enum.join("")
-
-    "#{idx}. " <> inner
+    "#{idx}. " <> Enum.map_join(item.nodes, "", &render_node/1)
   end
 
   defp render_children(nodes) do
@@ -310,23 +294,27 @@ defmodule Bodhi.Telegram.Formatter do
   defp chunk_lines([], acc, _max), do: acc
 
   defp chunk_lines([line | rest], acc, max) do
-    if String.length(line) > max do
-      chunks = split_long_line(line, max)
-      chunk_lines(rest, chunks ++ acc, max)
+    cond do
+      String.length(line) > max ->
+        chunks = split_long_line(line, max)
+        chunk_lines(rest, chunks ++ acc, max)
+
+      acc == [] ->
+        chunk_lines(rest, [line], max)
+
+      true ->
+        [current | done] = acc
+        combined = current <> "\n" <> line
+        new_acc = append_or_start(combined, line, current, done, max)
+        chunk_lines(rest, new_acc, max)
+    end
+  end
+
+  defp append_or_start(combined, line, current, done, max) do
+    if String.length(combined) <= max do
+      [combined | done]
     else
-      case acc do
-        [] ->
-          chunk_lines(rest, [line], max)
-
-        [current | done] ->
-          combined = current <> "\n" <> line
-
-          if String.length(combined) <= max do
-            chunk_lines(rest, [combined | done], max)
-          else
-            chunk_lines(rest, [line, current | done], max)
-          end
-      end
+      [line, current | done]
     end
   end
 
