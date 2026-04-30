@@ -55,7 +55,7 @@ defmodule Bodhi.ObanCase do
 
     # Set up default stubs for Telegram mock - use the DB user's ID
     Bodhi.TelegramMock
-    |> stub(:send_message, fn chat_id, text ->
+    |> stub(:send_message, fn chat_id, text, _opts ->
       {:ok,
        %Telegex.Type.Message{
          from: %Telegex.Type.User{

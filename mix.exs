@@ -90,6 +90,20 @@ defmodule Bodhi.MixProject do
     ]
   end
 
+  def cli do
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test,
+        credo: :dev,
+        dialyzer: :dev
+      ]
+    ]
+  end
+
   defp usage_rules do
     [
       file: "AGENTS.md",

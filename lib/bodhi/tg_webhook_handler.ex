@@ -51,6 +51,8 @@ defmodule Bodhi.TgWebhookHandler do
     )
   end
 
+  # Login URL is plain text — sent without parse_mode
+  # to avoid HTML-escaping the URL query string.
   defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do
     with db_user <- Bodhi.Users.get_user!(user.id),
          true <- db_user.is_admin,
@@ -90,18 +92,54 @@ defmodule Bodhi.TgWebhookHandler do
     end
   end
 
+  # Returns {:ok, %Chats.Message{}} or {:error, _},
+  # not the raw Telegex message.
   def send_message(chat_id, text, metadata \\ %{}) do
-    with {:ok, message} <- Bodhi.Telegram.send_message(chat_id, text) do
-      llm_response_id = maybe_create_llm_response(metadata)
+    {chunks, opts} =
+      Bodhi.Telegram.Formatter.format_chunks(text)
 
-      save_message(
-        message,
-        chat_id,
-        message.from,
-        %{llm_response_id: llm_response_id}
-      )
+    send_chunks(chat_id, chunks, opts, metadata)
+  end
+
+  defp send_chunks(_chat_id, [], _opts, _metadata) do
+    {:ok, nil}
+  end
+
+  # Note: if chunk N succeeds but chunk N+1 fails, an
+  # LLM response record exists pointing to only a subset
+  # of the expected messages. This is an acceptable
+  # trade-off — the record is still useful for tracking.
+  defp send_chunks(chat_id, chunks, opts, metadata) do
+    chunks
+    |> Enum.reduce_while(
+      {nil, nil},
+      &send_chunk(chat_id, opts, metadata, &1, &2)
+    )
+    |> extract_result()
+  end
+
+  defp send_chunk(chat_id, opts, metadata, chunk, {_result, llm_id}) do
+    case Bodhi.Telegram.send_message(chat_id, chunk, opts) do
+      {:ok, message} ->
+        llm_id =
+          llm_id || maybe_create_llm_response(metadata)
+
+        result =
+          save_message(
+            message,
+            chat_id,
+            message.from,
+            %{llm_response_id: llm_id}
+          )
+
+        {:cont, {result, llm_id}}
+
+      {:error, _} = error ->
+        {:halt, {error, llm_id}}
     end
   end
+
+  defp extract_result({result, _llm_id}), do: result
 
   defp save_chat(chat, user) do
     chat
