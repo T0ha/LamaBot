@@ -32,6 +32,17 @@ config :posthog,
   api_key: "#{System.get_env("POSTHOG_KEY")}"
 
 if config_env() == :prod do
+  config :bodhi, :tg_mode, :webhook
+
+  webhook_url =
+    System.get_env("TG_WEBHOOK_URL") ||
+      raise "environment variable TG_WEBHOOK_URL is missing"
+
+  config :bodhi, Bodhi.TgHookHandler,
+    webhook_url: webhook_url,
+    secret_token: System.get_env("TG_WEBHOOK_SECRET"),
+    server_port: String.to_integer(System.get_env("TG_WEBHOOK_PORT") || "4001")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

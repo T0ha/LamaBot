@@ -1,8 +1,10 @@
-defmodule Bodhi.TgWebhookHandler do
+defmodule Bodhi.TgUpdateHandler do
   @moduledoc """
-  Telegram Bot API handler
+  Telegram Bot update handler — shared business logic.
+
+  Called by `Bodhi.TgPollingHandler` (dev/test) and
+  `Bodhi.TgHookHandler` (production).
   """
-  use Telegex.Polling.GenHandler
   use BodhiWeb, :verified_routes
 
   require Logger
@@ -11,52 +13,53 @@ defmodule Bodhi.TgWebhookHandler do
   alias Bodhi.Prompts.Prompt
   alias Telegex.Type.{Message, MessageEntity, Update}
 
-  @impl true
-  @spec on_boot :: Telegex.Polling.Config.t()
-  def on_boot do
-    # env_config = Application.get_env(:bodhi, __MODULE__)
-    # delete the webhook and set it again
-    # unless Mix.env() == :test do
-    # {:ok, true} = Telegex.delete_webhook()
-    # end
-
-    # {:ok, bot_user} = Telegex.get_me()
-    # Bodhi.Users.create_or_update_user(bot_user)
-    # set the webhook (url is required)
-    # {:ok, true} = Telegex.set_webhook(env_config[:webhook_url])
-    # specify port for web server
-    # port has a default value of 4000, but it may change with library upgrades
-    # %Telegex.Hook.Config{server_port: env_config[:server_port]}
-    %Telegex.Polling.Config{}
-  end
-
-  @impl true
   @spec on_update(Update.t()) :: :ok
   def on_update(update) do
     Logger.debug(
-      "Update received: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
+      "Update received: " <>
+        inspect(update,
+          pretty: true,
+          printable_limit: :infinity,
+          limit: :infinity
+        )
     )
 
     handle_update(update)
     :ok
   end
 
-  defp handle_update(%Update{message: message}) when not is_nil(message) do
+  defp handle_update(%Update{message: message})
+       when not is_nil(message) do
     handle_message(message)
   end
 
   defp handle_update(%Update{} = update) do
     Logger.warning(
-      "Unhandled update: #{inspect(update, pretty: true, printable_limit: :infinity, limit: :infinity)}"
+      "Unhandled update: " <>
+        inspect(update,
+          pretty: true,
+          printable_limit: :infinity,
+          limit: :infinity
+        )
     )
   end
 
   # Login URL is plain text — sent without parse_mode
   # to avoid HTML-escaping the URL query string.
-  defp handle_message(%Message{text: "/login", entities: _entities, from: user, chat: chat}) do
+  defp handle_message(%Message{
+         text: "/login",
+         entities: _entities,
+         from: user,
+         chat: chat
+       }) do
     with db_user <- Bodhi.Users.get_user!(user.id),
          true <- db_user.is_admin,
-         token <- Phoenix.Token.sign(BodhiWeb.Endpoint, "user auth", db_user.id),
+         token <-
+           Phoenix.Token.sign(
+             BodhiWeb.Endpoint,
+             "user auth",
+             db_user.id
+           ),
          url <- url(~p"/login?#{[token: token]}") do
       Bodhi.Telegram.send_message(chat.id, url)
     else
@@ -70,7 +73,11 @@ defmodule Bodhi.TgWebhookHandler do
     handle_message(%{message | entities: []})
   end
 
-  defp handle_message(%Message{entities: [%MessageEntity{type: "bot_command"}]} = message) do
+  defp handle_message(
+         %Message{
+           entities: [%MessageEntity{type: "bot_command"}]
+         } = message
+       ) do
     Logger.info("Bot command: #{inspect(message, pretty: true)}")
   end
 
@@ -78,9 +85,15 @@ defmodule Bodhi.TgWebhookHandler do
     with {:ok, user} <- Bodhi.Users.create_or_update_user(user),
          {:ok, chat} <- save_chat(chat, user),
          {:ok, message} <- save_message(message, chat.id, user),
-         {:ok, answer, metadata} <- get_answer(message, user.language_code),
-         {:ok, _answer_msg} <- send_message(chat.id, answer, metadata) do
-      Bodhi.PeriodicMessages.create_for_new_user(:followup, {1, :days}, chat.id)
+         {:ok, answer, metadata} <-
+           get_answer(message, user.language_code),
+         {:ok, _answer_msg} <-
+           send_message(chat.id, answer, metadata) do
+      Bodhi.PeriodicMessages.create_for_new_user(
+        :followup,
+        {1, :days},
+        chat.id
+      )
 
       PostHog.capture("message_handled", %{
         distinct_id: user.id,
@@ -94,6 +107,9 @@ defmodule Bodhi.TgWebhookHandler do
 
   # Returns {:ok, %Chats.Message{}} or {:error, _},
   # not the raw Telegex message.
+  @spec send_message(integer(), String.t(), map()) ::
+          {:ok, Bodhi.Chats.Message.t() | nil}
+          | {:error, term()}
   def send_message(chat_id, text, metadata \\ %{}) do
     {chunks, opts} =
       Bodhi.Telegram.Formatter.format_chunks(text)
@@ -118,7 +134,13 @@ defmodule Bodhi.TgWebhookHandler do
     |> extract_result()
   end
 
-  defp send_chunk(chat_id, opts, metadata, chunk, {_result, llm_id}) do
+  defp send_chunk(
+         chat_id,
+         opts,
+         metadata,
+         chunk,
+         {_result, llm_id}
+       ) do
     case Bodhi.Telegram.send_message(chat_id, chunk, opts) do
       {:ok, message} ->
         llm_id =

@@ -215,7 +215,7 @@ If issues arise:
 
 2. Revert to old behavior:
    ```elixir
-   # In TgWebhookHandler
+   # In TgUpdateHandler
    defp get_answer(%_{chat_id: chat_id}, _) do
      messages = Bodhi.Chats.get_chat_messages(chat_id)  # Old way
      {:ok, _answer} = Bodhi.AI.ask_llm(messages)

@@ -20,7 +20,7 @@ defmodule Bodhi.Application do
       {Phoenix.PubSub, name: Bodhi.PubSub},
       # Start the Endpoint (http/https)
       BodhiWeb.Endpoint,
-      Bodhi.TgWebhookHandler,
+      tg_handler(),
       {Finch,
        name: LLM,
        pools: %{
@@ -29,10 +29,20 @@ defmodule Bodhi.Application do
       {Oban, Application.fetch_env!(:bodhi, Oban)}
     ]
 
+    children = Enum.reject(children, &is_nil/1)
+
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Bodhi.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp tg_handler do
+    case Application.get_env(:bodhi, :tg_mode, :polling) do
+      :webhook -> Bodhi.TgHookHandler
+      :polling -> Bodhi.TgPollingHandler
+      :disabled -> nil
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration

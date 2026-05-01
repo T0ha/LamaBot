@@ -78,6 +78,6 @@ defmodule Bodhi.PeriodicMessages do
       prompt_id: prompt_id
     })
 
-    Bodhi.TgWebhookHandler.send_message(chat_id, text)
+    Bodhi.TgUpdateHandler.send_message(chat_id, text)
   end
 end

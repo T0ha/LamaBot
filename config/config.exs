@@ -97,5 +97,6 @@ config :bodhi, Bodhi.Cache,
 
 config :bodhi, :telegram_client, Bodhi.Telegram.TelegexAdapter
 config :bodhi, :llm_provider, Bodhi.OpenRouter
+config :bodhi, :tg_mode, :polling
 
 import_config "#{config_env()}.exs"
