@@ -1,31 +1,48 @@
 defmodule Bodhi.TgHookHandler do
   @moduledoc """
-  Telegram webhook handler for production.
-  Delegates update processing to `Bodhi.TgUpdateHandler`.
+  Registers the Telegram webhook on application start.
+
+  Reads webhook URL and secret token from application
+  config, deletes any existing webhook, then sets a new
+  one pointing to the Phoenix endpoint. The actual HTTP
+  handling is done by
+  `BodhiWeb.TelegramWebhookController`.
   """
-  use Telegex.Hook.GenHandler
+  use GenServer
 
-  @impl true
-  @spec on_boot :: Telegex.Hook.Config.t()
-  def on_boot do
-    env_config =
-      Application.get_env(:bodhi, __MODULE__, [])
+  require Logger
 
-    {:ok, true} = Telegex.delete_webhook()
-
-    {:ok, true} =
-      Telegex.set_webhook(env_config[:webhook_url],
-        secret_token: env_config[:secret_token]
-      )
-
-    %Telegex.Hook.Config{
-      server_port: env_config[:server_port]
-    }
+  @spec start_link(keyword()) :: GenServer.on_start()
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @impl true
-  @spec on_update(Telegex.Type.Update.t()) :: :ok
-  def on_update(update) do
-    Bodhi.TgUpdateHandler.on_update(update)
+  @spec init(keyword()) ::
+          {:ok, map()} | {:stop, {:webhook_setup_failed, term()}}
+  def init(_opts) do
+    config =
+      Application.get_env(:bodhi, __MODULE__, [])
+
+    with {:ok, true} <- Telegex.delete_webhook(),
+         {:ok, true} <-
+           Telegex.set_webhook(config[:webhook_url],
+             secret_token: config[:secret_token]
+           ) do
+      Logger.info(
+        "Telegram webhook registered: " <>
+          "#{config[:webhook_url]}"
+      )
+
+      {:ok, %{}}
+    else
+      error ->
+        Logger.error(
+          "Failed to configure Telegram webhook: " <>
+            "#{inspect(error)}"
+        )
+
+        {:stop, {:webhook_setup_failed, error}}
+    end
   end
 end

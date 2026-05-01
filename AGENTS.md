@@ -43,7 +43,7 @@ The application includes an automatic dialog summarization system to optimize AI
 - **`Bodhi.Release`** (`lib/bodhi/release.ex`) - Release tasks including:
   - `backfill_summaries/1` - Migration tool for historical data (line ~26)
   - Supports dry-run, date ranges, and chat filtering
-- **`Bodhi.TgUpdateHandler`** (`lib/bodhi/tg_webhook_handler.ex`) - Updated at line ~130
+- **`Bodhi.TgUpdateHandler`** (`lib/bodhi/tg_update_handler.ex`) - Updated at line ~130
   - Uses `get_chat_context_for_ai/2` instead of `get_chat_messages/1`
 
 **Context Assembly:**

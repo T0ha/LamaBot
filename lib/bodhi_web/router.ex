@@ -56,10 +56,11 @@ defmodule BodhiWeb.Router do
     get "/p/:slug", PageController, :page
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", BodhiWeb do
-  #   pipe_through :api
-  # end
+  scope "/api/telegram", BodhiWeb do
+    pipe_through :api
+
+    post "/webhook", TelegramWebhookController, :webhook
+  end
 
   # Enables LiveDashboard only for development
   #
