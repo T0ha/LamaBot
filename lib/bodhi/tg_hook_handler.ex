@@ -2,15 +2,17 @@ defmodule Bodhi.TgHookHandler do
   @moduledoc """
   Registers the Telegram webhook on application start.
 
-  Reads webhook URL and secret token from application
-  config, deletes any existing webhook, then sets a new
-  one pointing to the Phoenix endpoint. The actual HTTP
+  The webhook URL is derived from `BodhiWeb.Endpoint.url/0`
+  combined with the Telegram webhook route. The secret
+  token is read from application config. The actual HTTP
   handling is done by
   `BodhiWeb.TelegramWebhookController`.
   """
   use GenServer
 
   require Logger
+
+  @webhook_path "/api/telegram/webhook"
 
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
@@ -24,15 +26,14 @@ defmodule Bodhi.TgHookHandler do
     config =
       Application.get_env(:bodhi, __MODULE__, [])
 
+    webhook_url = BodhiWeb.Endpoint.url() <> @webhook_path
+
     with {:ok, true} <- Telegex.delete_webhook(),
          {:ok, true} <-
-           Telegex.set_webhook(config[:webhook_url],
+           Telegex.set_webhook(webhook_url,
              secret_token: config[:secret_token]
            ) do
-      Logger.info(
-        "Telegram webhook registered: " <>
-          "#{config[:webhook_url]}"
-      )
+      Logger.info("Telegram webhook registered: #{webhook_url}")
 
       {:ok, %{}}
     else
