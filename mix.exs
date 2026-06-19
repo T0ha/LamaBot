@@ -77,7 +77,7 @@ defmodule Bodhi.MixProject do
       {:oban_web, "~> 2.11.1"},
       {:igniter, "~> 0.5", only: [:dev]},
       {:usage_rules, "~> 1.2", only: [:dev]},
-      {:posthog, "~> 2.0"},
+      {:posthog, "~> 2.5.0"},
       {:nebulex, "~> 2.6"},
       {:decorator, "~> 1.4"},
       {:mdex, "~> 0.9.0"},
