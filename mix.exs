@@ -77,7 +77,13 @@ defmodule Bodhi.MixProject do
       {:oban_web, "~> 2.11.1"},
       {:igniter, "~> 0.5", only: [:dev]},
       {:usage_rules, "~> 1.2", only: [:dev]},
-      {:posthog, "~> 2.0"},
+      # Pinned below 2.6.0: every release from 2.6.0 through 2.10.3 bakes
+      # compiled ~r// regexes into a module attribute default
+      # (PostHog.Config's source_code_exclude_patterns), which fails to
+      # compile on OTP 28 because Regex structs now hold a Reference that
+      # can't be escaped into an attribute. Unreported upstream as of
+      # 2026-07-04. Bump past 2.5.x once posthog-elixir fixes this.
+      {:posthog, "~> 2.5.0"},
       {:nebulex, "~> 2.6"},
       {:decorator, "~> 1.4"},
       {:mdex, "~> 0.9.0"},
