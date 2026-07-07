@@ -38,9 +38,41 @@ defmodule Config.RuntimeTest do
       assert config
              |> get_in([:bodhi, Bodhi.Repo, :url]) == database_url
     end
+
+    test "keeps the compile-time Bodhi.Repo pool settings for #{env} " <>
+           "once merged with the DATABASE_URL override" do
+      database_url = "ecto://user:pass@host/#{unquote(env)}_db"
+      System.put_env("DATABASE_URL", database_url)
+
+      compile_time_config = read_compile_time_config(unquote(env))
+
+      merged_repo_config =
+        compile_time_config
+        |> Config.Reader.merge(read_runtime_config(unquote(env)))
+        |> get_in([:bodhi, Bodhi.Repo])
+
+      compile_time_repo_config =
+        get_in(compile_time_config, [:bodhi, Bodhi.Repo])
+
+      assert merged_repo_config[:url] == database_url
+
+      assert merged_repo_config[:pool_size] ==
+               compile_time_repo_config[:pool_size]
+
+      assert merged_repo_config[:pool] == compile_time_repo_config[:pool]
+    end
   end
 
   defp read_runtime_config(env) do
     Config.Reader.read!(@runtime_config_path, env: env, target: :host)
+  end
+
+  defp read_compile_time_config(env) do
+    config = Config.Reader.read!("config/config.exs", env: env, target: :host)
+
+    env_config =
+      Config.Reader.read!("config/#{env}.exs", env: env, target: :host)
+
+    Config.Reader.merge(config, env_config)
   end
 end
