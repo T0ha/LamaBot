@@ -67,6 +67,20 @@ Edit `lib/bodhi/open_router.ex` and modify the `@default_model` attribute:
 
 See all available models at: https://openrouter.ai/models
 
+## Database Configuration
+
+By default, `dev` and `test` connect to the Postgres instance defined in
+`config/dev.exs` / `config/test.exs`. To point either environment at a
+different database, set `DATABASE_URL` before starting the app or running
+tests — it overrides the hardcoded defaults:
+
+```bash
+export DATABASE_URL="ecto://USER:PASS@HOST/DATABASE"
+```
+
+Leave `DATABASE_URL` unset to keep using the defaults. In `prod`,
+`DATABASE_URL` is required, as before.
+
 ## Features
 
 ### Daily Dialog Summarization
