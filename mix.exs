@@ -77,7 +77,11 @@ defmodule Bodhi.MixProject do
       {:oban_web, "~> 2.11.1"},
       {:igniter, "~> 0.5", only: [:dev]},
       {:usage_rules, "~> 1.2", only: [:dev]},
-      {:posthog, "~> 2.0"},
+      # Pinned below 2.6.0: source_code_exclude_patterns stores compiled
+      # Regex literals in a module attribute referenced from a function,
+      # which fails to compile on Erlang/OTP 28 (regexes now compile to
+      # references, which can't be inlined). Bump once upstream fixes this.
+      {:posthog, "~> 2.5.0"},
       {:nebulex, "~> 2.6"},
       {:decorator, "~> 1.4"},
       {:mdex, "~> 0.9.0"},
