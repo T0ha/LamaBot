@@ -67,6 +67,34 @@ Edit `lib/bodhi/open_router.ex` and modify the `@default_model` attribute:
 
 See all available models at: https://openrouter.ai/models
 
+## Database Configuration
+
+By default, `dev` and `test` connect to the Postgres instance defined in
+`config/dev.exs` / `config/test.exs`. To point either environment at a
+different database, set `DATABASE_URL` before starting the app or running
+tests — it overrides the hardcoded defaults:
+
+```bash
+export DATABASE_URL="ecto://USER:PASS@HOST/DATABASE"
+```
+
+Leave `DATABASE_URL` unset to keep using the defaults. In `prod`,
+`DATABASE_URL` is required, as before.
+
+> **Caution:** the root `.env` file (used by `compose.yml`) also defines a
+> `DATABASE_URL`, pointing at the Docker-internal `postgres` hostname. That
+> value is only reachable from inside the compose network. If you export
+> `.env` into your shell (e.g. via `direnv` or `source .env`), a host-run
+> `mix phx.server` / `mix test` will pick it up and try to connect to the
+> unreachable `postgres` host instead of the exposed `localhost:5433`
+> instance. Unset `DATABASE_URL` (or override it explicitly) before running
+> Mix commands on the host.
+>
+> For `test`, setting `DATABASE_URL` replaces the whole `database` value,
+> including the `MIX_TEST_PARTITION` suffix used for parallel CI test runs
+> — don't combine a custom `DATABASE_URL` with partitioned test runs unless
+> you account for that yourself.
+
 ## Features
 
 ### Daily Dialog Summarization
