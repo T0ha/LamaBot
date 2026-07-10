@@ -26,7 +26,7 @@ defmodule Bodhi.TgHookHandlerTest do
         {:error, %Telegex.Error{error_code: 500, description: "boom"}}
       end)
 
-      assert {:error, {:webhook_setup_failed, _reason}} =
+      assert {:error, {{:webhook_setup_failed, _reason}, _child_spec}} =
                start_supervised(TgHookHandler)
     end
 
@@ -37,7 +37,7 @@ defmodule Bodhi.TgHookHandlerTest do
         {:error, %Telegex.Error{error_code: 500, description: "boom"}}
       end)
 
-      assert {:error, {:webhook_setup_failed, _reason}} =
+      assert {:error, {{:webhook_setup_failed, _reason}, _child_spec}} =
                start_supervised(TgHookHandler)
     end
   end
