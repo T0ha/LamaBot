@@ -30,6 +30,22 @@ defmodule Bodhi.Telegram do
     impl().send_chat_action(chat_id, action)
   end
 
+  @doc """
+  Removes the currently configured webhook.
+  """
+  @impl true
+  def delete_webhook do
+    impl().delete_webhook()
+  end
+
+  @doc """
+  Registers a webhook URL to receive updates.
+  """
+  @impl true
+  def set_webhook(url, opts \\ []) do
+    impl().set_webhook(url, opts)
+  end
+
   defp impl do
     Application.get_env(:bodhi, :telegram_client, Bodhi.Telegram.TelegexAdapter)
   end

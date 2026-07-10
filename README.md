@@ -67,6 +67,20 @@ Edit `lib/bodhi/open_router.ex` and modify the `@default_model` attribute:
 
 See all available models at: https://openrouter.ai/models
 
+## Telegram Bot Configuration
+
+In dev/test, the bot receives updates by polling Telegram
+and no extra configuration is required. In production
+(`MIX_ENV=prod`), it switches to webhook mode and requires:
+
+- **Environment Variable:** `TG_WEBHOOK_SECRET` (required)
+  - Secret token Telegram must echo back on the
+    `X-Telegram-Bot-Api-Secret-Token` header of every
+    webhook request; requests without a matching token are
+    rejected with `401`.
+  - Set in `.envrc`: `export TG_WEBHOOK_SECRET=your_random_secret_here`
+  - The app raises on boot in production if this is unset.
+
 ## Features
 
 ### Daily Dialog Summarization

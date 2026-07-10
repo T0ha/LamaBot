@@ -28,9 +28,9 @@ defmodule Bodhi.TgHookHandler do
 
     webhook_url = BodhiWeb.Endpoint.url() <> @webhook_path
 
-    with {:ok, true} <- Telegex.delete_webhook(),
+    with {:ok, true} <- Bodhi.Telegram.delete_webhook(),
          {:ok, true} <-
-           Telegex.set_webhook(webhook_url,
+           Bodhi.Telegram.set_webhook(webhook_url,
              secret_token: config[:secret_token]
            ) do
       Logger.info("Telegram webhook registered: #{webhook_url}")

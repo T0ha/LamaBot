@@ -73,6 +73,49 @@ config :bodhi, Oban,
 - Summaries are idempotent - safe to regenerate
 - Worker processes chats sequentially to respect rate limits
 - Backfill tool supports dry-run mode for cost estimation
+
+#### Telegram Bot Handlers
+
+Update delivery is split across three modules so the same
+business logic runs under both polling (dev/test) and
+webhook (production) transports:
+
+- **`Bodhi.TgUpdateHandler`** (`lib/bodhi/tg_update_handler.ex`) -
+  Shared update handling logic: parses the Telegram update,
+  routes commands, calls the LLM, and sends replies. Both
+  handlers below delegate to `on_update/1` here.
+- **`Bodhi.TgPollingHandler`** (`lib/bodhi/tg_polling_handler.ex`) -
+  `Telegex.Polling.GenHandler` used in dev/test. Long-polls
+  Telegram for updates and forwards each to
+  `Bodhi.TgUpdateHandler.on_update/1`.
+- **`Bodhi.TgHookHandler`** (`lib/bodhi/tg_hook_handler.ex`) -
+  GenServer used in production. On `init/1` it registers the
+  webhook URL (derived from `BodhiWeb.Endpoint.url/0`) via
+  `Bodhi.Telegram.delete_webhook/0` and
+  `Bodhi.Telegram.set_webhook/2`, and stops with
+  `{:webhook_setup_failed, reason}` if either call fails.
+  Updates arrive over HTTP via
+  `BodhiWeb.TelegramWebhookController`
+  (`POST /api/telegram/webhook`), authenticated by
+  `BodhiWeb.Plugs.TelegramWebhookAuth` comparing the
+  `X-Telegram-Bot-Api-Secret-Token` header against the
+  configured secret.
+
+**Configuration:**
+```elixir
+# config/config.exs / config/test.exs / config/runtime.exs
+config :bodhi, :tg_mode, :polling # :polling | :webhook | :disabled
+
+# Only read when :tg_mode is :webhook (production)
+config :bodhi, Bodhi.TgHookHandler, secret_token: "..."
+```
+- `Bodhi.Application` starts `Bodhi.TgPollingHandler`,
+  `Bodhi.TgHookHandler`, or neither based on `:tg_mode`
+  (see `tg_handler/0` in `lib/bodhi/application.ex`).
+- Webhook registration goes through `Bodhi.Telegram` (the
+  same `Bodhi.Behaviours.TelegramClient` indirection used
+  by every other Telegram call), so it can be mocked with
+  `Bodhi.TelegramMock` in tests.
 - Summary messages use `user_id: -1` as a special marker
 
 ## Project guidelines
