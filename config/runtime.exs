@@ -31,6 +31,12 @@ config :telegex,
 config :posthog,
   api_key: "#{System.get_env("POSTHOG_KEY")}"
 
+if config_env() in [:dev, :test] do
+  if database_url = System.get_env("DATABASE_URL") do
+    config :bodhi, Bodhi.Repo, url: database_url
+  end
+end
+
 if config_env() == :prod do
   config :bodhi, :tg_mode, :webhook
 
