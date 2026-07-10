@@ -32,4 +32,16 @@ defmodule Bodhi.Behaviours.TelegramClient do
               chat_id :: integer(),
               action :: String.t()
             ) :: {:ok, boolean()} | {:error, Telegex.Type.error()}
+
+  @doc """
+  Removes the currently configured webhook.
+  """
+  @callback delete_webhook() ::
+              {:ok, boolean()} | {:error, Telegex.Type.error()}
+
+  @doc """
+  Registers a webhook URL to receive updates.
+  """
+  @callback set_webhook(url :: String.t(), opts :: Keyword.t()) ::
+              {:ok, boolean()} | {:error, Telegex.Type.error()}
 end

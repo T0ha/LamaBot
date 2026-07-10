@@ -45,3 +45,4 @@ config :bodhi, Bodhi.Cache,
 
 config :bodhi, :telegram_client, Bodhi.TelegramMock
 config :bodhi, :llm_provider, Bodhi.LLMMock
+config :bodhi, :tg_mode, :disabled

@@ -1,12 +1,12 @@
-defmodule Bodhi.TgWebhookHandlerTest do
+defmodule Bodhi.TgUpdateHandlerTest do
   use Bodhi.ObanCase
 
   alias Telegex.Type.{Chat, Message, MessageEntity, Update, User}
-  alias Bodhi.TgWebhookHandler
+  alias Bodhi.TgUpdateHandler
 
   describe "handle_update/1" do
     test "Any TG update are handled correctly" do
-      assert :ok == TgWebhookHandler.on_update(%Update{update_id: Faker.random_bytes(100)})
+      assert :ok == TgUpdateHandler.on_update(%Update{update_id: Faker.random_bytes(100)})
     end
 
     @tag text: Faker.Lorem.sentence()
@@ -88,7 +88,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
          }}
       end)
 
-      assert :ok == Bodhi.TgWebhookHandler.on_update(update)
+      assert :ok == Bodhi.TgUpdateHandler.on_update(update)
     end
 
     @tag text: Faker.Lorem.sentence()
@@ -106,14 +106,14 @@ defmodule Bodhi.TgWebhookHandlerTest do
         {:error, :service_unavailable}
       end)
 
-      assert :ok == Bodhi.TgWebhookHandler.on_update(update)
+      assert :ok == Bodhi.TgUpdateHandler.on_update(update)
     end
   end
 
   describe "send_message/3" do
     test "empty text returns early without calling Telegram", %{chat: chat} do
       assert {:ok, nil} ==
-               TgWebhookHandler.send_message(chat.id, "")
+               TgUpdateHandler.send_message(chat.id, "")
     end
 
     test "Sends and saves message correctly", %{chat: chat, bot_user: bot_user} do
@@ -140,7 +140,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
       end)
 
       assert {:ok, %Bodhi.Chats.Message{} = message} =
-               TgWebhookHandler.send_message(chat_id, text)
+               TgUpdateHandler.send_message(chat_id, text)
 
       assert message.chat_id == chat_id
       assert message.text == text
@@ -190,7 +190,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
       }
 
       assert {:ok, _msg} =
-               TgWebhookHandler.send_message(
+               TgUpdateHandler.send_message(
                  chat_id,
                  text,
                  metadata
@@ -235,7 +235,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
       end)
 
       assert {:error, _} =
-               TgWebhookHandler.send_message(chat_id, text)
+               TgUpdateHandler.send_message(chat_id, text)
     end
   end
 
@@ -337,7 +337,7 @@ defmodule Bodhi.TgWebhookHandlerTest do
     end
 
     assert :ok ==
-             TgWebhookHandler.on_update(update)
+             TgUpdateHandler.on_update(update)
 
     if db? do
       assert [received | other] =

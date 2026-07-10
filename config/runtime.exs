@@ -38,6 +38,14 @@ if config_env() in [:dev, :test] do
 end
 
 if config_env() == :prod do
+  config :bodhi, :tg_mode, :webhook
+
+  secret_token =
+    System.get_env("TG_WEBHOOK_SECRET") ||
+      raise "environment variable TG_WEBHOOK_SECRET is missing"
+
+  config :bodhi, Bodhi.TgHookHandler, secret_token: secret_token
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

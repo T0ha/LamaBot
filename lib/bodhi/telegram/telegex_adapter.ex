@@ -19,4 +19,14 @@ defmodule Bodhi.Telegram.TelegexAdapter do
   def send_chat_action(chat_id, action) do
     Telegex.send_chat_action(chat_id, action)
   end
+
+  @impl true
+  def delete_webhook do
+    Telegex.delete_webhook()
+  end
+
+  @impl true
+  def set_webhook(url, opts) do
+    Telegex.set_webhook(url, opts)
+  end
 end
