@@ -1,9 +1,9 @@
 defmodule Bodhi.LlmConfigsTest do
   use Bodhi.DataCase, async: false
 
+  alias Bodhi.Cache
   alias Bodhi.LlmConfigs
   alias Bodhi.LlmConfigs.LlmConfig
-  alias Bodhi.Cache
 
   setup do
     Cache.delete_all()
@@ -184,12 +184,11 @@ defmodule Bodhi.LlmConfigsTest do
     end
 
     test "combines filters with sort" do
-      b =
-        insert(:llm_config,
-          name: "Beta-GPT",
-          active: false,
-          position: 0
-        )
+      insert(:llm_config,
+        name: "Beta-GPT",
+        active: false,
+        position: 0
+      )
 
       a =
         insert(:llm_config,
@@ -233,7 +232,7 @@ defmodule Bodhi.LlmConfigsTest do
   describe "get_active_configs/0" do
     test "returns only active configs ordered by position" do
       insert(:llm_config, active: false, position: 0)
-      a1 = insert(:llm_config, active: false, position: 2)
+      insert(:llm_config, active: false, position: 2)
       a0 = insert(:llm_config, active: true, position: 1)
 
       result = LlmConfigs.get_active_configs()

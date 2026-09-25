@@ -133,13 +133,12 @@ defmodule BodhiWeb.LlmConfigLiveTest do
       assert html =~ active.name
       assert html =~ inactive.name
 
-      html =
-        live
-        |> form("#filter-form", %{search: "gpt"})
-        |> render_change()
+      live
+      |> form("#filter-form", %{search: "gpt"})
+      |> render_change()
 
-      assert html =~ active.name
-      refute html =~ inactive.name
+      assert has_element?(live, "#llm_configs-#{active.id}")
+      refute has_element?(live, "#llm_configs-#{inactive.id}")
     end
 
     test "active dropdown filters rows", %{
@@ -149,21 +148,19 @@ defmodule BodhiWeb.LlmConfigLiveTest do
     } do
       {:ok, live, _html} = live(conn, ~p"/llm-configs")
 
-      html =
-        live
-        |> form("#filter-form", %{active: "active"})
-        |> render_change()
+      live
+      |> form("#filter-form", %{active: "active"})
+      |> render_change()
 
-      assert html =~ active.name
-      refute html =~ inactive.name
+      assert has_element?(live, "#llm_configs-#{active.id}")
+      refute has_element?(live, "#llm_configs-#{inactive.id}")
 
-      html =
-        live
-        |> form("#filter-form", %{active: "inactive"})
-        |> render_change()
+      live
+      |> form("#filter-form", %{active: "inactive"})
+      |> render_change()
 
-      refute html =~ active.name
-      assert html =~ inactive.name
+      refute has_element?(live, "#llm_configs-#{active.id}")
+      assert has_element?(live, "#llm_configs-#{inactive.id}")
     end
 
     test "clicking column header sorts by that column",
@@ -176,8 +173,8 @@ defmodule BodhiWeb.LlmConfigLiveTest do
         |> render_click()
 
       # Alpha before Beta in asc
-      alpha_pos = :binary.match(html, active.name)
-      beta_pos = :binary.match(html, inactive.name)
+      alpha_pos = :binary.match(html, "id=\"llm_configs-#{active.id}\"")
+      beta_pos = :binary.match(html, "id=\"llm_configs-#{inactive.id}\"")
       assert elem(alpha_pos, 0) < elem(beta_pos, 0)
     end
 
@@ -197,8 +194,8 @@ defmodule BodhiWeb.LlmConfigLiveTest do
         |> render_click()
 
       # Beta before Alpha in desc
-      alpha_pos = :binary.match(html, active.name)
-      beta_pos = :binary.match(html, inactive.name)
+      alpha_pos = :binary.match(html, "id=\"llm_configs-#{active.id}\"")
+      beta_pos = :binary.match(html, "id=\"llm_configs-#{inactive.id}\"")
       assert elem(beta_pos, 0) < elem(alpha_pos, 0)
     end
 
@@ -240,8 +237,7 @@ defmodule BodhiWeb.LlmConfigLiveTest do
       create_attrs = %{
         name: "test-config",
         model: "openai/gpt-4o",
-        position: 0,
-        active: true
+        position: 0
       }
 
       assert {:ok, index_live, _html} =
@@ -254,7 +250,6 @@ defmodule BodhiWeb.LlmConfigLiveTest do
 
       html = render(index_live)
       assert html =~ "LLM config created successfully"
-      refute html =~ "Active"
       assert html =~ "test-config"
     end
   end

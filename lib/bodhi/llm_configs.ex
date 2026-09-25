@@ -304,4 +304,5 @@ defmodule Bodhi.LlmConfigs do
   end
 
   defp maybe_invalidate_cache({:ok, _}, _attrs), do: :ok
+  defp maybe_invalidate_cache({:error, _}, _attrs), do: :ok
 end

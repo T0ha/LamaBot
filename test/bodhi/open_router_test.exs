@@ -21,12 +21,11 @@ defmodule Bodhi.OpenRouterTest do
           max_tokens: 4096
         )
 
-      c2 =
-        insert(:llm_config,
-          active: false,
-          position: 1,
-          model: "anthropic/claude-3.5-sonnet"
-        )
+      insert(:llm_config,
+        active: false,
+        position: 1,
+        model: "anthropic/claude-3.5-sonnet"
+      )
 
       insert(:llm_config, active: false, position: 2)
 

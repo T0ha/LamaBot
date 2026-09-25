@@ -1,8 +1,8 @@
 defmodule Bodhi.TgWebhookHandlerTest do
   use Bodhi.ObanCase
 
-  alias Telegex.Type.{Chat, Message, MessageEntity, Update, User}
   alias Bodhi.TgWebhookHandler
+  alias Telegex.Type.{Chat, Message, MessageEntity, Update, User}
 
   describe "handle_update/1" do
     test "Any TG update are handled correctly" do
