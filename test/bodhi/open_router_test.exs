@@ -23,7 +23,7 @@ defmodule Bodhi.OpenRouterTest do
 
       c2 =
         insert(:llm_config,
-          active: true,
+          active: false,
           position: 1,
           model: "anthropic/claude-3.5-sonnet"
         )
@@ -32,8 +32,7 @@ defmodule Bodhi.OpenRouterTest do
 
       result = OpenRouter.resolve_config()
 
-      assert length(result) == 2
-      assert Enum.map(result, & &1.id) == [c1.id, c2.id]
+      assert Enum.map(result, & &1.id) == [c1.id]
     end
 
     test "caches active configs on second call" do
@@ -125,7 +124,7 @@ defmodule Bodhi.OpenRouterTest do
       assert decoded["max_tokens"] == 4096
     end
 
-    test "uses models array with fallback for multiple" do
+    test "uses one model when passed a legacy list" do
       configs = [
         build(:llm_config,
           model: "openai/gpt-4o",
@@ -141,14 +140,9 @@ defmodule Bodhi.OpenRouterTest do
       body = OpenRouter.build_body(@messages, @prompt, configs)
       decoded = Jason.decode!(body)
 
-      refute Map.has_key?(decoded, "model")
-
-      assert decoded["models"] == [
-               "openai/gpt-4o",
-               "anthropic/claude-3.5-sonnet"
-             ]
-
-      assert decoded["route"] == "fallback"
+      assert decoded["model"] == "openai/gpt-4o"
+      refute Map.has_key?(decoded, "models")
+      refute Map.has_key?(decoded, "route")
       assert decoded["temperature"] == 0.5
     end
 

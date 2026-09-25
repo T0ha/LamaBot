@@ -170,7 +170,7 @@ defmodule Bodhi.LlmConfigsTest do
       _wrong_name =
         insert(:llm_config,
           name: "Claude",
-          active: true,
+          active: false,
           position: 2
         )
 
@@ -187,7 +187,7 @@ defmodule Bodhi.LlmConfigsTest do
       b =
         insert(:llm_config,
           name: "Beta-GPT",
-          active: true,
+          active: false,
           position: 0
         )
 
@@ -213,7 +213,7 @@ defmodule Bodhi.LlmConfigsTest do
           "sort_dir" => "asc"
         })
 
-      assert Enum.map(result, & &1.id) == [a.id, b.id]
+      assert Enum.map(result, & &1.id) == [a.id]
     end
   end
 
@@ -233,18 +233,49 @@ defmodule Bodhi.LlmConfigsTest do
   describe "get_active_configs/0" do
     test "returns only active configs ordered by position" do
       insert(:llm_config, active: false, position: 0)
-      a1 = insert(:llm_config, active: true, position: 2)
+      a1 = insert(:llm_config, active: false, position: 2)
       a0 = insert(:llm_config, active: true, position: 1)
 
       result = LlmConfigs.get_active_configs()
 
-      assert length(result) == 2
-      assert Enum.map(result, & &1.id) == [a0.id, a1.id]
+      assert Enum.map(result, & &1.id) == [a0.id]
     end
 
     test "returns empty list when no active configs" do
       insert(:llm_config, active: false)
       assert LlmConfigs.get_active_configs() == []
+    end
+  end
+
+  describe "select_llm_config/1" do
+    test "selects one configuration and invalidates the provider cache" do
+      previous = insert(:llm_config, active: true)
+      candidate = insert(:llm_config, active: false)
+      Cache.put(:active_llm_configs, [previous])
+
+      assert {:ok, selected} = LlmConfigs.select_llm_config(candidate.id)
+      assert selected.id == candidate.id
+      refute LlmConfigs.get_llm_config!(previous.id).active
+      assert LlmConfigs.get_active_configs() == [selected]
+      assert Cache.get(:active_llm_configs) == nil
+    end
+
+    test "returns a changeset when the configuration is missing" do
+      selected = insert(:llm_config, active: true)
+
+      assert {:error, %Ecto.Changeset{}} =
+               LlmConfigs.select_llm_config(-1)
+
+      assert LlmConfigs.get_active_configs() == [selected]
+    end
+
+    test "clears the selection to restore the provider default" do
+      insert(:llm_config, active: true)
+      Cache.put(:active_llm_configs, [:stale])
+
+      assert :ok = LlmConfigs.clear_llm_config_selection()
+      assert LlmConfigs.get_active_configs() == []
+      assert Cache.get(:active_llm_configs) == nil
     end
   end
 
@@ -273,7 +304,7 @@ defmodule Bodhi.LlmConfigsTest do
                errors_on(changeset)
     end
 
-    test "invalidates cache when creating active config" do
+    test "creation cannot select a model" do
       Cache.put(:active_llm_configs, [])
 
       attrs =
@@ -281,7 +312,7 @@ defmodule Bodhi.LlmConfigsTest do
 
       {:ok, _} = LlmConfigs.create_llm_config(attrs)
 
-      assert Cache.get(:active_llm_configs) == nil
+      assert Cache.get(:active_llm_configs) == []
     end
 
     test "does not invalidate cache for inactive config" do
@@ -315,14 +346,15 @@ defmodule Bodhi.LlmConfigsTest do
                })
     end
 
-    test "invalidates cache when toggling active" do
+    test "updates cannot select a model" do
       config = insert(:llm_config, active: false)
       Cache.put(:active_llm_configs, [])
 
       {:ok, _} =
         LlmConfigs.update_llm_config(config, %{active: true})
 
-      assert Cache.get(:active_llm_configs) == nil
+      assert Cache.get(:active_llm_configs) == []
+      refute LlmConfigs.get_llm_config!(config.id).active
     end
 
     test "invalidates cache when updating active config" do
@@ -418,7 +450,7 @@ defmodule Bodhi.LlmConfigsTest do
       kept =
         insert(:llm_config,
           model: "openai/gpt-4o",
-          active: true
+          active: false
         )
 
       remote = [
@@ -432,7 +464,7 @@ defmodule Bodhi.LlmConfigsTest do
                false
 
       assert LlmConfigs.get_llm_config!(kept.id).active ==
-               true
+               false
     end
 
     test "handles name collision by falling back to model id" do
@@ -468,9 +500,8 @@ defmodule Bodhi.LlmConfigsTest do
 
     test "handles empty remote list by deactivating all" do
       insert(:llm_config, active: true)
-      insert(:llm_config, active: true)
 
-      assert {:ok, %{created: 0, deactivated: 2}} =
+      assert {:ok, %{created: 0, deactivated: 1}} =
                LlmConfigs.sync_models([])
     end
   end

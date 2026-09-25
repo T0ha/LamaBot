@@ -9,8 +9,8 @@ defmodule Bodhi.LlmConfigs do
   import Ecto.Query, warn: false
 
   alias Bodhi.Cache
-  alias Bodhi.Repo
   alias Bodhi.LlmConfigs.LlmConfig
+  alias Bodhi.Repo
 
   @cache_key :active_llm_configs
 
@@ -45,7 +45,7 @@ defmodule Bodhi.LlmConfigs do
   def get_llm_config!(id), do: Repo.get!(LlmConfig, id)
 
   @doc """
-  Returns all active configs ordered by position.
+  Returns the selected model as a list of zero or one records.
   """
   @spec get_active_configs() :: [LlmConfig.t()]
   def get_active_configs do
@@ -55,12 +55,62 @@ defmodule Bodhi.LlmConfigs do
     |> Repo.all()
   end
 
+  @doc "Selects a model and clears any previous selection."
+  @spec select_llm_config(non_neg_integer()) ::
+          {:ok, LlmConfig.t()} | {:error, Ecto.Changeset.t()}
+  def select_llm_config(id) do
+    result = Repo.transaction(fn -> select_config_in_transaction(id) end)
+
+    case result do
+      {:ok, config} ->
+        invalidate_cache()
+        {:ok, config}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  defp select_config_in_transaction(id) do
+    Repo.update_all(LlmConfig, set: [active: false])
+
+    case Repo.get(LlmConfig, id) do
+      nil ->
+        Repo.rollback(
+          LlmConfig.changeset(%LlmConfig{}, %{})
+          |> Ecto.Changeset.add_error(:id, "model does not exist")
+        )
+
+      config ->
+        config
+        |> Ecto.Changeset.change(active: true)
+        |> Ecto.Changeset.unique_constraint(
+          :active,
+          name: :llm_configs_one_active_index
+        )
+        |> Repo.update()
+        |> rollback_on_error()
+    end
+  end
+
+  defp rollback_on_error({:ok, config}), do: config
+  defp rollback_on_error({:error, changeset}), do: Repo.rollback(changeset)
+
+  @doc "Clears the selected model so OpenRouter uses its default."
+  @spec clear_llm_config_selection() :: :ok
+  def clear_llm_config_selection do
+    Repo.update_all(LlmConfig, set: [active: false])
+    invalidate_cache()
+  end
+
   @doc """
   Creates an LLM config.
   """
   @spec create_llm_config(map()) ::
           {:ok, LlmConfig.t()} | {:error, Ecto.Changeset.t()}
   def create_llm_config(attrs) do
+    attrs = Map.drop(attrs, [:active, "active"])
+
     result =
       %LlmConfig{}
       |> LlmConfig.changeset(attrs)
@@ -76,13 +126,15 @@ defmodule Bodhi.LlmConfigs do
   @spec update_llm_config(LlmConfig.t(), map()) ::
           {:ok, LlmConfig.t()} | {:error, Ecto.Changeset.t()}
   def update_llm_config(%LlmConfig{} = config, attrs) do
+    attrs = Map.drop(attrs, [:active, "active"])
+
     result =
       config
       |> LlmConfig.changeset(attrs)
       |> Repo.update()
 
     with {:ok, _} <- result do
-      if config.active || touches_active?(attrs) do
+      if config.active do
         invalidate_cache()
       end
     end
@@ -251,16 +303,5 @@ defmodule Bodhi.LlmConfigs do
     ArgumentError -> :position
   end
 
-  defp maybe_invalidate_cache({:ok, _}, attrs) do
-    if touches_active?(attrs), do: invalidate_cache()
-  end
-
-  defp maybe_invalidate_cache(_, _), do: :ok
-
-  defp touches_active?(attrs) do
-    active =
-      Map.get(attrs, :active) || Map.get(attrs, "active")
-
-    active == true
-  end
+  defp maybe_invalidate_cache({:ok, _}, _attrs), do: :ok
 end

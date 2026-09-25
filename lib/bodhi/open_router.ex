@@ -2,10 +2,8 @@ defmodule Bodhi.OpenRouter do
   @moduledoc """
   OpenRouter API wrapper.
 
-  Provides unified access to multiple AI models through
-  OpenAI-compatible API. Supports database-backed model
-  configuration with multi-model fallback via OpenRouter's
-  `models` array and `route: "fallback"`.
+  Provides access to a selected OpenRouter model through its
+  OpenAI-compatible API, with `openrouter/free` as the default.
   """
   @behaviour Bodhi.Behaviours.LLMProvider
 
@@ -70,7 +68,7 @@ defmodule Bodhi.OpenRouter do
   Returns active LLM configs from cache or database.
 
   Results are cached for 5 minutes. Returns an empty list
-  when no active configs exist (falls back to default model).
+  when no model is selected (falls back to the default model).
   """
   @spec resolve_config() :: [LlmConfig.t()]
   def resolve_config do
@@ -88,11 +86,8 @@ defmodule Bodhi.OpenRouter do
   @doc """
   Builds the JSON request body for OpenRouter.
 
-  - Single active model: uses `model` key
-  - Multiple active models: uses `models` array +
-    `route: "fallback"`
-  - No DB config: uses `@default_model`
-  - Temperature/max_tokens from highest-priority config
+  Uses the selected model and its optional parameters, or the
+  default model when no configuration is selected.
   """
   @spec build_body([map()], String.t(), [LlmConfig.t()]) ::
           String.t()
@@ -140,17 +135,12 @@ defmodule Bodhi.OpenRouter do
     Map.put(body, :model, @default_model)
   end
 
-  defp put_model_config(body, [single]) do
-    Map.put(body, :model, single.model)
+  defp put_model_config(body, [selected | _]) do
+    Map.put(body, :model, selected.model)
   end
 
-  defp put_model_config(body, configs) do
-    models = Enum.map(configs, & &1.model)
-
-    body
-    |> Map.put(:models, models)
-    |> Map.put(:route, "fallback")
-  end
+  defp put_model_config(body, _configs),
+    do: Map.put(body, :model, @default_model)
 
   defp put_optional_params(body, []) do
     body

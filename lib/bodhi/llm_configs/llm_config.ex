@@ -2,18 +2,15 @@ defmodule Bodhi.LlmConfigs.LlmConfig do
   @moduledoc """
   Schema for LLM model configurations.
 
-  Each config represents a model that can be used via
-  OpenRouter. Multiple configs can be active simultaneously
-  -- their `position` determines fallback order (lower =
-  higher priority). Active configs are sent as OpenRouter's
-  `models` array with `route: "fallback"`.
+  Each config represents an OpenRouter model. At most one
+  configuration can be active at a time.
   """
 
   use Ecto.Schema
   import Ecto.Changeset
 
   @allowed_fields ~w(
-    name model position temperature max_tokens active
+    name model position temperature max_tokens
   )a
 
   @required_fields ~w(name model position)a

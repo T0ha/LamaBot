@@ -18,7 +18,7 @@ Bodhi supports multiple AI providers that can be switched via configuration.
 
 #### OpenRouter (Default)
 - **Module:** `Bodhi.OpenRouter`
-- **Default Model:** `deepseek/deepseek-r1-0528:free`
+- **Default Model:** `openrouter/free` (when no model is selected in admin)
 - **Environment Variable:** `OPENROUTER_API_KEY`
 - **Website:** https://openrouter.ai/
 
@@ -33,10 +33,10 @@ To switch AI providers, update `config/config.exs`:
 
 ```elixir
 # Use OpenRouter (default)
-config :bodhi, :ai_client, Bodhi.OpenRouter
+config :bodhi, :llm_provider, Bodhi.OpenRouter
 
 # Use Google Gemini
-config :bodhi, :ai_client, Bodhi.Gemini
+config :bodhi, :llm_provider, Bodhi.Gemini
 ```
 
 ### Setting Up API Keys
@@ -51,21 +51,13 @@ config :bodhi, :ai_client, Bodhi.Gemini
 
 3. Reload environment: `direnv allow` (if using direnv)
 
-### Changing OpenRouter Model
+### Selecting an OpenRouter Model
 
-Edit `lib/bodhi/open_router.ex` and modify the `@default_model` attribute:
-
-```elixir
-@default_model "deepseek/deepseek-r1-0528:free"  # Current default
-
-# Other popular models:
-# @default_model "anthropic/claude-3.5-sonnet"
-# @default_model "openai/gpt-4-turbo"
-# @default_model "meta-llama/llama-3.1-70b-instruct"
-# @default_model "google/gemini-pro-1.5"
-```
-
-See all available models at: https://openrouter.ai/models
+In the admin UI, open **LLM Configurations**, choose **Sync Models** to
+load available OpenRouter models, then edit a model to set optional
+temperature and max token values. Choose **Use this model** to select one
+model for the bot. Choose **Use default model** to clear the selection and
+return to `openrouter/free`.
 
 ## Features
 

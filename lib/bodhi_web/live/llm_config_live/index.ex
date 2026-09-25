@@ -38,6 +38,21 @@ defmodule BodhiWeb.LlmConfigLive.Index do
         </:actions>
       </.header>
 
+      <section id="current-model" class="my-4 rounded-lg border p-4">
+        <h2 class="font-semibold">Current model</h2>
+        <p :if={@selected_model}>
+          {@selected_model.name} ({@selected_model.model})
+        </p>
+        <p :if={!@selected_model}>Default model: openrouter/free</p>
+        <button
+          :if={@selected_model}
+          id="clear-model-selection"
+          type="button"
+          phx-click="clear_selection"
+          class="underline"
+        >Use default model</button>
+      </section>
+
       <div class="flex items-center gap-4 my-4">
         <form
           id="filter-form"
@@ -161,7 +176,7 @@ defmodule BodhiWeb.LlmConfigLive.Index do
                     )
                   ]}>
                     {if cfg.active,
-                      do: "Active",
+                      do: "Selected",
                       else: "Inactive"}
                   </span>
                 </div>
@@ -174,12 +189,12 @@ defmodule BodhiWeb.LlmConfigLive.Index do
                     Edit
                   </.link>
                   <.link
-                    phx-click="toggle_active"
+                    :if={!cfg.active}
+                    id={"select-model-#{cfg.id}"}
+                    phx-click="select_model"
                     phx-value-id={cfg.id}
                   >
-                    {if cfg.active,
-                      do: "Deactivate",
-                      else: "Activate"}
+                    Use this model
                   </.link>
                   <.link
                     phx-click={
@@ -241,6 +256,7 @@ defmodule BodhiWeb.LlmConfigLive.Index do
      |> assign(:page, %{title: "LLM Configurations"})
      |> assign(:syncing, false)
      |> assign(:params, @default_params)
+     |> assign(:selected_model, List.first(LlmConfigs.get_active_configs()))
      |> apply_filters()}
   end
 
@@ -318,18 +334,44 @@ defmodule BodhiWeb.LlmConfigLive.Index do
     config = LlmConfigs.get_llm_config!(id)
     {:ok, _} = LlmConfigs.delete_llm_config(config)
 
-    {:noreply, apply_filters(socket)}
+    selected_model =
+      if socket.assigns.selected_model &&
+           socket.assigns.selected_model.id == config.id do
+        nil
+      else
+        socket.assigns.selected_model
+      end
+
+    {:noreply,
+     socket
+     |> assign(:selected_model, selected_model)
+     |> apply_filters()}
   end
 
-  def handle_event("toggle_active", %{"id" => id}, socket) do
-    config = LlmConfigs.get_llm_config!(id)
+  def handle_event("select_model", %{"id" => id}, socket) do
+    case LlmConfigs.select_llm_config(String.to_integer(id)) do
+      {:ok, config} ->
+        {:noreply,
+         socket
+         |> assign(:selected_model, config)
+         |> apply_filters()
+         |> put_flash(:info, "#{config.name} selected")}
 
-    {:ok, _updated} =
-      LlmConfigs.update_llm_config(config, %{
-        active: !config.active
-      })
+      {:error, changeset} ->
+        {:noreply,
+         put_flash(socket, :error, "Could not select model: #{inspect(changeset.errors)}")}
+    end
+  end
 
-    {:noreply, apply_filters(socket)}
+  def handle_event("clear_selection", _params, socket) do
+    case LlmConfigs.clear_llm_config_selection() do
+      :ok ->
+        {:noreply,
+         socket
+         |> assign(:selected_model, nil)
+         |> apply_filters()
+         |> put_flash(:info, "Using the default model")}
+    end
   end
 
   defp apply_filters(socket) do

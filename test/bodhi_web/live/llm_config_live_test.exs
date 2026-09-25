@@ -67,21 +67,36 @@ defmodule BodhiWeb.LlmConfigLiveTest do
              )
     end
 
-    test "toggles active status", %{
+    test "shows and clears the current model selection", %{
       conn: conn,
       llm_config: config
     } do
       {:ok, live, _html} = live(conn, ~p"/llm-configs")
 
-      assert live
-             |> element(
-               "#llm_configs-#{config.id} a",
-               "Deactivate"
-             )
-             |> render_click()
+      assert has_element?(live, "#current-model", config.model)
 
-      html = render(live)
-      assert html =~ "Activate"
+      live
+      |> element("#clear-model-selection")
+      |> render_click()
+
+      assert has_element?(live, "#current-model", "openrouter/free")
+      refute has_element?(live, "#clear-model-selection")
+    end
+
+    test "selects another model and refreshes the selected state", %{
+      conn: conn,
+      llm_config: current
+    } do
+      candidate = insert(:llm_config, active: false)
+      {:ok, live, _html} = live(conn, ~p"/llm-configs")
+
+      live
+      |> element("#select-model-#{candidate.id}")
+      |> render_click()
+
+      assert has_element?(live, "#current-model", candidate.model)
+      assert has_element?(live, "#llm_configs-#{candidate.id}", "Selected")
+      refute has_element?(live, "#llm_configs-#{current.id}", "Selected")
     end
   end
 
@@ -216,6 +231,8 @@ defmodule BodhiWeb.LlmConfigLiveTest do
     test "creates new config with valid data", %{conn: conn} do
       {:ok, live, _html} = live(conn, ~p"/llm-configs/new")
 
+      refute has_element?(live, "#llm-config-form input[name='llm_config[active]']")
+
       assert live
              |> form("#llm-config-form", llm_config: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
@@ -237,6 +254,7 @@ defmodule BodhiWeb.LlmConfigLiveTest do
 
       html = render(index_live)
       assert html =~ "LLM config created successfully"
+      refute html =~ "Active"
       assert html =~ "test-config"
     end
   end
