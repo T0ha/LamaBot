@@ -7,8 +7,8 @@ defmodule Bodhi.Factory do
 
   alias Bodhi.Chats.{Chat, LlmResponse, Message, Summary}
   alias Bodhi.LlmConfigs.LlmConfig
-  alias Bodhi.Users.User
   alias Bodhi.Prompts.Prompt
+  alias Bodhi.Users.User
 
   def chat_factory do
     id = Faker.random_between(1_000_000, 1_000_000_000)

@@ -48,11 +48,9 @@ defmodule BodhiWeb.LlmConfigLive.Form do
           type="number"
           label="Max Tokens"
         />
-        <.input
-          field={@form[:active]}
-          type="checkbox"
-          label="Active"
-        />
+        <p class="my-4 text-sm text-zinc-500">
+          Save this model, then select it from the model list.
+        </p>
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">
             Save Config
